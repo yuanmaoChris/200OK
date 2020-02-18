@@ -11,5 +11,20 @@
 
 <body>
     <h1>home</h1>
+<ul>
+    {% for user in users %}
+    	<li>{{ user }}</li>
+	{% endfor %}
+</ul>
+<ul>
+    {% for request in requests %}
+    	<li>{{ request }}</li>
+	{% endfor %}
+</ul>
+<ul>
+    {% for friend in friends %}
+    	<li>{{ friend }}</li>
+	{% endfor %}
+</ul>
 </body>
 </html>
