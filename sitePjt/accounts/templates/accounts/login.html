@@ -11,14 +11,11 @@
   <body>
     <div class="login-box">
       <!--<img src='background5.png' class="avatar" alt="Avatar Image">-->
-      <img src='background3.png' class='background',alt='background image'>
-      <form id='signinForm'>
-        <!-- USERNAME INPUT -->
-        <label for="username">Username</label>
-        <input type="text" placeholder="Enter Username">
-        <!-- PASSWORD INPUT -->
-        <label for="password">Password</label>
-        <input type="password" placeholder="Enter Password">
+
+      <img src="{% static 'accounts/images/background3.png' %}" class='background',alt='background image'>
+      <form id='signinForm' method="post">
+        {% csrf_token  %}
+        {{ form.as_p }}
         <input type="submit" value="Log In">
         <a href="#">Lost your Password?</a><br>
         <a href="#">Don't have An account?</a>

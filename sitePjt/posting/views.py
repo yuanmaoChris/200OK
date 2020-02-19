@@ -7,6 +7,8 @@ from django.utils.timezone import now
 from datetime import datetime
 User = get_user_model()
 
+
+
 from .models import Post, Follow
 # Create your views here.
 def createPost(request, username):
@@ -98,3 +100,4 @@ def editPost(request, username, pk):
         #Check length <= max content length(200)
 
     return HttpResponseRedirect(reverse('posting:view my post', args=(username,)))
+    
