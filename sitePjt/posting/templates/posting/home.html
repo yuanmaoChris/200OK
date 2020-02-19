@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+    <title>try</title>
+
+
+</head>
+
+<body>
+    <h1>home</h1>
+    <h3>User Name: {{ user.username }}</h3>
+    <form action="{% url 'posting:create post' user%}" method="get">
+        <button type="submit">New Post</button>
+    </form>
+    <form action="{% url 'posting:view my post' user%}" method="get">
+        <button type="submit">My Post</button>
+    </form>
+    {% if latest_post_list  %}
+    <ul>
+        {% for post in latest_post_list %}
+        <li>{{ post.content }}</li>
+        <li><a href="{% url 'posting:home page' post.user_id %}">{{ post.user_id }}</a> 
+            <form action="{% url 'posting:home page' post.user_id%}" method="post">
+                {% csrf_token %}
+                <button type="submit">Follow</button>
+            </form>
+        </li>
+        <li>{{ post.visibility }}</li>
+        <li>-----Posted on:{{ post.pub_date }}</li><br>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+
+</html>

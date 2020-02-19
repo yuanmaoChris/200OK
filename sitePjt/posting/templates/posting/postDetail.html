@@ -1,0 +1,28 @@
+<h1>{{ user.username }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'posting:edit post' user.username post.id %}" method="post">
+    {% csrf_token %}
+    <p>
+    <h4>Content</h4>
+    <input type="text" name="content" value ="{{ post.content }}"><br>
+    <h4>Visibility</h4>
+    <input type="radio" id="PUBL" name="visibility" value="PUBL">
+    <label for="PUBL">Public</label><br>
+    <input type="radio" id="PRTS" name="visibility" value="PRTS">
+    <label for="PRTS">Private</label><br>
+    <input type="radio" id="PRTF" name="visibility" value="PRTF">
+    <label for="PRTF">Private to friends</label><br>
+    <input type="radio" id="PTFF" name="visibility" value="PTFF">
+    <label for="PTFF">Private to friends of friends</label><br>
+    <input type="radio" id="PTFL" name="visibility" value="PTFL">
+    <label for="PTFL">Private to local friends</label><br>
+    </p>
+    <input type="submit" value="Submit">
+</form>
+
+<form action="{% url 'posting:delete post' user.username post.id %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Delete">
+</form>

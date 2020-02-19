@@ -1,0 +1,8 @@
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'posting:post result' user %}" method="post">
+    {% csrf_token %}
+    <h3>Content</h3>
+    <input type="text" name="content">
+    <input type="submit" value="Post">
+</form>
