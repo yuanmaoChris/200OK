@@ -1,0 +1,88 @@
+/* Style for Setting background */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #003333;
+    font-family: sans-serif;
+    height: 100vh;
+  }
+/*Style for login container*/
+  .login-box {
+    display: block;
+    width: 320px;
+    height: 420px;
+    background: #47C48C;
+    color: #fff;
+    top: 50%;
+    left: 30%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    padding: 70px 30px;
+  }
+
+  .login-box .background{
+    width: 640px;
+    height: 560px;
+    top: 50%;
+    right: -290.5%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    padding: 70px 30px;
+  }
+  
+  .login-box label {
+    margin: 0;
+    padding: 0;
+    font-weight: bold;
+    display: block;
+  }
+  
+  .login-box input {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .login-box input[type="text"], .login-box input[type="password"] {
+    border: none;
+    border-bottom: 1px solid #fff;
+    background: transparent;
+    outline: none;
+    height: 40px;
+    color: #fff;
+    font-size: 16px;
+  }
+  
+  .login-box input[type="submit"] {
+    border: none;
+    outline: none;
+    height: 40px;
+    background: #333333;
+    color: #fff;
+    font-size: 18px;
+    border-radius: 20px;
+  }
+  
+  .login-box input[type="submit"]:hover {
+    cursor: pointer;
+    background: #ffc107;
+    color: #000;
+  }
+  .login-box ::placeholder  { 
+    color: #333333;
+    opacity: 1;
+  }
+  
+  .login-box a {
+    text-decoration: none;
+    font-size: 12px;
+    line-height: 20px;
+    color: #333333;
+  }
+  
+  .login-box a:hover {
+    color: #fff;
+  }
+
+
