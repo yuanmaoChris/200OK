@@ -5,25 +5,67 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <title>Sing Up</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <!--- <link rel="stylesheet" type="text/css" media="screen" href="signup.css" />-->
+      <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #003333;
+        font-family: sans-serif;
+        text-align: center;
+        height: 100vh;
+        
+      }
+
+      .signup-box {
+        padding: 16px;
+        color: white;
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+
+      }
+      /* Full-width input fields */
+      input[type=text], input[type=password], input[type=url] ,input[type=email] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 22px 0;
+        display: inline-block;
+        border: none;
+        background: #f1f1f1;
+      }
+      input[type=text], input[type=password] ,input[type=url], input[type=email] {
+        background-color: #ddd;
+        outline: none;
+        }
+      /* Set a style for all buttons */
+      button {
+        background-color: #333333;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        opacity: 0.9;
+      }
+      button:hover {
+        opacity:1;
+      }
+      /* Extra styles for the cancel button */
+      .cancelbtn {
+        padding: 14px 20px;
+        background-color: #ffc107;
+      }
+      /* Float cancel and signup buttons and add an equal width */
+      .cancelbtn, .signupbtn {
+        float: left;
+        width: 50%;
+      }
+
+</style>
   </head>
   <body>
       <div class="signup-box" id="signupForm">
-        <!---
-        <form action="/action_page.php" class="form-container">
-            <h1>Sign Up</h1>
-            <label for="text"><b>Username</b></label>
-            <input type="text" placeholder="Enter Username" name="username" required>
-            <label for="psw"><b>Password</b></label>
-            <input type="password" placeholder="Enter Password" name="psw" required>
-            <label for="psw-repeat"><b>Repeat Password</b></label>
-            <input type="password" placeholder="Repeat Password" name="psw-repeat" required>  
-            <div class="clearfix"></div>
-            </div>
-            
-            </form>
-                -->
-
             <form action="{% url 'accounts:sign up' %}" class="form-container" method="POST">
               {% csrf_token %}
               <h1>Sign Up</h1>
