@@ -11,15 +11,138 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 
-from .models import Post
+from .models import Post, Comment
+from .forms import PostForm, PostNewForm, CommentForm
 from .serializers import *
 
 
 
 from .models import Post, Follow
+
+
+def ViewPublicPosts(request):
+    public_posts = Post.objects.filter(visibility='PUBLIC')
+    form = PostNewForm(request.POST or None)
+    context = {
+        'public_post_list': public_posts,
+        'form': form,
+    }
+
+    if request.method == 'POST':
+        if form.is_valid():
+            #form.save()
+            form_data = form.cleaned_data
+            form.cleaned_data['author'] = request.user
+            Post.objects.create(**form.cleaned_data)
+        else:
+            print(form.errors)
+        return render(request, "posting/publicPosts.html", context)
+
+    return render(request, "posting/publicPosts.html", context)
+
+
+def addComment(request):
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        form_data = form.cleaned_data
+        form.cleaned_data['author'] = request.user
+        Comment.objects.create(**form.cleaned_data)
+    else:
+        print(form.errors)
+    context = {}
+    return render(request, "{% url 'posting:view post details' form.cleaned_data['post_id'] %}", context)
+
+
+def DeletePost(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+        post.delete()
+    except Exception as e:
+        print(e)
+
+    return redirect('/service/posts/')
+
+def ViewPostDetails(request, post_id):
+    post = Post.objects.get(id=post_id)
+    comments = Comment.objects.filter(post=post)
+    context = {
+        'post': post,
+        'comment_list': comments,
+    }
+    return render(request, "posting/postDetails.html", context)
+
+
+def AddPostComment(request, post_id):
+    form = CommentForm(request.POST or None)
+    post = Post.objects.get(id=post_id)
+
+    context = {
+        "query": "addComment",
+        "success": None,
+        "message": None,
+    }
+    if form.is_valid():
+        form_data = form.cleaned_data
+        form_data['user'] = request.user
+        form_data['post'] = post
+        comment = Comment(post=post, author=request.user, content=form_data['content'])
+        comment.save()
+        context['success'] = True
+        context['message'] = "Comment Added"
+    else:
+        print(form.errors)
+        context['success'] = False
+        context['message'] = "Comment not Allowed"
+    
+    return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
+
+def DeletePostComment(request, post_id, comment_id):
+    context = {
+        "query": "deleteComment",
+        "success": None,
+        "message": None,
+    }
+    try :
+        comment = Comment(id=comment_id)
+        comment.delete()
+        context['success'] = True
+        context['message'] = "Comment deleted"
+    except:
+        context['success'] = False
+        context['message'] = "Delete not Allowed"
+
+    return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
+
+
+def ViewUserPosts(request, author):
+
+    return "User posts"
+
 # Create your views here.
-def createPost(request, username):
-    return render(request, 'posting/creatingPost.html', {})
+def createPost(request):
+    form = PostNewForm(request.POST or None)
+    if form.is_valid():
+        #form.save()
+        form_data = form.cleaned_data
+        form.cleaned_data['author'] = request.user
+        Post.objects.create(**form.cleaned_data)
+    else:
+        print(form.errors)
+    context = {
+        'form': form
+    }
+    return render(request, 'posting/newPost.html', context)
+
+
+
+
+
+
+
+
+
+
+
 
 def post(request, username):
     try:
@@ -36,25 +159,11 @@ def post(request, username):
             'error_message': "Failed to create a new post, no content found.",
         })
     else:
-        post = Post(content=content, user_id=request.user)
+        post = Post(content=content, author=request.user)
         #Check length <= max content length(200)
         post.save()
 
     return HttpResponseRedirect(reverse('posting:home page', args=(username,)))
-
-
-def deletePost(request, username, pk):
-    try:
-        user = get_object_or_404(User, username=username)
-    except:
-        return render(request, 'postting/myPost.html', {
-            'error_message': "Failed to create a new post, user info does not match.",
-        })
-    else:
-        post = Post.objects.get(id=pk)
-        post.delete()
-
-    return HttpResponseRedirect(reverse('posting:view my post', args=(username,)))
 
 
 class myPostView(generic.ListView):
@@ -64,7 +173,7 @@ class myPostView(generic.ListView):
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.request.user)
-        return Post.objects.filter(user_id=user.id)
+        return Post.objects.filter(author=user.id)
 
 
 class MyHomeView(generic.ListView):
@@ -86,6 +195,16 @@ class postDetailView(generic.DetailView):
     model = Post
     template_name = 'posting/postDetail.html'
 
+
+def postDetailsView(request, pk):
+    form = PostForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+    
+    context = {
+        'form': form
+    }
+    return render(request, 'posting/post_detail.html', context)
 
 def editPost(request, username, pk):
     try:

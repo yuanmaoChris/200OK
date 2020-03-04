@@ -1,0 +1,43 @@
+{% extends 'posting/base.html' %}
+
+{% block content %}
+    <h1> In App: All Public Posts</h1>
+    {% if post %}
+            <div>
+                <div>
+                    <h4>{{ post.author }} <small><i>Posted {{ post.pub_date|timesince }} ago</i></small></h4>
+                    <p>{{ post.content }}</p>
+                </div>
+            </div>
+
+            <form action="{% url 'posting:add comment' post.id %}" method="POST">
+                {% csrf_token %}
+                <input type="text" name="content"></input>
+                <input type="submit" value="Comment"></input>
+            </form>
+
+            <a href="{% url 'posting:view public posts' %}">Home</a><br>
+            {% if comment_list %}
+                <ul>
+                    {% for comment in comment_list %}
+                    <li>
+                        {{ comment.content }}
+                        {{ comment.author.displayName }}
+                        {{ comment.pub_date }}
+                        {% if comment.author == request.user %}
+                            <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" value="Delete">
+                            </form>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if post.author == request.user %}
+                <a href="{% url 'posting:delete post' post.id %}">Delete</a>
+            {% endif %}
+    {% else %}
+        <p>Error. Post lost.</p>
+    {% endif %}
+{% endblock %}

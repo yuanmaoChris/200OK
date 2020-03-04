@@ -1,0 +1,31 @@
+{% extends 'posting/base.html' %}
+
+{% block content %}
+    <h1> In App: All Public Posts {{ request.user.displayName }}</h1>
+    {% if public_post_list %}
+        <ul>
+            {% for post in public_post_list %}
+            <li>
+                <div>
+                    <div>
+                        <h4>{{ post.author.displayName }} <small><i>Posted {{ post.pub_date|timesince }} ago</i></small></h4>
+                        <p>{{ post.content }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'posting:view post details' post.id %}">Detail</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No Public posts... Go make some!</p>
+    {% endif %}
+{% endblock %}
+  
+{% block newPost %}
+{% if request.user %}
+<form action="." method="POST">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Post">
+</form>
+{% endif %}
+{% endblock %}

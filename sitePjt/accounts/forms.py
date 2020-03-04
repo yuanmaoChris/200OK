@@ -1,24 +1,23 @@
 from django import forms
+from .models import Author
 from django.contrib.auth import (
     authenticate,
     get_user_model
 )
 
 User=get_user_model()
-
 class UserLoginForm(forms.Form):
-    username = forms.CharField()
+    email = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
 
     def clean(self, *args, **kwargs):
-        username = self.cleaned_data.get('username')
+        email = self.cleaned_data.get('email')
         password = self.cleaned_data.get('passowrd')
 
-        print(username)
-        if username and password:
-            user=authenticate(username=username,password=password)
+        if email and password:
+            user=authenticate(email=email,password=password)
             if not user:
-                raise forms.ValidationError('Username does not exist')
+                raise forms.ValidationError('email does not exist')
             if not user.check_password(password):
                 raise forms.ValidationError('Incorrect password')
         return super(UserLoginForm,self).clean(*args, **kwargs)
@@ -31,9 +30,12 @@ class UserRegisterForm(forms.ModelForm):
     class Meta:
         model=User
         fields=[
-            'username',
             'email',
-            'password'
+            'displayName',
+            'password',
+            'url',
+            'github',
+            'bio',
         ]
 
     def clean(self,*args,**kwargs):
@@ -42,3 +44,10 @@ class UserRegisterForm(forms.ModelForm):
         if valid.exists():
             raise forms.ValidationError("Email already being used")
         return super(UserRegisterForm,self).clean(*args,**kwargs)
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            'email',
+        ]

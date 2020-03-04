@@ -7,19 +7,25 @@ from django.contrib.auth import (
     logout
 )
 
-from .forms import UserLoginForm, UserRegisterForm
+from .forms import UserLoginForm, UserProfileForm
+from .models import Author
+from .admin import UserCreationForm
 
 def login_view(request):
     next = request.GET.get('next')
     form = UserLoginForm(request.POST or None)
     if form.is_valid():
-        username = form.cleaned_data.get('username')
+        print(form.cleaned_data)
+        email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
-        user = authenticate(username=username, password=password)
-        login(request, user)
+        user = authenticate(email=email, password=password)
+        if user:
+            login(request, user)
+        else:
+            print("user does not exist")
         if next:
             return redirect(next)
-        return redirect('/')
+        return redirect('/service/posts/')
 
     context = {
         'form': form,
@@ -28,18 +34,19 @@ def login_view(request):
 
 def register_view(request):
     next = request.GET.get('next')
-    form = UserRegisterForm(request.POST or None)
-    if form.is_valid():
-        user = form.save(commit=False)
-        password = form.cleaned_data.get('password')
-        user.set_password(password)
-        user.save()
-        new_user = authenticate(username=user.username, password=password)
-        login(request, user)
-        if next:
-            return redirect(next)
-        return redirect('/')
-
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password1')
+            new_user = authenticate(email=email, password=password)
+            login(request, new_user)
+            if next:
+                return redirect(next)
+            return redirect('/service/posts/')
+    else:
+        form = UserCreationForm()
     context = {
         'form': form,
     }
@@ -47,4 +54,13 @@ def register_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('/')
+    return redirect('/accounts/login/')
+
+
+def profile_view(request):
+    form = UserProfileForm(request.GET or None)
+
+    context = {
+        'form': form,
+    }
+    return render(request, "accounts/myProfile.html", context)

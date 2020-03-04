@@ -1,44 +1,3 @@
-<!--
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
-    <title>try</title>
-
-
-</head>
-
-<body>
-    <h1>home</h1>
-    <h3>User Name: {{ user.username }}</h3>
-    <form action="{% url 'posting:create post' user%}" method="get">
-        <button type="submit">New Post</button>
-    </form>
-    <form action="{% url 'posting:view my post' user%}" method="get">
-        <button type="submit">My Post</button>
-    </form>
-    {% if latest_post_list  %}
-    <ul>
-        {% for post in latest_post_list %}
-        <li>{{ post.content }}</li>
-        <li><a href="{% url 'posting:home page' post.user_id %}">{{ post.user_id }}</a> 
-            <form action="{% url 'posting:home page' post.user_id%}" method="post">
-                {% csrf_token %}
-                <button type="submit">Follow</button>
-            </form>
-        </li>
-        <li>{{ post.visibility }}</li>
-        <li>-----Posted on:{{ post.pub_date }}</li><br>
-        {% endfor %}
-    </ul>
-    {% endif %}
-</body>
-
-</html>-->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -55,13 +14,13 @@
     <nav class="navbar navbar-expand-sm bg-info navbar-dark">
         <ul class="navbar-nav">
             <li class="nav-item active">
-                <a class="nav-link" href="#">Login Out</a>
+                <a class="nav-link" href="/accounts/logout/">Login Out</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Friends</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">My Profile</a>
+                <a class="nav-link" href="/accounts/myProfile/">My Profile</a>
             </li>
         </ul>
     </nav>
@@ -93,6 +52,7 @@
                         <div class="post">
                             <button type="submit" class="btn btn-primary float-right btn-lg"
                                 style="margin-top:20px">Post</button>
+                            <a href="{% url 'posting:new post' %}">New Post</a>
                         </div>
                     </div>
                     </form>
@@ -100,42 +60,22 @@
                     <!-- my Posts part-->
                     <div class="post-part" style="margin-top: 100px">
                         <h2>My Posts</h2>
-                        <p>Media objects can also be nested (a media object inside a media object):</p><br>
-                        <div class="media border p-3 ">
-                            {% load static %}
-                            <img herf="{% static 'posting/images/background5.png' %}" alt="John Doe" class="mr-3 mt-3 rounded-circle"
-                                style="width:60px;">
-                            <div class="media-body">
-                                <h4>John Doe <small><i>Posted on February 19, 2016</i></small></h4>
-                                <p>Hello World.</p>
-                                <img class="card-img-top" src="background5.png" alt="Card image" style="width:100%">
-                                <div class="media p-3">
-                                    <img src="background5.png" alt="Jane Doe" class="mr-3 mt-3 rounded-circle"
-                                        style="width:45px;">
-                                    <div class="media-body">
-                                        <h4>Jane Doe <small><i>Posted on February 20 2016</i></small></h4>
-                                        <p>How to demo a nested media</p>
-                                    </div>
+                        {% if latest_post_list %}
+                        <ul class='post-lists'>
+                            {% for post in latest_post_list %}
+                            <li>
+                            <div class="media">
+                                <div class="media-body">
+                                    <h4>{{ post.user_id }} <small><i>Posted {{ post.pub_date|timesince }} ago</i></small></h4>
+                                    <p>{{ post.content }}</p>
                                 </div>
                             </div>
-                        </div>
-                        <div class="media border p-3 ">
-                            <img src="background5.png" alt="John Doe" class="mr-3 mt-3 rounded-circle"
-                                style="width:60px;">
-                            <div class="media-body">
-                                <h4>John Doe <small><i>Posted on February 19, 2016</i></small></h4>
-                                <p>Hello World.</p>
-
-                                <div class="media p-3">
-                                    <img src="background5.png" alt="Jane Doe" class="mr-3 mt-3 rounded-circle"
-                                        style="width:45px;">
-                                    <div class="media-body">
-                                        <h4>Jane Doe <small><i>Posted on February 20 2016</i></small></h4>
-                                        <p>How to demo a nested media</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            <a href="{% url 'posting:post detail' post.id %}">Detail</a>
+                            {% endfor %}
+                            </li>
+                        </ul>
+                        {% endif %}
+                    
                     </div>
                 </div>
             </div>
