@@ -1,0 +1,80 @@
+{% extends 'posting/base.html' %}
+
+
+
+{% block shortProfile %}  
+    {% if request.user.is_authenticated %} 
+    
+    
+
+
+
+    {% endif %}     
+{% endblock %}
+
+
+{% block newPost %}
+<div class="post-card">
+    <h4 class="display-name"><b>{{ post.author.displayName }} </b> <span id="timestamp">{{ post.pub_date|timesince }} ago</span></h4> 
+    <div class="post-content">
+        <h5>Title: {{post.title}}</h5>
+        <p>Category: {{post.category}}</p>
+        <p>Content:</p>
+        <div class="post-content">
+            <p>{{ post.content }}</p>
+        </div>
+       
+    </div>
+</div>
+{% endblock %}
+{% block content %}
+            <div class="comment-input-box">
+
+                {% if post %}
+                <h2> Comments</h2>
+                <form action="{% url 'posting:add comment' post.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="text" name="content"></input>
+                    <input type="submit" value="Comment"></input>
+                </form>
+    
+                <!-- <a href="{% url 'posting:view public posts' %}">Home</a><br> -->
+                <script>
+                    document.getElementById("global-home").setAttribute("href","{% url 'posting:view public posts' %}")
+                </script>
+            </div>
+
+            {% if comment_list %}
+                <ul>
+                    {% for comment in comment_list %}
+                        <div class="comment-card">
+                            <li>
+                                <div class="comment-content">
+                                    {{ comment.content }}
+                                    <br>
+                                    <div class="comment-author">
+                                        {{ comment.author.displayName }}
+                                        <span id="timestamp">{{ comment.pub_date }}</span>
+                                        {% if comment.author == request.user %}
+                                            <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
+                                                    {% csrf_token %}
+                                                    <input type="submit" value="Delete">
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                  
+
+                                </div>
+
+                            </li>
+                        </div>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if post.author == request.user %}
+                <a href="{% url 'posting:delete post' post.id %}">Delete</a>
+            {% endif %}
+    {% else %}
+        <p>Error. Post lost.</p>
+    {% endif %}
+{% endblock %}

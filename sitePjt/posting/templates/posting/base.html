@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    </head>
+<style>
+    .post-card {
+        /* Add shadows to create the "card" effect */
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        position: relative;
+        transition: 0.3s;
+        width: 600px;
+        height: 400px;
+        margin-top: 10px;
+      }
+      
+    /* On mouse-over, add a deeper shadow */
+    .post-card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
+
+    /* Add some padding inside the card container */
+    .container {
+        padding: 2px 16px;
+
+    }
+    .avatar {
+        position: absolute;
+        vertical-align: middle;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%; 
+        margin-top: 25px;
+        margin-left: 25px;
+    }
+    .display-name{
+        position: absolute;
+        left: 100px;
+        top:20px
+    }
+    .post-content{
+        position: absolute;
+        top:100px;
+        left: 50px;
+        height: 200px;
+        width: 500px;
+    }
+    .post-image{
+        width: 200px;
+        height: 200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    ul{
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .post-form label{
+        display: none;
+    }
+    .post-form {
+        text-align: center;
+    }
+    .post-form #id_title{
+        margin-top: 20px;
+    }
+    .post-form #id_content{
+        width: 300px;
+        height: 100px;
+        padding: 0;
+    }
+    
+    li{
+        padding: 0;
+        list-style-type: none;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    #timestamp{
+        font-size: small;
+        color:#989898;
+    }
+    .comment-input-box{
+        margin-top: 20px;
+        width: 600px;
+        height: 100px;
+    }
+    .comment-card{
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        position: relative;
+        transition: 0.3s;
+        width: 600px;
+        height: 150px;
+        margin-top: 10px;
+    }
+    .comment-content{
+        padding-top: 30px;
+        padding-left: 30px;
+    }
+    .comment-author{
+        text-align: right;
+    }
+    .sidenav {
+        width: 300px;
+        position: fixed;
+        z-index: 1; 
+        margin-top: auto;
+        margin-left: auto;
+        background: #eee;
+        overflow-x: hidden;
+        padding: 8px 0;
+    }
+
+    .sidenav a {
+        padding: 6px 8px 6px 16px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #2196F3;
+        display: block;
+    }
+
+    .sidenav a:hover {
+        color: #064579;
+    }
+
+
+    
+</style>
+
+
+<body>
+    <!-- Nav Bar-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <a class="navbar-brand" href="#">Movments</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" id="global-home" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="nav-third" href="#">My Profile</a>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                {% block shortProfile %}
+                    replace me with author profile.
+                {% endblock %}
+                <!--Side Bar-->
+                <div class="sidenav">
+                    <a href="#Notifaction">Notification</a>
+                    <a href="#PrivatePosts">My Posts</a>
+                </div>
+                  
+            </div>
+            <div class="col-8">
+                <div class="row">
+                    {% block newPost %}
+                        replace me with new post area.
+                    {% endblock %}
+                </div>
+                <div class="row">
+                    {% block content %}
+                    replace me
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
