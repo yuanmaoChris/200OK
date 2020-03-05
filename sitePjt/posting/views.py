@@ -17,7 +17,7 @@ from .serializers import *
 
 
 
-from .models import Post, Follow
+from .models import Post
 
 
 def ViewPublicPosts(request):

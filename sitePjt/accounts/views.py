@@ -7,9 +7,8 @@ from django.contrib.auth import (
     logout
 )
 
-from .forms import UserLoginForm, UserProfileForm
+from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
-from .admin import UserCreationForm
 
 def login_view(request):
     next = request.GET.get('next')

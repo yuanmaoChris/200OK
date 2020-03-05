@@ -31,8 +31,3 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date posted', auto_now_add=True, blank=True)
-
-#Delete this one maybe
-class Follow(models.Model):
-    follower_id = models.ForeignKey(Author, editable=False, on_delete=models.CASCADE, related_name='AID1')
-    be_followed_id = models.ForeignKey(Author, editable=False, on_delete=models.CASCADE,related_name='AID2')

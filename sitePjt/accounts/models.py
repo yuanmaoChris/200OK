@@ -4,12 +4,12 @@ import uuid
 from django.contrib.auth.models import (
     BaseUserManager, AbstractUser 
 )
+from django.conf import settings
 
 class AuthorManager(BaseUserManager):
     def create_user(self, email, displayName, password=None):
         """
-        Creates and saves a User with the given email, date of
-        birth and password.
+        Creates and saves a User with the given email, displayname and password.
         """
         if not email:
             raise ValueError('Users must have an email address')
@@ -46,12 +46,16 @@ class Author(AbstractBaseUser):
         max_length=60,
         unique=True,
     )
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uid_str = uuid.uuid4().urn
+    uuid_str = str(settings.HOSTNAME)+"/author/"+uid_str[9:]
+    id = models.CharField(primary_key=True, default=uuid_str, editable=False,max_length=100,unique=True)
     displayName = models.CharField(max_length=30)
-    host = models.URLField(default="", max_length=100)
-    url = models.URLField(default="",max_length=100)
+    host = models.URLField(default=settings.HOSTNAME, max_length=100)
+    url = models.URLField(default=uuid_str,max_length=100)
+    
     github = models.URLField(default="", max_length=100)
     bio = models.CharField(max_length=200, null=True)
+    
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)
     last_login=models.DateField(verbose_name="date joined", auto_now=True)
 

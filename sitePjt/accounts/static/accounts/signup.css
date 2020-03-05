@@ -61,7 +61,6 @@ body {
   font-size: 16px;
 }
 
-
 /* When the inputs get focus, do something */
 .form-container input[type=text]:focus, .form-container input[type=password]:focus {
   border: none;
@@ -74,7 +73,7 @@ body {
 }
 
 /* Set a style for the submit/login button */
-.form-container .btn {
+.form-container .cancelbtn .signupbtn {
   border: none;
   outline: none;
   height: 40px;
@@ -84,7 +83,7 @@ body {
   border-radius: 20px;
 }
 
-.form-container .cancel {
+.form-container .cancelbtn .signupbtn {
   border: none;
   outline: none;
   height: 40px;

@@ -1,23 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <title>Hello, world!</title>
+    </head>
+<style>
+        .card {
+        /* Add shadows to create the "card" effect */
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        position: relative;
+        transition: 0.3s;
+        width: 600px;
+        height: 400px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+    /* On mouse-over, add a deeper shadow */
+    .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
-    <title>200OK</title>
+    /* Add some padding inside the card container */
+    .container {
+        padding: 2px 16px;
 
-
-</head>
+    }
+    .avatar {
+        position: absolute;
+        vertical-align: middle;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%; 
+        margin-top: 25px;
+        margin-left: 25px;
+    }
+    .display-name{
+        position: absolute;
+        left: 100px;
+        top:20px
+    }
+    .post-content{
+        position: absolute;
+        top:100px;
+        left: 50px;
+        height: 200px;
+        width: 500px;
+    }
+    .post-image{
+        width: 200px;
+        height: 200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    ul{
+        list-style-type: none;
+    }
+    
+</style>
 
 <body>
-    {% block content %}
-    replace me
-    {% endblock %}
+    
+    <!-- Nav Bar-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <a class="navbar-brand" href="#">Movments</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">My Profile</a>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <!--Side Bar-->
+            </div>
+            <div class="col-8">
+                <div class="row">
+                    {% block newPost %}
+                        replace me with new post area.
+                    {% endblock %}
+                </div>
+                <div class="row">
+                    {% block content %}
+                    replace me
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
 
-    {% block newPost %}
-    replace me with new post area.
-    {% endblock %}
+
 </body>
 
 </html>
