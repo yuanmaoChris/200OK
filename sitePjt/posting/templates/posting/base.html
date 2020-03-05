@@ -1,28 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <!-- Required meta tags -->
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-        <title>Hello, world!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
     </head>
 <style>
-        .card {
+    .post-card {
         /* Add shadows to create the "card" effect */
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
         position: relative;
         transition: 0.3s;
         width: 600px;
         height: 400px;
-        margin-left: auto;
-        margin-right: auto;
+        margin-top: 10px;
       }
       
     /* On mouse-over, add a deeper shadow */
-    .card:hover {
+    .post-card:hover {
         box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
     }
 
@@ -59,13 +57,84 @@
         margin-right: auto;
     }
     ul{
+        padding: 0;
         list-style-type: none;
     }
+
+    .post-form label{
+        display: none;
+    }
+    .post-form {
+        text-align: center;
+    }
+    .post-form #id_title{
+        margin-top: 20px;
+    }
+    .post-form #id_content{
+        width: 300px;
+        height: 100px;
+        padding: 0;
+    }
+    
+    li{
+        padding: 0;
+        list-style-type: none;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    #timestamp{
+        font-size: small;
+        color:#989898;
+    }
+    .comment-input-box{
+        margin-top: 20px;
+        width: 600px;
+        height: 100px;
+    }
+    .comment-card{
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        position: relative;
+        transition: 0.3s;
+        width: 600px;
+        height: 150px;
+        margin-top: 10px;
+    }
+    .comment-content{
+        padding-top: 30px;
+        padding-left: 30px;
+    }
+    .comment-author{
+        text-align: right;
+    }
+    .sidenav {
+        width: 300px;
+        position: fixed;
+        z-index: 1; 
+        margin-top: auto;
+        margin-left: auto;
+        background: #eee;
+        overflow-x: hidden;
+        padding: 8px 0;
+    }
+
+    .sidenav a {
+        padding: 6px 8px 6px 16px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #2196F3;
+        display: block;
+    }
+
+    .sidenav a:hover {
+        color: #064579;
+    }
+
+
     
 </style>
 
+
 <body>
-    
     <!-- Nav Bar-->
     <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <a class="navbar-brand" href="#">Movments</a>
@@ -76,10 +145,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+              <a class="nav-link" id="global-home" href="#">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">My Profile</a>
+              <a class="nav-link" id="nav-third" href="#">My Profile</a>
             </li>
           </ul>
           <form class="form-inline my-2 my-lg-0">
@@ -91,7 +160,15 @@
     <div class="container">
         <div class="row">
             <div class="col-4">
+                {% block shortProfile %}
+                    replace me with author profile.
+                {% endblock %}
                 <!--Side Bar-->
+                <div class="sidenav">
+                    <a href="#Notifaction">Notification</a>
+                    <a href="#PrivatePosts">My Posts</a>
+                </div>
+                  
             </div>
             <div class="col-8">
                 <div class="row">

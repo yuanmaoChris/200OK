@@ -14,11 +14,7 @@ from rest_framework import status
 from .models import Post, Comment
 from .forms import PostForm, PostNewForm, CommentForm
 from .serializers import *
-
-
-
 from .models import Post
-
 
 def ViewPublicPosts(request):
     public_posts = Post.objects.filter(visibility='PUBLIC')
