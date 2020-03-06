@@ -17,37 +17,24 @@ from .serializers import *
 from .models import Post
 
 def ViewPublicPosts(request):
-    public_posts = Post.objects.filter(visibility='PUBLIC')
+    public_posts = Post.objects.filter(visibility='PUBLIC').order_by('-pub_date')[:10]
     form = PostNewForm(request.POST or None)
-    context = {
-        'public_post_list': public_posts,
-        'form': form,
-    }
-
     if request.method == 'POST':
         if form.is_valid():
             #form.save()
             form_data = form.cleaned_data
             form.cleaned_data['author'] = request.user
             Post.objects.create(**form.cleaned_data)
+            form = PostNewForm()
         else:
             print(form.errors)
-        return render(request, "posting/publicPosts.html", context)
+    
+    context = {
+        'public_post_list': public_posts,
+        'form': form,
+    }
 
     return render(request, "posting/publicPosts.html", context)
-
-
-def addComment(request):
-    form = CommentForm(request.POST or None)
-    if form.is_valid():
-        form_data = form.cleaned_data
-        form.cleaned_data['author'] = request.user
-        Comment.objects.create(**form.cleaned_data)
-    else:
-        print(form.errors)
-    context = {}
-    return render(request, "{% url 'posting:view post details' form.cleaned_data['post_id'] %}", context)
-
 
 def DeletePost(request, post_id):
     try:
@@ -60,52 +47,59 @@ def DeletePost(request, post_id):
 
 def ViewPostDetails(request, post_id):
     post = Post.objects.get(id=post_id)
-    comments = Comment.objects.filter(post=post)
+
+    if request.method == "DELETE":
+        try:
+            post.delete()
+        except Exception as e:
+            print(e)
+        finally:
+            return redirect('/service/posts/')
+
+    comments = Comment.objects.filter(post=post)[:10]
     context = {
         'post': post,
         'comment_list': comments,
     }
     return render(request, "posting/postDetails.html", context)
 
-
-def AddPostComment(request, post_id):
-    form = CommentForm(request.POST or None)
+def postCommentHandler(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
+    if request.method == 'DELETE':
+        context = {
+            "query": "deleteComment",
+            "success": None,
+            "message": None,
+        }
+        try:
+            comment = Comment(id=comment_id)
+            comment.delete()
+            context['success'] = True
+            context['message'] = "Comment deleted"
+        except:
+            context['success'] = False
+            context['message'] = "Delete not Allowed"
 
-    context = {
-        "query": "addComment",
-        "success": None,
-        "message": None,
-    }
-    if form.is_valid():
-        form_data = form.cleaned_data
-        form_data['user'] = request.user
-        form_data['post'] = post
-        comment = Comment(post=post, author=request.user, content=form_data['content'])
-        comment.save()
-        context['success'] = True
-        context['message'] = "Comment Added"
-    else:
-        print(form.errors)
-        context['success'] = False
-        context['message'] = "Comment not Allowed"
-    
-    return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
-
-def DeletePostComment(request, post_id, comment_id):
-    context = {
-        "query": "deleteComment",
-        "success": None,
-        "message": None,
-    }
-    try :
-        comment = Comment(id=comment_id)
-        comment.delete()
-        context['success'] = True
-        context['message'] = "Comment deleted"
-    except:
-        context['success'] = False
-        context['message'] = "Delete not Allowed"
+    elif request.method in ['POST', 'PUT']:
+        form = CommentForm(request.POST or None)
+        context = {
+            "query": "addComment",
+            "success": None,
+            "message": None,
+        }
+        if form.is_valid():
+            form_data = form.cleaned_data
+            form_data['user'] = request.user
+            form_data['post'] = post
+            comment = Comment(post=post, author=request.user, content=form_data['content'])
+            comment.save()
+            context['success'] = True
+            context['message'] = "Comment Added"
+        else:
+            print(form.errors)
+            context['success'] = False
+            context['message'] = "Comment not Allowed"
+            
 
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
@@ -115,19 +109,6 @@ def ViewUserPosts(request, author):
     return "User posts"
 
 # Create your views here.
-def createPost(request):
-    form = PostNewForm(request.POST or None)
-    if form.is_valid():
-        #form.save()
-        form_data = form.cleaned_data
-        form.cleaned_data['author'] = request.user
-        Post.objects.create(**form.cleaned_data)
-    else:
-        print(form.errors)
-    context = {
-        'form': form
-    }
-    return render(request, 'posting/newPost.html', context)
 
 
 

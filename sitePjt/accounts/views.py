@@ -14,7 +14,6 @@ def login_view(request):
     next = request.GET.get('next')
     form = UserLoginForm(request.POST or None)
     if form.is_valid():
-        print(form.cleaned_data)
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
         user = authenticate(email=email, password=password)
@@ -57,7 +56,17 @@ def logout_view(request):
 
 
 def profile_view(request, author_id):
+    form = request.POST
+    if request.method == "POST":
+        print(form)
+        Author.objects.filter(id=author_id).update(
+            displayName=form['displayName'],
+            bio=form['bio'],
+            github=form['github'],
+        )
+
     author = Author.objects.filter(id=author_id)[0]
+
     context = {
         'displayName': author.displayName,
         'github': author.github,
@@ -65,5 +74,7 @@ def profile_view(request, author_id):
         'host': author.host,
         'bio': author.bio,
         'email': author.email,
+        'id': author.id,
+        'joined_date': author.date_joined,
     }
     return render(request, "accounts/profile.html", context)

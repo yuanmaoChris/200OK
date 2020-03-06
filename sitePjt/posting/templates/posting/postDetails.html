@@ -23,7 +23,11 @@
         <div class="post-content">
             <p>{{ post.content }}</p>
         </div>
-       
+        <div class="post-action">
+            {% if post.author == request.user %}
+            <a href="{% url 'posting:delete post' post.id %}">Delete</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -32,7 +36,7 @@
 
                 {% if post %}
                 <h2> Comments</h2>
-                <form action="{% url 'posting:add comment' post.id %}" method="POST">
+                <form action="{% url 'posting:comment events' post.id %}" method="POST">
                     {% csrf_token %}
                     <input type="text" name="content"></input>
                     <input type="submit" value="Comment"></input>
@@ -56,7 +60,7 @@
                                         {{ comment.author.displayName }}
                                         <span id="timestamp">{{ comment.pub_date }}</span>
                                         {% if comment.author == request.user %}
-                                            <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
+                                            <form action="{% url 'posting:comment events' post.id%}" method="POST">
                                                     {% csrf_token %}
                                                     <input type="submit" value="Delete">
                                             </form>
@@ -70,9 +74,6 @@
                         </div>
                     {% endfor %}
                 </ul>
-            {% endif %}
-            {% if post.author == request.user %}
-                <a href="{% url 'posting:delete post' post.id %}">Delete</a>
             {% endif %}
     {% else %}
         <p>Error. Post lost.</p>

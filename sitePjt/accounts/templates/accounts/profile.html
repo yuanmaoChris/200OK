@@ -20,12 +20,12 @@
                             <div class="image-container">
                                 <img src="http://placehold.it/150x150" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
                                 <div class="middle">
-                                    <!--
+                                    {% if request.user.id != id %}
                                          <input type="button" class="btn btn-secondary" id="btnRequest" value="request"/>
-                                    -->
-                                    <input type="button" class="btn btn-secondary" id="btnChange" value="Change" />
-                                    <input type="file" style="display: none;" id="profilePicture" name="file" />
-
+                                    {% else %}
+                                        <input type="button" class="btn btn-secondary" id="btnChange" value="Change" />
+                                        <input type="file" style="display: none;" id="profilePicture" name="file" />
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="userData ml-3">
@@ -45,7 +45,7 @@
                                     <a class="nav-link active" id="basicInfo-tab" data-toggle="tab" href="#basicInfo" role="tab" aria-controls="basicInfo" aria-selected="true">Basic Info</a>
                                 </li>
                             </ul>
-                            <form class="change-form">
+                            <form class="change-form", action="{% url 'accounts:view profile' request.user.id %}", method="POST"> {% csrf_token %}
                                 <div class="tab-content ml-1" id="myTabContent">
                                     <div class="tab-pane fade show active" id="basicInfo" role="tabpanel" aria-labelledby="basicInfo-tab">
                                             <div class="row">
@@ -53,7 +53,7 @@
                                                     <label style="font-weight:bold;">Display Name</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" id="display-input" class="form-control classname" value="  {{ displayName }}" readonly />                                      
+                                                    <input type="text" id="display-input" name="displayName" class="form-control classname" value="{{ displayName }}" readonly />                                      
                                                 </div>
                                             </div>
 
@@ -64,7 +64,7 @@
                                                     <label style="font-weight:bold;">Date Joined</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" class="form-control classname" value=" Join Date " readonly />  
+                                                    <input type="text" class="form-control classname" value="{{ joined_date }}" readonly />  
                                                 </div>
                                             </div>
                                             <hr /> 
@@ -74,7 +74,7 @@
                                                     <label style="font-weight:bold;">Bio</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text"  id="bio-input" class="form-control classname" value=" {{ bio }} " readonly />                                           
+                                                    <input type="text"  id="bio-input" name="bio" class="form-control classname" value="{{ bio }}" readonly />                                           
                                                 </div>
                                             </div>
                                             <hr />
@@ -84,13 +84,14 @@
                                                     <label style="font-weight:bold;">Github</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" id="github-input" class="form-control classname" value=" {{ github }} " readonly />      
+                                                    <input type="text" id="github-input" name="github" class="form-control classname" value="{{ github }}" readonly />      
  
                                                 </div>
                                             </div>
                                             <hr />
 
                                             <div class="row">
+
                                                 <button type="submit" class="btn btn-primary" id="submit-btn" style="display: none;">Submit</button>
                                             </div>
                                             <hr />
