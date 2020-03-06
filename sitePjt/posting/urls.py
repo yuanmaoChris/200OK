@@ -9,5 +9,5 @@ urlpatterns = [
     path('posts/<str:post_id>/delete/', views.DeletePost, name='delete post'),
     #path('posts/<str:post_id>/comments/', views.ViewPostDetails, name='view comments'),
     path('posts/<str:post_id>/comments/', views.postCommentHandler, name='comment events'),
-    path('author/<str:user_id>/posts/', views.ViewUserPosts, name='view user posts'),
+    path('author/<str:author_id>/posts/', views.ViewUserPosts, name='view user posts'),
 ]

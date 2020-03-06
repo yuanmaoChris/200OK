@@ -11,17 +11,19 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">Email:{{ request.user.email }}</li>
                         <li class="list-group-item">Bio:{{ request.user.bio }}</li>
-                        <!--
                         <li class="list-group-item"> Github:{{ request.user.github }}</li>
                         <li class="list-group-item">Date Jointed: {{ request.user.date_joined }}</li>
                         <li class="list-group-item">Last Login: {{ request.user.last_login }}</li>
-                        -->
-   
                     </ul>
                 </p>
-                <a href="{% url 'accounts:view profile' request.user.id%}" class="btn btn-primary">My Profile</a>
+                <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-primary">My Profile</a>
                 </div>
             </div> 
+            <!--side nav-->
+            <div class="sidenav">
+                <a href="#Notifaction">Notification</a>
+                <a href="{% url 'posting:view user posts' request.user.id %}">My Posts</a>
+            </div>
         </div>
         <script>
             document.getElementById("nav-third").innerHTML="Log Out"

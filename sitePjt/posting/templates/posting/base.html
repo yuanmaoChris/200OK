@@ -145,10 +145,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-              <a class="nav-link" id="global-home" href="#">Home <span class="sr-only">(current)</span></a>
+              <a class="nav-link" id="global-home" href="{% url 'posting:view public posts' %}">Home<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="nav-third" href="#">My Profile</a>
+              <a class="nav-link" id="nav-third" href="{% url 'accounts:view profile' request.user.id %}">My Profile</a>
             </li>
           </ul>
           <form class="form-inline my-2 my-lg-0">
@@ -164,11 +164,7 @@
                     replace me with author profile.
                 {% endblock %}
                 <!--Side Bar-->
-                <div class="sidenav">
-                    <a href="#Notifaction">Notification</a>
-                    <a href="#PrivatePosts">My Posts</a>
-                </div>
-                  
+
             </div>
             <div class="col-8">
                 <div class="row">

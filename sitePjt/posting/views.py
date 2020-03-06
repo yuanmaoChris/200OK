@@ -104,10 +104,28 @@ def postCommentHandler(request, post_id, comment_id=None):
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
 
-def ViewUserPosts(request, author):
+def ViewUserPosts(request, author_id):
+    author = User.objects.filter(id=author_id)[0]
 
-    return "User posts"
+    if request.method == 'GET':
+        posts = Post.objects.filter(author=author)[:10]
+        count = len(posts)
+        #get from front-end or default
+        size = 10
+        origin = None
+        next = None
+        preivous = None
 
+    context = {
+        "query": "posts",
+        "count": count,
+        "size": size,
+        "next": next,
+        "previous": preivous,
+        "posts": posts,
+    }
+    
+    return render(request, "posting/myPost.html", context)
 # Create your views here.
 
 

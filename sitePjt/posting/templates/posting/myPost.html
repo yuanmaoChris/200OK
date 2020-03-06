@@ -1,0 +1,16 @@
+{% extends 'posting/base.html' %}
+
+{% block shortProfile %}
+posts count ={{ size }} <br>
+
+{% if posts %}
+<h3>Post list:</h3>
+<ul>
+    {% for post in posts %}
+        {{ post.author.displayName }}<br>
+        {{ post.pub_date }}<br>
+        {{ post.content }}<br><br>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
