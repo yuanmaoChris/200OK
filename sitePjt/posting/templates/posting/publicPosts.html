@@ -3,7 +3,7 @@
 {% block shortProfile %}  
     {% if request.user.is_authenticated %} 
         <div class="short-profile">
-            {% include 'posting/profile-card.html' with request=request%}
+            {% include 'posting/profile-card.html' with request=request %}
         </div>
         <script>
             document.getElementById("nav-third").innerHTML="Log Out"
@@ -18,7 +18,7 @@
         <ul>
             {% for post in public_post_list %}
             <li>
-                {% include 'posting/post-inline-view.html' with post=post %}                   
+                {% include 'posting/post-inline-view.html' with post=post %}                 
             </li>
             {% endfor %}
         </ul>

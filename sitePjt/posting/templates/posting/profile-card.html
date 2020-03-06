@@ -4,13 +4,15 @@
     <h3 class="card-title">{{request.user.displayName }}</h3>
     <p class="card-text">
         <ul class="list-group list-group-flush">
-            <li class="list-group-item">Email:{{ request.user.email }}</li>
-            <li class="list-group-item">Bio:{{ request.user.bio }}</li>
-            <li class="list-group-item"> Github:{{ request.user.github }}</li>
-            <li class="list-group-item">Date Jointed: {{ request.user.date_joined }}</li>
-            <li class="list-group-item">Last Login: {{ request.user.last_login }}</li>
+            <li class="list-group-item" style="padding: 0;"><span style="font-weight: bold;">Email:</span><br>{{ request.user.email }}</li>
+            <li class="list-group-item" style="padding: 0;"><span style="font-weight: bold;">Bio:</span><br>{{ request.user.bio }}</li>
+            <li class="list-group-item" style="padding: 0;"><span style="font-weight: bold;">Github:</span><br>{{ request.user.github }}</li>
+            <li class="list-group-item" style="padding: 0;"><span style="font-weight: bold;">Date Jointed:</span><br> {{ request.user.date_joined }}</li>
+            <li class="list-group-item" style="padding: 0;"><span style="font-weight: bold;">Last Login:</span><br>{{ request.user.last_login }}</li>
         </ul>
     </p>
-    <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-primary">My Profile</a>
+    <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-outline-success btn-block">My Profile</a>
+    <a href="#" class="btn btn-outline-success btn-block">My Friends</a>
+    <a href="#" class="btn btn-outline-success btn-block">My Posts</a>
     </div>
 </div> 
