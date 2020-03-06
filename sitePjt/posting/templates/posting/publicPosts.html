@@ -1,35 +1,14 @@
-{% extends 'posting/base.html' %}
+{% extends 'posting/home.html' %}
 
 {% block shortProfile %}  
     {% if request.user.is_authenticated %} 
         <div class="short-profile">
-            <div class="card" style="width: 300px;">
-                <!-- <img class="card-img-top" src="" alt="Card image cap"> -->
-                <div class="card-body">
-                <h3 class="card-title">{{ request.user.displayName }}</h3>
-                <p class="card-text">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Email:{{ request.user.email }}</li>
-                        <li class="list-group-item">Bio:{{ request.user.bio }}</li>
-                        <li class="list-group-item"> Github:{{ request.user.github }}</li>
-                        <li class="list-group-item">Date Jointed: {{ request.user.date_joined }}</li>
-                        <li class="list-group-item">Last Login: {{ request.user.last_login }}</li>
-                    </ul>
-                </p>
-                <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-primary">My Profile</a>
-                </div>
-            </div> 
-            <!--side nav-->
-            <div class="sidenav">
-                <a href="#Notifaction">Notification</a>
-                <a href="{% url 'posting:view user posts' request.user.id %}">My Posts</a>
-            </div>
+            {% include 'posting/profile-card.html' with request=request%}
         </div>
         <script>
             document.getElementById("nav-third").innerHTML="Log Out"
             document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
-        </script>
-        
+        </script> 
     {% endif %}     
 {% endblock %}
 
@@ -39,13 +18,7 @@
         <ul>
             {% for post in public_post_list %}
             <li>
-                <div class="post-card">
-                    <h4 class="display-name"><a href="{% url 'accounts:view profile' post.author.id %}">{{ post.author.displayName }} </a> <span id="timestamp">{{ post.pub_date|timesince }} ago</span></h4> 
-                    <div class="post-content">
-                    <p>{{ post.content }}</p>
-                    <a  class="readmore" href="{% url 'posting:view post details' post.id %}">Read More</a>
-                    </div>
-                </div>
+                {% include 'posting/post-inline-view.html' with post=post %}                   
             </li>
             {% endfor %}
         </ul>
@@ -53,17 +26,10 @@
         <p>No Public posts... Go make some!</p>
     {% endif %}
 {% endblock %}
-  
+
 {% block newPost %}
     {% if request.user.is_authenticated %}
-        <div class="post-card">
-            <form action="." method="POST" class="post-form">
-                <h1>Welcome Back {{ request.user.displayName }} !</h1>
-                {% csrf_token %}
-                {{ form.as_ul }}
-                <input type="submit" value="Post">
-            </form>
-        </div>
+        {% include 'posting/post-input-form.html' with post=post %}           
         <script>
             document.getElementById("id_title").setAttribute("placeholder", "Enter title");
             document.getElementById("id_content").setAttribute("placeholder", "What's Happenning?");

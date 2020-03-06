@@ -1,0 +1,8 @@
+<div class="post-card">
+    <h1>Welcome Back {{ request.user.displayName }} !</h1>
+    <form action="." method="POST" class="post-form">
+            {% csrf_token %}
+            {{ form.as_ul }}
+        <input type="submit" value="Post">
+    </form>
+</div>

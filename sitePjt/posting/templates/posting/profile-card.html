@@ -1,0 +1,16 @@
+<div class="card" style="width: 300px;">
+    <!-- <img class="card-img-top" src="" alt="Card image cap"> -->
+    <div class="card-body">
+    <h3 class="card-title">{{request.user.displayName }}</h3>
+    <p class="card-text">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Email:{{ request.user.email }}</li>
+            <li class="list-group-item">Bio:{{ request.user.bio }}</li>
+            <li class="list-group-item"> Github:{{ request.user.github }}</li>
+            <li class="list-group-item">Date Jointed: {{ request.user.date_joined }}</li>
+            <li class="list-group-item">Last Login: {{ request.user.last_login }}</li>
+        </ul>
+    </p>
+    <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-primary">My Profile</a>
+    </div>
+</div> 

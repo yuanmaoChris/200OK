@@ -1,0 +1,15 @@
+{% if request.user.is_authenticated %} 
+   <div class="comment-input-box">
+        <h2> Comments</h2>
+        {% if post %}  
+        <form action="{% url 'posting:comment events' post.id %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="content"></input>
+            <input type="submit" value="Comment"></input>
+        </form>
+        {% endif %}
+    <script>
+        document.getElementById("global-home").setAttribute("href","{% url 'posting:view public posts' %}")
+    </script>
+</div>
+{% endif %} 
