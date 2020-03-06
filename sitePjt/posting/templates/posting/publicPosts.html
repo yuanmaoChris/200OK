@@ -19,13 +19,13 @@
    
                     </ul>
                 </p>
-                <a href="#" class="btn btn-primary">My Profile</a>
+                <a href="{% url 'accounts:view profile' request.user.id%}" class="btn btn-primary">My Profile</a>
                 </div>
             </div> 
         </div>
         <script>
             document.getElementById("nav-third").innerHTML="Log Out"
-            document.getElementById("nav-third").setAttribute("href","")
+            document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
         </script>
         
     {% endif %}     

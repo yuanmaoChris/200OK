@@ -46,8 +46,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = Author
-        fields = ('email', 'password', 'displayName', 'host', 'url', 'bio', 'github',
-                  'is_active', 'is_admin')
+        fields = ('displayName', 'bio', 'github')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -102,5 +101,7 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = [
-            'email',
+            'displayName',
+            'github',
+            'bio',
         ]

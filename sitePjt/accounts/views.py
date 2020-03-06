@@ -56,10 +56,14 @@ def logout_view(request):
     return redirect('/accounts/login/')
 
 
-def profile_view(request):
-    form = UserProfileForm(request.GET or None)
-
+def profile_view(request, author_id):
+    author = Author.objects.filter(id=author_id)[0]
     context = {
-        'form': form,
+        'displayName': author.displayName,
+        'github': author.github,
+        'url': author.url,
+        'host': author.host,
+        'bio': author.bio,
+        'email': author.email,
     }
-    return render(request, "accounts/myProfile.html", context)
+    return render(request, "accounts/profile.html", context)

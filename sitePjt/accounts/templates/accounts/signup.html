@@ -70,7 +70,7 @@
               {% csrf_token %}
               <h1>Sign Up</h1>
               {{form.as_p}}
-              <button type="button" class="cancelbtn">Cancel</button>
+              <a class="cancelbtn" href="{% url 'accounts:login' %}">Cancel</button>
               <button type="submit" class="signupbtn">Sign Up</button>
             </form>
       </div>

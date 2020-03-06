@@ -47,13 +47,13 @@ class Author(AbstractBaseUser):
         unique=True,
     )
     uid_str = uuid.uuid4().urn
-    uuid_str = str(settings.HOSTNAME)+"/author/"+uid_str[9:]
+    uuid_str = uid_str[9:] # str(settings.HOSTNAME)+"/author/"+
     id = models.CharField(primary_key=True, default=uuid_str, editable=False,max_length=100,unique=True)
     displayName = models.CharField(max_length=30)
     host = models.URLField(default=settings.HOSTNAME, max_length=100)
     url = models.URLField(default=uuid_str,max_length=100)
     
-    github = models.URLField(default="", max_length=100)
+    github = models.URLField(default="", max_length=100, null=True)
     bio = models.CharField(max_length=200, null=True)
     
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)

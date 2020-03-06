@@ -6,5 +6,5 @@ from django.views import generic
 def ViewHomePage(request):
     #return render(request, "home.html",)
     if not request.user:
-        redirect('/accounts/')
+        redirect('/accounts/login')
     return redirect('/service/posts/')
