@@ -7,9 +7,7 @@ posts count ={{ size }} <br>
 <h3>Post list:</h3>
 <ul>
     {% for post in posts %}
-        {{ post.author.displayName }}<br>
-        {{ post.pub_date }}<br>
-        {{ post.content }}<br><br>
+        {% include 'posting/post-full-view.html' post=post %}
     {% endfor %}
 </ul>
 {% endif %}
