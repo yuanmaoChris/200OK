@@ -22,7 +22,12 @@
                                 {% endif %}
                                 <div class="middle">
                                     {% if request.user.id != id %}
-                                         <input type="button" class="btn btn-secondary" id="btnRequest" value="request"/>
+                                        <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}
+                                            <input type="hidden" name="author_from" value="{{ request.user.id }}"></input>
+                                            <input type="hidden" name="author_to" value="{{ id }}"></input>
+                                            <input type="submit" class="btn btn-secondary" id="btnRequest" value="request" />
+                                        </form>
+                                         
                                     {% else %}
                                         <input type="button" class="btn btn-secondary" id="btnChange" value="Change" />
                                         <input type="file" style="display: none;" id="profilePicture" name="file" />

@@ -12,7 +12,7 @@
         </ul>
     </p>
     <a href="{% url 'accounts:view profile' request.user.id %}" class="btn btn-outline-success btn-block">My Profile</a>
-    <a href="#" class="btn btn-outline-success btn-block">My Friends</a>
+    <a href="{% url 'friendship:view friend request' request.user.id %}" class="btn btn-outline-success btn-block">My Friends</a>
     <a href="{% url 'posting:view user posts' request.user.id %}" class="btn btn-outline-success btn-block">My Posts</a>
     </div>
 </div> 

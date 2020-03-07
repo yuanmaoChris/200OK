@@ -8,6 +8,7 @@ urlpatterns = [
     path('service/', views.ViewHomePage, name='home page'),
     path('accounts/', include('accounts.urls')),
     path('service/', include('posting.urls')),
+    path('service/', include('friendship.urls')),
 ]
 
 if settings.DEBUG:
