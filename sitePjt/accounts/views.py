@@ -67,7 +67,6 @@ def profile_view(request, author_id):
         )
 
     author = Author.objects.filter(id=author_id)[0]
-    print(author.avatar)
     context = {
         'displayName': author.displayName,
         'avatar': author.avatar,
