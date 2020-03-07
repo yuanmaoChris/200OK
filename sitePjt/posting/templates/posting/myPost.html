@@ -1,14 +1,15 @@
-{% extends 'posting/base.html' %}
+{% extends 'posting/home.html' %}
 
-{% block shortProfile %}
+{% block content %}
 posts count ={{ size }} <br>
 
 {% if posts %}
 <h3>Post list:</h3>
 <ul>
     {% for post in posts %}
-        {% include 'posting/post-full-view.html' post=post %}
+        {% include 'posting/post-full-view.html' with post=post %}
     {% endfor %}
 </ul>
 {% endif %}
+
 {% endblock %}

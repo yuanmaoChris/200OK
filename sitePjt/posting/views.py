@@ -63,8 +63,9 @@ def ViewPostDetails(request, post_id):
     }
     return render(request, "posting/postDetails.html", context)
 
-def postCommentHandler(request, post_id, comment_id=None):
-    post = Post.objects.get(id=post_id)
+
+def deleteComment(request, post_id, comment_id=None):
+    '''
     if request.method == 'DELETE':
         context = {
             "query": "deleteComment",
@@ -80,7 +81,29 @@ def postCommentHandler(request, post_id, comment_id=None):
             context['success'] = False
             context['message'] = "Delete not Allowed"
 
-    elif request.method in ['POST', 'PUT']:
+    el
+    '''
+    post = Post.objects.get(id=post_id)
+    context = {
+        "query": "deleteComment",
+            "success": None,
+            "message": None,
+    }
+    try:
+        comment = Comment(id=comment_id)
+        comment.delete()
+        context['success'] = True
+        context['message'] = "Comment deleted"
+    except:
+        context['success'] = False
+        context['message'] = "Delete not Allowed"
+
+    return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
+
+
+def postCommentHandler(request, post_id, comment_id=None):
+    post = Post.objects.get(id=post_id)
+    if request.method in ['POST', 'PUT']:
         form = CommentForm(request.POST or None)
         context = {
             "query": "addComment",

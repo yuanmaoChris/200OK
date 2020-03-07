@@ -63,12 +63,14 @@ def profile_view(request, author_id):
             displayName=form['displayName'],
             bio=form['bio'],
             github=form['github'],
+            #avatar=form['avatar'],
         )
 
     author = Author.objects.filter(id=author_id)[0]
-
+    print(author.avatar)
     context = {
         'displayName': author.displayName,
+        'avatar': author.avatar,
         'github': author.github,
         'url': author.url,
         'host': author.host,

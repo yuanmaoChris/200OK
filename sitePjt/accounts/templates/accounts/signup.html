@@ -5,6 +5,10 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <title>Sing Up</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
       <style>
       body {
         margin: 0;
@@ -37,41 +41,18 @@
         background-color: #ddd;
         outline: none;
         }
-      /* Set a style for all buttons */
-      button {
-        background-color: #333333;
-        color: white;
-        padding: 14px 20px;
-        margin: 8px 0;
-        border: none;
-        cursor: pointer;
-        width: 100%;
-        opacity: 0.9;
-      }
-      button:hover {
-        opacity:1;
-      }
-      /* Extra styles for the cancel button */
-      .cancelbtn {
-        padding: 14px 20px;
-        background-color: #ffc107;
-      }
-      /* Float cancel and signup buttons and add an equal width */
-      .cancelbtn, .signupbtn {
-        float: left;
-        width: 50%;
-      }
+        
 
 </style>
   </head>
   <body>
       <div class="signup-box" id="signupForm">
-            <form action="{% url 'accounts:sign up' %}" class="form-container" method="POST">
+            <form action="{% url 'accounts:sign up' %}" class="form-container" enctype="multipart/form-data" method="POST">
               {% csrf_token %}
               <h1>Sign Up</h1>
               {{form.as_p}}
-              <a class="cancelbtn" href="{% url 'accounts:login' %}">Cancel</button>
-              <button type="submit" class="signupbtn">Sign Up</button>
+              <a class="btn btn-primary" href="{% url 'accounts:login' %}">Cancel</a>
+              <button type="submit" class="btn btn-primary">Sign Up</button>
             </form>
       </div>
 

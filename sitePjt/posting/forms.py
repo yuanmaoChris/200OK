@@ -13,6 +13,16 @@ class PostForm(forms.ModelForm):
 
 
 class PostNewForm(forms.ModelForm):
+    content = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "textarea form-control",
+                "rows": 10,
+                "cols": 40,
+                "style": "resize:none",
+            }
+        )
+    )
     class Meta:
         model = Post
         fields = [

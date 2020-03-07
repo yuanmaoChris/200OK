@@ -8,7 +8,14 @@
         <script>
             document.getElementById("nav-third").innerHTML="Log Out"
             document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
-        </script> 
+        </script>
+    {% else %}
+        <script>
+            document.getElementById("global-home").innerHTML="Sign In"
+            document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
+            document.getElementById("nav-third").innerHTML = "Sign Up"
+            document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
+        </script>
     {% endif %}  
 {% endblock %}
 

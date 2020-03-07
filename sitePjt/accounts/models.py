@@ -52,6 +52,7 @@ class Author(AbstractBaseUser):
     displayName = models.CharField(max_length=30)
     host = models.URLField(default=settings.HOSTNAME, max_length=100)
     url = models.URLField(default=uuid_str,max_length=100)
+    avatar = models.ImageField(upload_to='avatar/', default = 'avatar/default-avatar.png', blank=True, null=True)
     
     github = models.URLField(default="", max_length=100, null=True)
     bio = models.CharField(max_length=200, null=True)

@@ -15,7 +15,11 @@
                     <div class="card-title mb-4">
                         <div class="d-flex justify-content-start">
                             <div class="image-container">
-                                <img src="http://placehold.it/150x150" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
+                                {% if avatar %}
+                                    <img src="{{ avatar.url }}" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
+                                {% else %}
+                                    <img src="http://placehold.it/150x150" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
+                                {% endif %}
                                 <div class="middle">
                                     {% if request.user.id != id %}
                                          <input type="button" class="btn btn-secondary" id="btnRequest" value="request"/>
