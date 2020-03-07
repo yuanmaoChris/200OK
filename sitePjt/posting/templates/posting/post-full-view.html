@@ -1,16 +1,21 @@
-<div class="post-card">
-    <h4 class="display-name"><b>{{ post.author.displayName }} </b> <span id="timestamp">{{ post.pub_date|timesince }} ago</span></h4> 
-    <div class="post-content">
-        <h5>Title: {{post.title}}</h5>
-        <p>Category: {{post.category}}</p>
-        <p>Content:</p>
-        <div class="post-content">
-            <p>{{ post.content }}</p>
+
+<div class="card" style="width: 600px;height:300px">
+    <div class="card-body">
+        <div class='card-title'>
+            <h4 class="post-tile"><b>{{ post.author.displayName }} </b> <span id="timestamp">{{ post.pub_date|timesince }} ago</span></h4> 
         </div>
-        <div class="post-action">
-            {% if post.author == request.user %}
-            <a href="{% url 'posting:delete post' post.id %}">Delete</a>
-            {% endif %}
+        <div class="card-subtile">
+            <h5>Title: {{post.title}}</h5>
+            <h5>Category: {{post.category}}</h5>
         </div>
-    </div>
+            <div class="card-content">
+                <p><span>   </span>{{ post.content }}</p>
+            </div>
+            <div class="post-action">
+                {% if post.author == request.user %}
+                <a class="btn btn-primary" href="{% url 'posting:delete post' post.id %}">Delete</a>
+                {% endif %}
+            </div>
+        </div>
+
 </div>

@@ -1,5 +1,5 @@
 <h1 style="text-align:center">Welcome Back {{ request.user.displayName }} !</h1>
-<div class="post-card">
+<div class="card" style="width: 600px;">
     <form action="." method="POST" class="post-form">
             {% csrf_token %}
             {{ form.as_ul }}

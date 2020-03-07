@@ -1,11 +1,11 @@
 {% if request.user.is_authenticated %} 
-   <div class="comment-input-box">
+   <div class="card" style="width: 600px;">
         <h2> Comments</h2>
         {% if post %}  
         <form action="{% url 'posting:comment events' post.id %}" method="POST">
             {% csrf_token %}
-            <input type="text" name="content"></input>
-            <input type="submit" value="Comment"></input>
+            <input class="textarea form-control float-none" type="text" name="content" style="width: 500px;"></input>
+            <input class='btn btn-primary float-right' type="submit" value="Comment"></input>
         </form>
         {% endif %}
     <script>
