@@ -1,0 +1,18 @@
+{% if author %}
+<a href="{% url 'friendship:view friend request' author.id %}"> view friend requests </a>
+{% endif %}
+
+<h1>Friend List:</h1>
+{% if friends %}
+<ul>
+    {% for friend in friends %}
+    <li>
+        <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+
+No friends
+
+{% endif %}

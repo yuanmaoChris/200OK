@@ -69,4 +69,22 @@ def ViewFriendsRequest(request, author_id):
     return render(request, 'friendship/friend_request.html', context)
 
 def getFriendsList(request, author_id):
-    pass
+    context = {
+        'author': None,
+        'friends': []
+    }
+    if request.method == 'GET':
+        try:
+            author = Author.objects.filter(id=author_id)[0]
+            context['author'] = author
+            friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
+            print(friendships)
+            for friendship in friendships:
+                if friendship.author_a == author:
+                    context['friends'].append(friendship.author_b)
+                else:
+                    context['friends'].append(friendship.author_a)
+        except Exception as e:
+                print(e)
+
+    return render(request, 'friendship/friends_list.html', context)
