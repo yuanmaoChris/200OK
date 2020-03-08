@@ -6,7 +6,6 @@ from django.contrib.auth import (
     login,
     logout
 )
-
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
 
@@ -63,7 +62,6 @@ def profile_view(request, author_id):
             displayName=form['displayName'],
             bio=form['bio'],
             github=form['github'],
-            #avatar=form['avatar'],
         )
 
     author = Author.objects.filter(id=author_id)[0]

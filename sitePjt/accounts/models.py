@@ -7,6 +7,7 @@ from django.contrib.auth.models import (
 from django.conf import settings
 
 class AuthorManager(BaseUserManager):
+    
     def create_user(self, email, displayName, password=None):
         """
         Creates and saves a User with the given email, displayname and password.
@@ -59,11 +60,10 @@ class Author(AbstractBaseUser):
     
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)
     last_login=models.DateField(verbose_name="date joined", auto_now=True)
-
     is_active=models.BooleanField(default=True)
     is_admin=models.BooleanField(default=False)
-
-    objects=AuthorManager()
+    
+    objects = AuthorManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['displayName', ]
@@ -86,3 +86,4 @@ class Author(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+    

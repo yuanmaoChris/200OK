@@ -3,17 +3,22 @@
     <ul>
     {% for req in friend_requests %}
         <li>
-        FROM: {{ req.author_from.displayName }}<br>
-        TO: {{ req.author_to.displayName }}<br>
-        <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
-            <input type="hidden" name="request_id" value="{{ req.id }}"></input>
-            <input type="submit" value="Accept"></input>
-        </form>
+        <div class="card">
+            FROM: {{ req.author_from.displayName }}<br>
+            TO: {{ req.author_to.displayName }}<br>
+            <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
+                <input type="hidden" name="request_id" value="{{ req.id }}"></input>
+                <input type="submit" value="Accept"></input>
+            </form>
+        </div>
+
         </li>
     {% endfor %}
     </ul>
 {% else %}
-
-No friend requests.
-
+<div class="card">
+    <div class="card-tile">
+        No Friend Requests
+    </div>
+</div>
 {% endif %}

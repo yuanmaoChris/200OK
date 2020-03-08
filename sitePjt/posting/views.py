@@ -5,17 +5,15 @@ from django.views import generic
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from datetime import datetime
-User = get_user_model()
-
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
-
 from .models import Post, Comment
 from .forms import PostForm, PostNewForm, CommentForm
 from .serializers import *
 from .models import Post
 
+User = get_user_model()
 def ViewPublicPosts(request):
     public_posts = Post.objects.filter(visibility='PUBLIC').order_by('-pub_date')[:10]
     form = PostNewForm(request.POST or None)
@@ -35,6 +33,7 @@ def ViewPublicPosts(request):
     }
 
     return render(request, "posting/publicPosts.html", context)
+
 
 def DeletePost(request, post_id):
     try:
@@ -123,7 +122,6 @@ def postCommentHandler(request, post_id, comment_id=None):
             context['success'] = False
             context['message'] = "Comment not Allowed"
             
-
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
 
@@ -149,20 +147,11 @@ def ViewUserPosts(request, author_id):
     }
     
     return render(request, "posting/myPost.html", context)
-# Create your views here.
-
-
-
-
-
-
-
-
-
-
-
 
 def post(request, username):
+    '''
+        create a post 
+    '''
     try:
         user = get_object_or_404(User, username=username)
     except:
@@ -185,6 +174,9 @@ def post(request, username):
 
 
 class myPostView(generic.ListView):
+    '''
+        to view my post list
+    '''
     template_name = 'posting/myPost.html'
     context_object_name = 'my_post_list'
     user = None
@@ -197,6 +189,9 @@ class myPostView(generic.ListView):
 class MyHomeView(generic.ListView):
     template_name = 'posting/home.html'
     context_object_name = 'latest_post_list'
+    '''
+
+    '''
 
     def get_queryset(self):
         return Post.objects.filter(visibility='PUBL').order_by('-pub_date')[:10]

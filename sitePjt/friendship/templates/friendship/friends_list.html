@@ -1,18 +1,65 @@
-{% if author %}
-<a href="{% url 'friendship:view friend request' author.id %}"> view friend requests </a>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">    
+    {% include 'posting/base.html' %}
+    <body>
+            {% include 'posting/navbar.html' %}
+            <div class="container">
+                <div class="row">
+                    <div class="col-4">
+                        {% if author.is_authenticated %} 
+                        <div class="short-profile">
+                            {% include 'posting/profile-card.html' with request=request %}
+                        </div>
+                        <script>
+                            document.getElementById("nav-third").innerHTML="Log Out"
+                            document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
+                        </script>
+                        {% else %}
+                        <script>
+                            document.getElementById("global-home").innerHTML="Sign In"
+                            document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
+                            document.getElementById("nav-third").innerHTML = "Sign Up"
+                            document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
+                        </script>
+                        {% endif %}  
+                        {% if author %}
+                            <script>
+                                $( "#user-menu" ).append( " <a id=\"view-request\" class=\"btn btn-outline-success btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
+        
+                           
+                            </script>                            
+                        {% endif %}
+                    </div>
+                    <div class="col-8">
+                        <div class="row">
 
-<h1>Friend List:</h1>
-{% if friends %}
-<ul>
-    {% for friend in friends %}
-    <li>
-        <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
+                        </div>
+                        <div class="row">
+                                <h1>Friend List:</h1>
+                                {% if friends %}
+                                <ul>
+                                {% for friend in friends %}
+                                <li>
+                                    {% include 'friendship/friend_card.html' with friend=friend %}
+                                    <!--
+                                        <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>
+                                    -->
+                                    
+                                </li>
+                                {% endfor %}
+                                </ul>
+                                {% else %}
+                                    No friends
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </body>
+</html>
 
-No friends
 
-{% endif %}
+   
+
+
