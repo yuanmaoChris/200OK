@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">    
+<html >    
     {% include 'posting/base.html' %}
     <body>
             {% include 'posting/navbar.html' %}
@@ -10,30 +10,51 @@
                         <div class="short-profile">
                             {% include 'posting/profile-card.html' with request=request %}
                         </div>
-                        <script>
-                            document.getElementById("nav-third").innerHTML="Log Out"
-                            document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
-                        </script>
+                            <script>
+                                document.getElementById("nav-third").innerHTML="Log Out"
+                                document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
+                            </script>
                         {% else %}
-                        <script>
-                            document.getElementById("global-home").innerHTML="Sign In"
-                            document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
-                            document.getElementById("nav-third").innerHTML = "Sign Up"
-                            document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
-                        </script>
+                            <script>
+                                document.getElementById("global-home").innerHTML="Sign In"
+                                document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
+                                document.getElementById("nav-third").innerHTML = "Sign Up"
+                                document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
+                            </script>
                         {% endif %}  
                         {% if author %}
                             <script>
                                 $( "#user-menu" ).append( " <a id=\"view-request\" class=\"btn btn-outline-success btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
                                 var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
-        
-                           
-                            </script>                            
+                            </script>
+                            <!-- a commend to activate data-toggle=\"modal\" data-target=\"#exampleModal\" -->
+                            <!--There is a popup list which decides to show a list of friend requests-->
+                            <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Requests</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    </div>
+                                    <div class="modal-body">
+                                    ...
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary">Save changes</button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+
+                            
                         {% endif %}
                     </div>
                     <div class="col-8">
                         <div class="row">
-
                         </div>
                         <div class="row">
                                 <h1>Friend List:</h1>
