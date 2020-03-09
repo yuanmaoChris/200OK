@@ -31,7 +31,7 @@ class PostNewForm(forms.ModelForm):
             'content_type',
             'category',
             'visibility',
-
+            'unlisted',
     
         ]
 

@@ -42,20 +42,27 @@
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Content Type</label>
                                         <select name="content_type" class="form-control" id="post-edit-content-type">
-                                            <option>text/plain</option>
-                                            <option>text/markdown</option>
+                                            <option value="text">text/plain</option>
+                                            <option value="md">text/markdown</option>
                                         </select>
                                     </div>
-                                        <div class="form-group">
-                                            <label for="post-edit-visibility">Visibility</label>
-                                            <select name="visibility" class="form-control" id="post-edit-visibility">
-                                                <option value="PUBLIC">Public</option>
-                                                <option value="PRIVATE"> Prviate to self</option>
-                                                <option value="FRIENDS">Private to friends</option>
-                                                <option value="FOAF">Private to friends of friends</option>
-                                                <option value="SERVERONLY">Private to local friends</option>
-                                            </select>
-                                        </div>
+                                    <div class="form-group">
+                                        <label for="post-edit-unlisted-type">Unlisted</label>
+                                        <select name="unlisted" class="form-control" id="post-edit-unlisted-type">
+                                            <option value="True">True</option>
+                                            <option value="False">False</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="post-edit-visibility">Visibility</label>
+                                        <select name="visibility" class="form-control" id="post-edit-visibility">
+                                            <option value="PUBLIC">Public</option>
+                                            <option value="PRIVATE"> Prviate to self</option>
+                                            <option value="FRIENDS">Private to friends</option>
+                                            <option value="FOAF">Private to friends of friends</option>
+                                            <option value="SERVERONLY">Private to local friends</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="modal-footer">
                                 <button style="width: 78px" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

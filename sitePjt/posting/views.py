@@ -15,7 +15,7 @@ from .models import Post
 
 User = get_user_model()
 def ViewPublicPosts(request):
-    public_posts = Post.objects.filter(visibility='PUBLIC').order_by('-pub_date')[:10]
+    public_posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-pub_date')[:50]
     form = PostNewForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
@@ -42,7 +42,7 @@ def DeletePost(request, post_id):
     except Exception as e:
         print(e)
 
-    return redirect('/service/posts/')
+    return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
 def ViewPostDetails(request, post_id):
     post = Post.objects.get(id=post_id)

@@ -16,12 +16,18 @@ class Post(models.Model):
         ('md', 'text/markdown'),
     }
 
+    UNLISTED = {
+        (True, 'True'),
+        (False, 'False'),
+    }
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     content_type = models.CharField(max_length=4, default = 'text', choices=CONTENT_TYPE)
     content = models.CharField(max_length=200)
     category = models.CharField(max_length=200)
+    unlisted = models.BooleanField(default=False, choices=UNLISTED)
     pub_date = models.DateTimeField('date posted', auto_now_add=True, blank=True)
     visibility = models.CharField(max_length=10, default = 'PUBL', choices=POST_VISIBILITY)
     
