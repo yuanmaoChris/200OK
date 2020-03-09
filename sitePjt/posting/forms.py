@@ -17,8 +17,8 @@ class PostNewForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={
                 "class": "textarea form-control",
-                "rows": 10,
-                "cols": 40,
+                "rows": 30,
+                "cols": 50,
                 "style": "resize:none",
             }
         )
@@ -27,10 +27,12 @@ class PostNewForm(forms.ModelForm):
         model = Post
         fields = [
             'title',
-            'content_type',
             'content',
-            'visibility',
+            'content_type',
             'category',
+            'visibility',
+
+    
         ]
 
 
