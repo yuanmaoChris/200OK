@@ -4,7 +4,6 @@ from django.views import generic
 
 @login_required
 def ViewHomePage(request):
-    #return render(request, "home.html",)
     if not request.user:
         redirect('/accounts/login')
     return redirect('/service/posts/')

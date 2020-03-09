@@ -24,7 +24,7 @@
                         {% endif %}  
                         {% if author %}
                             <script>
-                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-success btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
                                 var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
                             </script>
                             <!-- a commend to activate  -->
@@ -51,7 +51,7 @@
                                                         <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
                                                             <input type="hidden" name="request_id" value="{{ req.id }}"></input>
                                                             <input style="width: 78px" class="btn btn-primary" type="submit" value="Accept"></input>
-                                                            <a  style="width: 78px" class="btn btn-primary" href="#">Deny</a>
+                                                            <a  style="width: 78px" class="btn btn-danger" href="#">Deny</a>
                                                         </form>
                                                     </div>
                                                 </div>
@@ -65,10 +65,6 @@
                                         </div>
                                     </div>
                                     {% endif %}
-                                    </div>
-                                    <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary">Save changes</button>
                                     </div>
                                 </div>
                                 </div>
