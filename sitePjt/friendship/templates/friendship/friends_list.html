@@ -46,12 +46,12 @@
                                             <li>
                                                 <div class = "card">                                         
                                                     <div class="card-body">
-                                                        <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">requests following you</span></h4></div>
+                                                        <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">{{ req.pub_date|timesince }} ago</span></h4></div>
                                                         <!--Debug: {{ req.author_to.displayName }}-->
-                                                        <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
+                                                        <form action="{% url 'friendship:handle request' %}" method="POST"> {% csrf_token %}
                                                             <input type="hidden" name="request_id" value="{{ req.id }}"></input>
-                                                            <input style="width: 78px" class="btn btn-primary" type="submit" value="Accept"></input>
-                                                            <a  style="width: 78px" class="btn btn-danger" href="#">Deny</a>
+                                                            <input style="width: 78px" class="btn btn-primary" name="method" type="submit" value="Accept"></input>
+                                                            <input style="width: 78px" class="btn btn-danger" name="method" type="submit" value="Deny"></input>
                                                         </form>
                                                     </div>
                                                 </div>

@@ -1,6 +1,10 @@
 <div class="card" style="width: 600px; height: 75px;">
     <div class="card-body">
             <a href="{% url 'accounts:view profile' friend.id %}" class="text-dark font-weight-bold" style="text-decoration: none; font-size: large;" > {{ friend.displayName }} </a>
-            <a href="#" class="btn btn-danger float-right">Unfriend</a>
+            
+            <form action="{% url 'friendship:unfriend' %}" method='POST'>  {% csrf_token %}
+                <input type="hidden" name="friend_id" value="friend.id"></input>
+                <input type="submit" class="btn btn-danger float-right" value="Unfriend"></input>
+            </form>
     </div>
 </div>

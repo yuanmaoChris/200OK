@@ -34,7 +34,7 @@ def sendRequest(request):
 
     return redirect('/service/posts/')
 
-def acceptRequest(request):
+def handleRequest(request):
     form = request.POST or None
     if request.method == 'POST':
         try:
@@ -42,17 +42,20 @@ def acceptRequest(request):
             author_from = Author.objects.filter(id=fr.author_from.id)[0]
             author_to = Author.objects.filter(id=fr.author_to.id)[0]
             fr.delete()
-            if author_from.id < author_to.id:
-                a, b = author_from, author_to
-            else:
-                 a, b = author_to, author_from
-            friendship = Friendship.objects.filter(author_a=a, author_b=b)
-            if not friendship.exists():
-                friendship = Friendship(author_a=a, author_b=b)
-                friendship.save()
+            if form['method'] == 'Accept':
+                if author_from.id < author_to.id:
+                    a, b = author_from, author_to
+                else:
+                    a, b = author_to, author_from
+                friendship = Friendship.objects.filter(author_a=a, author_b=b)
+                if not friendship.exists():
+                    friendship = Friendship(author_a=a, author_b=b)
+                    friendship.save()
+
         except Exception as e:
             print(e)
-    return redirect('/service/posts/')
+    return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
+
 
 def ViewFriendsRequest(request, author_id):
     context = {
@@ -66,6 +69,8 @@ def ViewFriendsRequest(request, author_id):
                 print(e)
     
     return render(request, 'friendship/friend_request.html', context)
+
+
 
 def getFriendsList(request, author_id):
     context = {
@@ -93,3 +98,23 @@ def getFriendsList(request, author_id):
                 print(e)
 
     return render(request, 'friendship/friends_list.html', context)
+
+
+def deleteFriend(request):
+    form = request.POST or None
+    
+    try:
+        author = Author.objects.filter(id=request.user.id)[0]
+        friend = Author.objects.filter(id=form['friend_id'])[0]
+        print("author " + author.displayName + "unf" + friend.displayName)
+        if author.id < friend.id:
+            a, b = author, friend
+        else:
+            a, b = friend, author
+        friendship = Friendship.objects.get(author_a=a, author_b=b)
+        friendship.delete()
+
+    except Exception as e:
+        print(e)
+        
+    return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
