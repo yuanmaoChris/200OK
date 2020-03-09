@@ -1,12 +1,6 @@
-
-<!-- <h1>
-    Author inof:
-</h1>
-    {{ displayName }}
-    {{ bio }}
-    {{ github }}-->
 {%include 'posting/base.html'%}
 {%include 'posting/navbar.html'%}
+
 <div class="container" style="margin-top: 20px;">
     <div class="row">
         <div class="col-12">
@@ -21,16 +15,19 @@
                                     <img src="http://placehold.it/150x150" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
                                 {% endif %}
                                 <div class="middle">
-                                    {% if request.user.id != id %}
-                                        <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}
-                                            <input type="hidden" name="author_from" value="{{ request.user.id }}"></input>
-                                            <input type="hidden" name="author_to" value="{{ id }}"></input>
-                                            <input type="submit" class="btn btn-secondary" id="btnRequest" value="request" />
-                                        </form>
-                                         
+                                    {%  if  not request.user.is_authenticated  %}
+                                    
                                     {% else %}
-                                        <input type="button" class="btn btn-secondary" id="btnChange" value="Change" />
-                                        <input type="file" style="display: none;" id="profilePicture" name="file" />
+                                        {% if request.user.id != id  %}
+                                            <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}
+                                                <input type="hidden" name="author_from" value="{{ request.user.id }}"></input>
+                                                <input type="hidden" name="author_to" value="{{ id }}"></input>
+                                                <input type="submit" class="btn btn-secondary" id="btnRequest" value="request" />
+                                            </form>
+                                        {% else %}
+                                            <input type="button" class="btn btn-secondary" id="btnChange" value="Change" />
+                                            <input type="file" style="display: none;" id="profilePicture" name="file" />
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -117,12 +114,12 @@
         </div>
     </div>
 </div>
-                                    
+                         
 <script>
     document.getElementById('btnChange').onclick = function() {
-    document.getElementById('display-input').removeAttribute('readonly');
-    document.getElementById('bio-input').removeAttribute('readonly');
-    document.getElementById('github-input').removeAttribute('readonly');
-    document.getElementById("submit-btn").style.display="block"
+        document.getElementById('display-input').removeAttribute('readonly');
+        document.getElementById('bio-input').removeAttribute('readonly');
+        document.getElementById('github-input').removeAttribute('readonly');
+        document.getElementById("submit-btn").style.display="block"
     };
 </script>

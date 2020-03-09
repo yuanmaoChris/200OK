@@ -8,7 +8,6 @@ Author = get_user_model()
 
 def checkFriendship(request, author_a, author_b):
     author_from, author_to = author_a, author_b if author_a < author_b else author_b, author_a
-
     if Friendship.objects.filter(author_a=author_from, author_b=author_to)[0]:
         return True
     else:
@@ -71,7 +70,9 @@ def ViewFriendsRequest(request, author_id):
 def getFriendsList(request, author_id):
     context = {
         'author': None,
-        'friends': []
+        'friends': [],
+        'friend_requests': None
+        
     }
     if request.method == 'GET':
         try:
@@ -84,6 +85,10 @@ def getFriendsList(request, author_id):
                     context['friends'].append(friendship.author_b)
                 else:
                     context['friends'].append(friendship.author_a)
+
+            #get friend requests
+            friend_requests = FriendRequest.objects.filter(author_to=request.user)
+            context['friend_requests'] = friend_requests
         except Exception as e:
                 print(e)
 

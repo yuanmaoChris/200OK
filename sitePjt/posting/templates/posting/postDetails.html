@@ -2,6 +2,7 @@
 {% block shortProfile %}  
     {% if request.user.is_authenticated %} 
         {% include 'posting/profile-card.html' with request=request%}
+                   
     {% endif %}     
 {% endblock %}
 {% block newPost %}

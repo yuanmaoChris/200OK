@@ -144,6 +144,7 @@ def ViewUserPosts(request, author_id):
         "next": next,
         "previous": preivous,
         "posts": posts,
+        "allowEdit":True,
     }
     
     return render(request, "posting/myPost.html", context)
@@ -189,9 +190,6 @@ class myPostView(generic.ListView):
 class MyHomeView(generic.ListView):
     template_name = 'posting/home.html'
     context_object_name = 'latest_post_list'
-    '''
-
-    '''
 
     def get_queryset(self):
         return Post.objects.filter(visibility='PUBL').order_by('-pub_date')[:10]
@@ -219,26 +217,27 @@ def postDetailsView(request, pk):
     }
     return render(request, 'posting/post_detail.html', context)
 
-def editPost(request, username, pk):
-    try:
-        user = get_object_or_404(User, username=username)
-    except:
-        return render(request, 'post/postDetail.html', {
-            'error_message': "Failed to edit post, user info does not match.",
-        })
+def editPost(request, post_id):
+    form = request.POST or None
+    if request.method == 'POST':
+        try:
+            post = Post.objects.get(id=post_id)
+            if form['title']:
+                post.title = form['title']
+            if form['content']:
+                post.content = form['content']
+            if form['visibility']:
+                post.visibility = form['visibility']
+            if form['content_type']:
+                post.content_type = form['content_type']
+            post.save()
+        except Exception as e:
+            print(e)
+            return render(request, 'post/postDetail.html', {
+                'error_message': "Failed to edit post.",
+            })
 
-    try:
-        content = request.POST['content']
-        visibility = request.POST['visibility']
-    except KeyError:
-        return render(request, 'post/postDetail.html', {
-            'error_message': "Failed to edit post.",
-        })
-    else:
-        Post.objects.filter(id=pk).update(content=content, visibility=visibility, pub_date=now())
-        #Check length <= max content length(200)
-
-    return HttpResponseRedirect(reverse('posting:view my post', args=(username,)))
+    return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
 
 @api_view(['GET', 'POST'])

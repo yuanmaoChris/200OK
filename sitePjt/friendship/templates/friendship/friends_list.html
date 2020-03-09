@@ -24,10 +24,10 @@
                         {% endif %}  
                         {% if author %}
                             <script>
-                                $( "#user-menu" ).append( " <a id=\"view-request\" class=\"btn btn-outline-success btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-success btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
                                 var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
                             </script>
-                            <!-- a commend to activate data-toggle=\"modal\" data-target=\"#exampleModal\" -->
+                            <!-- a commend to activate  -->
                             <!--There is a popup list which decides to show a list of friend requests-->
                             <!-- Modal -->
                             <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -40,7 +40,31 @@
                                     </button>
                                     </div>
                                     <div class="modal-body">
-                                    ...
+                                    {% if friend_requests %}
+                                    <ul>
+                                        {% for req in friend_requests %}
+                                            <li>
+                                                <div class = "card">                                         
+                                                    <div class="card-body">
+                                                        <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">requests following you</span></h4></div>
+                                                        <!--Debug: {{ req.author_to.displayName }}-->
+                                                        <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
+                                                            <input type="hidden" name="request_id" value="{{ req.id }}"></input>
+                                                            <input style="width: 78px" class="btn btn-primary" type="submit" value="Accept"></input>
+                                                            <a  style="width: 78px" class="btn btn-primary" href="#">Deny</a>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                    <div class="card">
+                                        <div class="card-tile">
+                                            No Friend Requests
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                     </div>
                                     <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -65,8 +89,7 @@
                                     {% include 'friendship/friend_card.html' with friend=friend %}
                                     <!--
                                         <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>
-                                    -->
-                                    
+                                    -->        
                                 </li>
                                 {% endfor %}
                                 </ul>

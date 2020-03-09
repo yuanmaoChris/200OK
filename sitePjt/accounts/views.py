@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth import (
     authenticate,
@@ -20,6 +21,7 @@ def login_view(request):
             login(request, user)
         else:
             print("user does not exist")
+            return render(request,"accounts/login.html",{'form': UserLoginForm()}) 
         if next:
             return redirect(next)
         return redirect('/service/posts/')
@@ -53,7 +55,7 @@ def logout_view(request):
     logout(request)
     return redirect('/accounts/login/')
 
-
+#@login_required
 def profile_view(request, author_id):
     form = request.POST
     if request.method == "POST":
