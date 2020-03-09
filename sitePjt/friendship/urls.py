@@ -8,6 +8,7 @@ urlpatterns = [
     path('author/<str:author_id>/friends/', views.getFriendsList, name='get friends list'),
     path('friendrequest/', views.sendRequest, name='friend request'),
     path('friendrequest/accept/', views.handleRequest, name='handle request'),
+    path('friendrequest/unfriend/', views.deleteFriend, name='delete friend'),
     path('friendrequest/<str:author_id>/', views.ViewFriendsRequest, name='view friend request'),
-    path('friendrequest/unfriend/', views.deleteFriend, name='unfriend'),
+    
 ]
