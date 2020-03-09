@@ -25,3 +25,8 @@ Contributors:
     Erin Torbiak
     Abram Hindle
     Braedy Kuzma
+    
+To Do
+========================
+
+Add log for login successful or not
