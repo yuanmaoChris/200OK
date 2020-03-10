@@ -6,12 +6,33 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 Author = get_user_model()
 
-def checkFriendship(request, author_a, author_b):
-    author_from, author_to = author_a, author_b if author_a < author_b else author_b, author_a
-    if Friendship.objects.filter(author_a=author_from, author_b=author_to)[0]:
+def checkFriendship(author_a, author_b):
+    if author_a < author_b:
+        author_from, author_to = author_a, author_b
+    else:
+        author_from, author_to = author_b, author_a
+    if Friendship.objects.filter(author_a=author_from, author_b=author_to).exists():
         return True
     else:
         return False
+
+
+def getAllFriends(author_id):
+    friends = []
+    try:
+        author = Author.objects.filter(id=author_id)[0]
+        friendships = Friendship.objects.filter(
+            Q(author_a=author) | Q(author_b=author))
+        print(friendships)
+        for friendship in friendships:
+            if friendship.author_a == author:
+                friends.append(friendship.author_b)
+            else:
+                friends.append(friendship.author_a)
+    except Exception as e:
+            print(e)
+
+    return friends
 
 def sendRequest(request):
     if request.method == 'POST':
@@ -74,23 +95,15 @@ def ViewFriendsRequest(request, author_id):
 
 def getFriendsList(request, author_id):
     context = {
-        'author': None,
+        'author': request.user,
         'friends': [],
         'friend_requests': None
         
     }
     if request.method == 'GET':
         try:
-            author = Author.objects.filter(id=author_id)[0]
-            context['author'] = author
-            friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
-            print(friendships)
-            for friendship in friendships:
-                if friendship.author_a == author:
-                    context['friends'].append(friendship.author_b)
-                else:
-                    context['friends'].append(friendship.author_a)
-
+            #get friend list
+            context['friends'] = getAllFriends(author_id)
             #get friend requests
             friend_requests = FriendRequest.objects.filter(author_to=request.user)
             context['friend_requests'] = friend_requests

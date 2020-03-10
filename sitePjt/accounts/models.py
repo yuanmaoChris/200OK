@@ -52,11 +52,12 @@ class Author(AbstractBaseUser):
     id = models.CharField(primary_key=True, default=uuid_str, editable=False,max_length=100,unique=True)
     displayName = models.CharField(max_length=30)
     host = models.URLField(default=settings.HOSTNAME, max_length=100)
-    url = models.URLField(default=uuid_str,max_length=100)
+    url_default = "http:127.0.0.1:8000/accounts/author/profile/"+uuid_str+"/"
+    url = models.URLField(default=url_default, max_length=100)
     avatar = models.ImageField(upload_to='avatar/', default = 'avatar/default-avatar.png', blank=True, null=True)
     
     github = models.URLField(default="", max_length=100, null=True)
-    bio = models.CharField(max_length=200, null=True)
+    bio = models.CharField(default="", max_length=200, null=True)
     
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)
     last_login=models.DateField(verbose_name="date joined", auto_now=True)

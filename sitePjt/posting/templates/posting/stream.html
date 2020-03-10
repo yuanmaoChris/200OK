@@ -20,16 +20,16 @@
 {% endblock %}
 
 {% block content %}
-    {% if public_post_list %}
+    {% if post_list %}
         <ul>
-            {% for post in public_post_list %}
+            {% for post in post_list %}
             <li>
                 {% include 'posting/post-inline-view.html' with post=post %}                 
             </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>No Public posts... Go make some!</p>
+        <p>No visible posts... Go make some!</p>
     {% endif %}
 {% endblock %}
 

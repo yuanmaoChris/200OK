@@ -12,10 +12,12 @@ from .models import Post, Comment
 from .forms import PostForm, PostNewForm, CommentForm
 from .serializers import *
 from .models import Post
+from friendship import views as FriendshipViews
 
 User = get_user_model()
 def ViewPublicPosts(request):
-    public_posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-pub_date')[:50]
+    posts = Post.objects.filter(unlisted=False).order_by('-pub_date')[:50]
+    post_list = []
     form = PostNewForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
@@ -27,9 +29,31 @@ def ViewPublicPosts(request):
         else:
             print(form.errors)
     
+    for post in posts:
+        if post.author == request.user:
+            post_list.append(post)
+        elif post.visibility == 'PUBLIC':
+            post_list.append(post)
+        elif post.visibility == 'FRIENDS':
+            if FriendshipViews.checkFriendship(post.author.id, request.user.id):
+                post_list.append(post)
+        elif post.visibility == 'FOAF':
+            if FriendshipViews.checkFriendship(post.author.id, request.user.id):
+                post_list.append(post)
+            else:
+                for friend in FriendshipViews.getAllFriends(post.author.id):
+                    if FriendshipViews.checkFriendship(friend.id, request.user.id):
+                        post_list.append(post)
+        elif post.visibility == 'SERVERONLY':
+            #if author.host == request.user.host:
+                #post_list.append(post)
+            print("SERVERONLY unimplemented.")
+        #if request.user.id in post.visibleTo and (not post in post_list):
+            #post_list.append(post)
     context = {
-        'public_post_list': public_posts,
+        'post_list': post_list,
         'form': form,
+
     }
 
     return render(request, "posting/stream.html", context)
