@@ -55,7 +55,6 @@ class Author(AbstractBaseUser):
     url_default = "http:127.0.0.1:8000/accounts/author/profile/"+uuid_str+"/"
     url = models.URLField(default=url_default, max_length=100)
     avatar = models.ImageField(upload_to='avatar/', default = 'avatar/default-avatar.png', blank=True, null=True)
-    
     github = models.URLField(default="", max_length=100, null=True)
     bio = models.CharField(default="", max_length=200, null=True)
     
@@ -63,7 +62,6 @@ class Author(AbstractBaseUser):
     last_login=models.DateField(verbose_name="date joined", auto_now=True)
     is_active=models.BooleanField(default=True)
     is_admin=models.BooleanField(default=False)
-    
     objects = AuthorManager()
 
     USERNAME_FIELD = 'email'

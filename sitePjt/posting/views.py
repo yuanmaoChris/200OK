@@ -11,63 +11,77 @@ from rest_framework import status
 from .models import Post, Comment
 from .forms import PostForm, PostNewForm, CommentForm
 from .serializers import *
-from .models import Post
+from .models import Post###, VisibleTo
 from friendship import views as FriendshipViews
 
 User = get_user_model()
-def ViewPublicPosts(request):
-    posts = Post.objects.filter(unlisted=False).order_by('-pub_date')[:50]
-    post_list = []
-    form = PostNewForm(request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            #form.save()
-            form_data = form.cleaned_data
-            form.cleaned_data['author'] = request.user
-            Post.objects.create(**form.cleaned_data)
-            form = PostNewForm()
-        else:
-            print(form.errors)
-    
+
+#helper funciton
+
+def getVisiblePosts(requester):
+    result = []
+    posts = Post.objects.filter(unlisted=False).order_by('-pub_date')
     for post in posts:
-        if post.author == request.user:
-            post_list.append(post)
+        if post.author == requester:
+            result.append(post)
         elif post.visibility == 'PUBLIC':
-            post_list.append(post)
+            result.append(post)
         elif post.visibility == 'FRIENDS':
-            if FriendshipViews.checkFriendship(post.author.id, request.user.id):
-                post_list.append(post)
+            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+                result.append(post)
         elif post.visibility == 'FOAF':
-            if FriendshipViews.checkFriendship(post.author.id, request.user.id):
-                post_list.append(post)
+            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+                result.append(post)
             else:
                 for friend in FriendshipViews.getAllFriends(post.author.id):
-                    if FriendshipViews.checkFriendship(friend.id, request.user.id):
-                        post_list.append(post)
+                    if FriendshipViews.checkFriendship(friend.id, requester.id):
+                        result.append(post)
         elif post.visibility == 'SERVERONLY':
-            #if author.host == request.user.host:
-                #post_list.append(post)
+            if post.author.host == requester.host:
+                result.append(post)
             print("SERVERONLY unimplemented.")
         #if request.user.id in post.visibleTo and (not post in post_list):
             #post_list.append(post)
+    return result
+
+def ViewPublicPosts(request):
+    form = PostNewForm(request.POST or None)
+    if request.user.is_anonymous:
+        posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-pub_date')
+        context = {
+            'post_list': posts,
+            'form': form,
+
+        }
+
+        return render(request, "posting/stream.html", context)
+    if request.method == 'POST':
+        try:
+            if form.is_valid():
+                #form.save()
+                form_data = form.cleaned_data
+                form.cleaned_data['author'] = request.user
+                newpost =Post.objects.create(**form.cleaned_data)
+                ###if form_data['visibleTo']:
+                ###    for friend in form_data['visibleTo']:
+                ###        visibleTo = VisibleTo(post=newpost, author=friend)
+                ###        visibleTo.save()
+                form = PostNewForm()
+            else:
+                print(form.errors)
+        except Exception as e:
+            print(e)
+    posts = getVisiblePosts(request.user)
     context = {
-        'post_list': post_list,
+        'post_list': posts,
         'form': form,
 
     }
 
     return render(request, "posting/stream.html", context)
-
+    
 def ViewPostDetails(request, post_id):
     post = Post.objects.get(id=post_id)
-
-    if request.method == "DELETE":
-        try:
-            post.delete()
-        except Exception as e:
-            print(e)
-        finally:
-            return redirect('/service/posts/')
 
     comments = Comment.objects.filter(post=post)[:10]
     context = {
@@ -155,7 +169,7 @@ def ViewUserPosts(request, author_id):
     author = User.objects.filter(id=author_id)[0]
 
     if request.method == 'GET':
-        posts = Post.objects.filter(author=author)[:10]
+        posts = Post.objects.filter(author=author).order_by('-pub_date')[:]
         count = len(posts)
         #get from front-end or default
         size = 10

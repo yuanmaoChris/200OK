@@ -9,6 +9,7 @@ from django.contrib.auth import (
 )
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
+from posting import views as PostingView
 
 def login_view(request):
     next = request.GET.get('next')
@@ -67,6 +68,10 @@ def profile_view(request, author_id):
         )
 
     author = Author.objects.filter(id=author_id)[0]
+    posts_list = []
+    if request.user.id != author_id:
+        posts_list = PostingView.getVisiblePosts(request.user)
+
     context = {
         'displayName': author.displayName,
         'avatar': author.avatar,
@@ -77,5 +82,7 @@ def profile_view(request, author_id):
         'email': author.email,
         'id': author.id,
         'joined_date': author.date_joined,
+        'post_list': posts_list,
     }
+
     return render(request, "accounts/profile.html", context)

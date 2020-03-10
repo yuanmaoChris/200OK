@@ -119,7 +119,13 @@
         </div>
     </div>
 </div>
-                         
+ 
+{% if post_list %}
+<h1>Post list:</h1>
+    {% for post in post_list %}
+        {% include "posting/post-full-view.html" with post=post %}
+    {% endfor %}
+{% endif %}
 <script>
     document.getElementById('btnChange').onclick = function() {
         document.getElementById('display-input').removeAttribute('readonly');

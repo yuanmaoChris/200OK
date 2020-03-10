@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 Author = get_user_model()
 
+#helper function
 def checkFriendship(author_a, author_b):
     if author_a < author_b:
         author_from, author_to = author_a, author_b
@@ -16,7 +17,7 @@ def checkFriendship(author_a, author_b):
     else:
         return False
 
-
+#helper funciton
 def getAllFriends(author_id):
     friends = []
     try:
@@ -53,7 +54,7 @@ def sendRequest(request):
         except Exception as e:
             print(e)
 
-    return redirect('/service/posts/')
+    return HttpResponseRedirect(reverse('accounts:view profile', args=(form['author_to'],)), {})
 
 def handleRequest(request):
     form = request.POST or None
