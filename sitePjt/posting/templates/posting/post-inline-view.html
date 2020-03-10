@@ -1,10 +1,11 @@
 <div class="card" style="width:600px">
     <div class="card-body">
-      <a class="displa-name" style="font-size:x-large" href="{% url 'accounts:view profile' post.author.id %}">{{post.author.displayName}}</a>
+      <a class="displa-name" href="{% url 'accounts:view profile' post.author.id %}">{{post.author.displayName}}</a>
       <br>
       <span id="timestamp">{{ post.pub_date|timesince }} ago</span>
-      <p class="card-text"><p>{{ post.title }}</p></p>
+      <div class="card-title">
+          <p style="font-size: larger;">{{ post.title }}</p></p>
+      </div>
       <a  class="" href="{% url 'posting:view post details' post.id %}" style="font-size: small;" >Read More</a>
     </div>
-
 </div>
