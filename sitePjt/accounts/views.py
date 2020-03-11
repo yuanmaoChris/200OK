@@ -70,7 +70,7 @@ def profile_view(request, author_id):
     author = Author.objects.filter(id=author_id)[0]
     posts_list = []
     if request.user.id != author_id:
-        posts_list = PostingView.getVisiblePosts(request.user)
+        posts_list = PostingView.getVisiblePosts(request.user, author)
 
     context = {
         'displayName': author.displayName,

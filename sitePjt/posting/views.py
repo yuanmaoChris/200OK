@@ -18,9 +18,19 @@ User = get_user_model()
 
 #helper funciton
 
-def getVisiblePosts(requester):
+def getVisiblePosts(requester, author=None):
     result = []
-    posts = Post.objects.filter(unlisted=False).order_by('-pub_date')
+
+    if requester.is_anonymous:
+        if author:
+            return Post.objects.filter(author=author,visibility='PUBLIC', unlisted=False).order_by('-pub_date')
+        else:
+            return Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-pub_date')
+    
+    if author:
+        posts = Post.objects.filter(author=author, unlisted=False).order_by('-pub_date')
+    else:
+        posts = Post.objects.filter(unlisted=False).order_by('-pub_date')
     for post in posts:
         if post.author == requester:
             result.append(post)
@@ -114,13 +124,20 @@ def editPost(request, post_id):
             if form['content_type']:
                 post.content_type = form['content_type']
             post.save()
+    
         except Exception as e:
             print(e)
             return render(request, 'post/postDetail.html', {
                 'error_message': "Failed to edit post.",
             })
+    if request.method == 'GET':
+        try:
+            post = Post.objects.get(id=post_id)
+            form = PostNewForm(post)
+        except Exception as e:
+            print(e)
 
-    return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
+    return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {'form': form})
 
 def postCommentHandler(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)

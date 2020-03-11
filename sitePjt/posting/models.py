@@ -31,6 +31,9 @@ class Post(models.Model):
     pub_date = models.DateTimeField('date posted', auto_now_add=True, blank=True)
     visibility = models.CharField(max_length=10, default = 'PUBL', choices=POST_VISIBILITY)
     
+    def __str__(self):
+        return super().__str__() + "    ---------   " + self.title
+
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)

@@ -14,7 +14,7 @@
             <div class="post-action">
                 {% if post.author == request.user and allowEdit %}
                 <a  style="width: 78px; position: absolute; right:   5px; bottom:   10px;" class="btn btn-danger" href="{% url 'posting:delete post' post.id %}">Delete</a>
-                <a  style="width: 78px; position: absolute; right:  90px; bottom:   10px;" id="edit-button" data-toggle="modal" data-target="#input-form"  class="btn btn-primary" href="{% url 'posting:edit post' post.id %}">Edit</a>
+                <a  style="width: 78px; position: absolute; right:  90px; bottom:   10px;" id="edit-button" data-toggle="modal" data-target="#input-form"  class="btn btn-primary" href="">Edit</a>
                 
                 <!-- Modal -->
                 <div class="modal fade" id="input-form" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -29,14 +29,14 @@
                             <form action="{% url 'posting:edit post' post.id %}" method="POST" class="post-form"> {% csrf_token %}
                                 <div class="modal-body">
                                     <div class="form-group">
-                                        <input type="text" name="title" class="form-control" id="post-edit-title" placeholder=" {{ post.title }}">
+                                        <input type="text" name="title" class="form-control" id="post-edit-title">
                                     </div>
                                     <div class="form-group">
-                                        <input type="text" name="category" class="form-control" id="post-edit-cate" placeholder="{{ post.category }}">
+                                        <input type="text" name="category" class="form-control" id="post-edit-cate">
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Content</label>
-                                        <textarea  name="content" class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="{{ post.content }}" style="resize:none"></textarea>
+                                        <textarea  name="content" class="form-control" id="exampleFormControlTextarea1" rows="3" style="resize:none"></textarea>
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Content Type</label>

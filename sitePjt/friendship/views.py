@@ -6,6 +6,12 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 Author = get_user_model()
 
+###########
+from rest_framework import viewsets
+from rest_framework import permissions
+from .serializers import FriendRequestSerializer, FriendshipSerializer
+
+
 #helper function
 def checkFriendship(author_a, author_b):
     if author_a < author_b:
@@ -132,3 +138,21 @@ def deleteFriend(request):
         print(e)
         
     return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
+
+
+class FriendRequestViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = FriendRequest.objects.all()
+    serializer_class = FriendRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class FriendshipViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset =  FriendRequest.objects.all()
+    serializer_class = FriendshipSerializer
+    permission_classes = [permissions.IsAuthenticated]
