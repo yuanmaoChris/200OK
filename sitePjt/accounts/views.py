@@ -25,7 +25,7 @@ def login_view(request):
             return render(request,"accounts/login.html",{'form': UserLoginForm()}) 
         if next:
             return redirect(next)
-        return redirect('/service/posts/')
+        return redirect('/posts/')
 
     context = {
         'form': form,
