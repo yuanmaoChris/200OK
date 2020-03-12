@@ -16,7 +16,7 @@ class FriendRequest(models.Model):
 '''
 	namely a friendship model between authors
 	Notice: For the purpose of preventing from redundant savings, we always assume author_a has a smaller author_id comparing to author_b;
-			To see building friendship, goto views.py line 80-89
+			To see building friendship, goto views.py line 81-92
 '''
 class Friendship(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
