@@ -20,53 +20,62 @@ from friendship import views as FriendshipViews
 User = get_user_model()
 
 #helper funciton
+'''
+    get all visible posts, depends on the state of current user
 
+    POST_VISIBILITY = (
+    ('PUBLIC', 'Public'),
+    ('PRIVATE', 'Prviate to self'),
+    ('FRIENDS', 'Private to friends'),
+    ('FOAF', 'Private to friends of friends'),
+    ('SERVERONLY', 'Private to local friends'),
+    )
+
+'''
 def getVisiblePosts(requester, author=None):
     result = []
+    #the current user hasn't login yet, show some random public posts
     if requester.is_anonymous:
         return Post.objects.filter(visibility='PUBLIC',unlisted=False).order_by('-published')
     
+    #only check one author's posts or all posts
     if author:
         posts = Post.objects.filter(author=author,unlisted=False).order_by('-published')
     else:
         posts = Post.objects.filter(unlisted=False).order_by('-published')
 
     for post in posts:
-        if post.author == requester:
+        if post.author == requester:    #my post
             result.append(post)
-        elif post.visibility == 'PUBLIC':
+        elif post.visibility == 'PUBLIC':   #everyone can see's post
             result.append(post)
-        elif post.visibility == 'FRIENDS':
+        elif post.visibility == 'FRIENDS':  #if friends then append this post
             if FriendshipViews.checkFriendship(post.author.id, requester.id):
                 result.append(post)
-        elif post.visibility == 'FOAF':
+        elif post.visibility == 'FOAF':     #friends of friends also can see
             if FriendshipViews.checkFriendship(post.author.id, requester.id):
                 result.append(post)
             else:
                 for friend in FriendshipViews.getAllFriends(post.author.id):
                     if FriendshipViews.checkFriendship(friend.id, requester.id):
                         result.append(post)
-        elif post.visibility == 'SERVERONLY':
+        elif post.visibility == 'SERVERONLY':   #requires to be local friends
             if post.author.host == requester.host:
                 result.append(post)
             print("SERVERONLY unimplemented.")
-        #if request.user.id in post.visibleTo and (not post in post_list):
-            #post_list.append(post)
     return result
 
+'''
+    show a list of public posts, check visibility before display to user
+'''
 def ViewPublicPosts(request):
     form = PostNewForm(request.POST or None)
     if request.method == 'POST':
         try:
             if form.is_valid():
-                #form.save()
                 form_data = form.cleaned_data
                 form.cleaned_data['author'] = request.user
                 newpost =Post.objects.create(**form.cleaned_data)
-                ###if form_data['visibleTo']:
-                ###    for friend in form_data['visibleTo']:
-                ###        visibleTo = VisibleTo(post=newpost, author=friend)
-                ###        visibleTo.save()
                 form = PostNewForm()
             else:
                 print(form.errors)
@@ -76,11 +85,13 @@ def ViewPublicPosts(request):
     context = {
         'post_list': posts,
         'form': form,
-
     }
 
     return render(request, "posting/stream.html", context)
-    
+
+'''
+    given a post_id show all its details, including comments
+'''
 def ViewPostDetails(request, post_id):
     post = Post.objects.get(id=post_id)
 
@@ -91,6 +102,9 @@ def ViewPostDetails(request, post_id):
     }
     return render(request, "posting/post-details.html", context)
 
+'''
+    delete a specified post by post_id
+'''
 @login_required
 def DeletePost(request, post_id):
     try:
@@ -101,7 +115,9 @@ def DeletePost(request, post_id):
 
     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
-
+'''
+    use POST to resend a form to update an existing post
+'''
 @login_required
 def editPost(request, post_id):
     form = request.POST or None
@@ -125,6 +141,9 @@ def editPost(request, post_id):
 
     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
+'''
+    create a new comment under a specified post
+'''
 @login_required
 def postCommentHandler(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
@@ -152,6 +171,9 @@ def postCommentHandler(request, post_id, comment_id=None):
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
 
+'''
+    delete a specified comment by its comment_id
+'''
 @login_required
 def deleteComment(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
@@ -171,6 +193,9 @@ def deleteComment(request, post_id, comment_id=None):
 
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
+'''
+    show a specified author's posts, 10 posts each time
+'''
 def ViewUserPosts(request, author_id):
     author = User.objects.filter(id=author_id)[0]
 

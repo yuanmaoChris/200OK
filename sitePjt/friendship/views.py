@@ -7,6 +7,9 @@ from django.contrib.auth import get_user_model
 Author = get_user_model()
 
 #helper function
+'''
+    given 2 authors check weather they're friends
+'''
 def checkFriendship(author_a, author_b):
     if author_a < author_b:
         author_from, author_to = author_a, author_b
@@ -18,13 +21,15 @@ def checkFriendship(author_a, author_b):
         return False
 
 #helper funciton
+'''
+    given an author id find all this user's friends
+'''
 def getAllFriends(author_id):
     friends = []
     try:
         author = Author.objects.filter(id=author_id)[0]
         friendships = Friendship.objects.filter(
             Q(author_a=author) | Q(author_b=author))
-        print(friendships)
         for friendship in friendships:
             if friendship.author_a == author:
                 friends.append(friendship.author_b)
@@ -35,6 +40,9 @@ def getAllFriends(author_id):
 
     return friends
 
+'''
+    send friend request from one author to another
+'''
 def sendRequest(request):
     if request.method == 'POST':
         try:
@@ -45,9 +53,11 @@ def sendRequest(request):
                 a, b = author_from, author_to
             else:
                  a, b = author_to, author_from
+            #check weather they're already friends
             friendship = Friendship.objects.filter(author_a=a, author_b=b)
             if not friendship.exists():
                 friend_req = FriendRequest.objects.filter(author_from=author_from, author_to=author_to)
+                #check weather friend request already sent
                 if not friend_req.exists():
                     FriendRequest.objects.create(author_from=author_from, author_to=author_to)
 
@@ -56,6 +66,9 @@ def sendRequest(request):
 
     return HttpResponseRedirect(reverse('accounts:view profile', args=(form['author_to'],)), {})
 
+'''
+    deal with friend request (either Accept or Decline)
+'''
 def handleRequest(request):
     form = request.POST or None
     if request.method == 'POST':
@@ -70,6 +83,7 @@ def handleRequest(request):
                 else:
                     a, b = author_to, author_from
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
+                #build friendship if they were not friends
                 if not friendship.exists():
                     friendship = Friendship(author_a=a, author_b=b)
                     friendship.save()
@@ -78,7 +92,9 @@ def handleRequest(request):
             print(e)
     return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
 
-
+'''
+    list all friends requests 
+'''
 def ViewFriendsRequest(request, author_id):
     context = {
         'friend_requests': None
@@ -92,7 +108,9 @@ def ViewFriendsRequest(request, author_id):
     
     return render(request, 'friendship/friend_request.html', context)
 
-
+'''
+    list all friends
+'''
 
 def getFriendsList(request, author_id):
     context = {
@@ -113,14 +131,15 @@ def getFriendsList(request, author_id):
 
     return render(request, 'friendship/friends_list.html', context)
 
-
+'''
+    delete a specified friend
+'''
 def deleteFriend(request):
     form = request.POST or None
     
     try:
         author = Author.objects.filter(id=request.user.id)[0]
         friend = Author.objects.filter(id=form['friend_id'])[0]
-        print("author " + author.displayName + "unf" + friend.displayName)
         if author.id < friend.id:
             a, b = author, friend
         else:

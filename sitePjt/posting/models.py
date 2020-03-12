@@ -19,7 +19,9 @@ UNLISTED = {
     (False, 'False'),
 }
 
-# Create your models here.
+'''
+    namely a Post model, belong to author
+'''
 class Post(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -37,7 +39,9 @@ class Post(models.Model):
 
     def __str__(self):
         return super().__str__() + "    ------      " +self.title
-    
+'''
+    namely a Comment model, belong to author and post
+'''    
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)

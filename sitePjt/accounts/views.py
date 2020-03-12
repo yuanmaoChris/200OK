@@ -11,6 +11,9 @@ from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
 from posting import views as PostingView
 
+'''
+    check if input email/password is valid and the user actually exist before login
+'''
 def login_view(request):
     next = request.GET.get('next')
     form = UserLoginForm(request.POST or None)
@@ -32,6 +35,9 @@ def login_view(request):
     }
     return render(request,"accounts/login.html",context)
 
+'''
+    registe new user by creating and saving a UserCreationForm
+'''
 def register_view(request):
     next = request.GET.get('next')
     if request.method == 'POST':
@@ -52,10 +58,16 @@ def register_view(request):
     }
     return render(request,"accounts/signup.html",context)
 
+'''
+    simply logout and jump back to login page
+'''
 def logout_view(request):
     logout(request)
     return redirect('/accounts/login/')
 
+'''
+    given an author id to find the specified user's information
+'''
 @login_required
 def profile_view(request, author_id):
     form = request.POST
@@ -69,6 +81,9 @@ def profile_view(request, author_id):
 
     author = Author.objects.filter(id=author_id)[0]
     posts_list = []
+    '''
+        current user is browsing others profile page, so only show allowed posts
+    '''
     if request.user.id != author_id:
         posts_list = PostingView.getVisiblePosts(request.user, author)
 
