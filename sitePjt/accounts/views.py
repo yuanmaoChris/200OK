@@ -50,7 +50,7 @@ def register_view(request):
             login(request, new_user)
             if next:
                 return redirect(next)
-            return redirect('/service/posts/')
+            return redirect('/posts/')
     else:
         form = UserCreationForm()
     context = {
