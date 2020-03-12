@@ -1,0 +1,95 @@
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    </head>
+    <style>
+    .avatar {
+        position: absolute;
+        vertical-align: middle;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%; 
+        margin-top: 25px;
+        margin-left: 25px;
+    }
+    .display-name{
+        position: absolute;
+        left: 100px;
+        top:20px
+    }
+    .post-content{
+        position: absolute;
+        top:100px;
+        left: 50px;
+        height: 200px;
+        width: 500px;
+    }
+    .post-image{
+        width: 200px;
+        height: 200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    ul{
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .post-form label{
+        display: none;
+    }
+    .post-form {
+        text-align: center;
+    }
+    .post-form #id_title{
+        margin-top: 20px;
+    }
+    .post-form #id_content{
+        width: 300px;
+        height: 100px;
+        padding: 0;
+    }
+    
+    li{
+        padding: 0;
+        list-style-type: none;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    #timestamp{
+        font-size: small;
+        color:#989898;
+    }
+    .card{
+        margin-top: 10px;
+    }
+    #id_content{
+    margin: 0 auto;
+    float: none;
+}
+   
+</style>
+<script>
+    $(document).ready(function() {
+        // executes when HTML-Document is loaded and DOM is ready
+        console.log("document is ready");
+
+
+        $( ".card" ).hover(
+        function() {
+        $(this).addClass('shadow-lg').css('cursor', 'pointer'); 
+        }, function() {
+        $(this).removeClass('shadow-lg');
+        }
+        );
+
+    // document ready  
+    });
+
+</script>
+

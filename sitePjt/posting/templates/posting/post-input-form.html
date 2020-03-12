@@ -1,0 +1,13 @@
+<h1 style="text-align:center">Welcome Back {{ request.user.displayName }} !</h1>
+<div class="card" style="width: 600px;">
+    <form action="." method="POST" class="post-form">
+        <div>
+            {% csrf_token %}
+            {{ form.as_ul }}
+        <input type="submit" value="Post">
+        </div>
+    </form>
+</div>
+<script>
+    $("#id_content_type").addClass("custom-select mr-sm-2")
+</script>

@@ -1,0 +1,20 @@
+{% extends 'posting/homepage.html' %}
+{% block shortProfile %}  
+    {% if request.user.is_authenticated %} 
+        {% include 'posting/profile-card.html' with request=request%}
+                   
+    {% endif %}     
+{% endblock %}
+{% block newPost %}
+        {% include 'posting/post-full-view.html' with post=post %}    
+{% endblock %}
+{% block content %}
+        {% include 'posting/comment-input.html' with post=post request=request %}
+        {% if comment_list %}
+            <ul>
+                {% for comment in comment_list %}
+                    {% include 'posting/comment-view.html' with comment=comment %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+{% endblock %}

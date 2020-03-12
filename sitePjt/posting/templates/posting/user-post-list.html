@@ -1,0 +1,22 @@
+{% extends 'posting/homepage.html' %}
+{% block shortProfile %}  
+    {% if request.user.is_authenticated %} 
+        {% include 'posting/profile-card.html' with request=request%}
+                   
+    {% endif %}     
+{% endblock %}
+
+{% block content %}
+{% if posts %}
+<script>
+    document.getElementById("nav-third").innerHTML="Log Out"
+    document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
+</script>
+<ul>
+    {% for post in posts %}
+        {% include 'posting/post-full-view.html' with post=post %}
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

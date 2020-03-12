@@ -1,0 +1,45 @@
+{% extends 'posting/homepage.html' %}
+
+{% block shortProfile %}  
+    {% if request.user.is_authenticated %} 
+        <div class="short-profile">
+            {% include 'posting/profile-card.html' with request=request %}
+        </div>
+        <script>
+            document.getElementById("nav-third").innerHTML="Log Out"
+            document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
+        </script>
+    {% else %}
+        <script>
+            document.getElementById("global-home").innerHTML="Sign In"
+            document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
+            document.getElementById("nav-third").innerHTML = "Sign Up"
+            document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
+        </script>
+    {% endif %}  
+{% endblock %}
+
+{% block content %}
+    {% if post_list %}
+        <ul>
+            {% for post in post_list %}
+            <li>
+                {% include 'posting/post-inline-view.html' with post=post %}                 
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No visible posts... Go make some!</p>
+    {% endif %}
+{% endblock %}
+
+{% block newPost %}
+    {% if request.user.is_authenticated %}
+        {% include 'posting/post-input-form.html' with post=post %}           
+        <script>
+            document.getElementById("id_title").setAttribute("placeholder", "Enter title");
+            document.getElementById("id_content").setAttribute("placeholder", "What's Happenning?");
+            document.getElementById("id_category").setAttribute("placeholder", "What's category?");
+        </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<div class="card" style="width: 600px;">
+    <div class="card-body">
+            <div class="card-content">
+                {{ comment.comment }}
+                <br>
+                <div class="card-subtile " style="text-align: right;">
+                    {{ comment.author.displayName }}
+                    <span id="timestamp">{{ comment.pub_date }}</span>
+                    {% if comment.author == request.user %}
+                        <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
+                                {% csrf_token %}
+                                <input  class='btn btn-primary float-right' type="submit" value="Delete">
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+    </div>
+    
+</div>

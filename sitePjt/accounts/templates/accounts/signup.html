@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>Sing Up</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+      <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #003333;
+        font-family: sans-serif;
+        text-align: center;
+        height: 100vh;
+        
+      }
+
+      .signup-box {
+        padding: 16px;
+        color: white;
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+
+      }
+      /* Full-width input fields */
+      input[type=text], input[type=password], input[type=url] ,input[type=email] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 22px 0;
+        display: inline-block;
+        border: none;
+        background: #f1f1f1;
+      }
+      input[type=text], input[type=password] ,input[type=url], input[type=email] {
+        background-color: #ddd;
+        outline: none;
+        }
+        
+
+</style>
+  </head>
+  <body>
+      <div class="signup-box" id="signupForm">
+            <form action="{% url 'accounts:sign up' %}" class="form-container" enctype="multipart/form-data" method="POST">
+              {% csrf_token %}
+              <h1>Sign Up</h1>
+              {{form.as_p}}
+              <a class="btn btn-primary" href="{% url 'accounts:login' %}">Cancel</a>
+              <button type="submit" class="btn btn-primary">Sign Up</button>
+            </form>
+      </div>
+
+  </body>
+
+</html>

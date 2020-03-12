@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html >    
+    {% include 'posting/base.html' %}
+    <body>
+            {% include 'posting/navbar.html' %}
+            <div class="container">
+                <div class="row">
+                    <div class="col-4">
+                        {% if author.is_authenticated %} 
+                        <div class="short-profile">
+                            {% include 'posting/profile-card.html' with request=request %}
+                        </div>
+                            <script>
+                                document.getElementById("nav-third").innerHTML="Log Out"
+                                document.getElementById("nav-third").setAttribute("href","{% url 'accounts:logout' %}")
+                            </script>
+                        {% else %}
+                            <script>
+                                document.getElementById("global-home").innerHTML="Sign In"
+                                document.getElementById("global-home").setAttribute("href","{% url 'accounts:login' %}")
+                                document.getElementById("nav-third").innerHTML = "Sign Up"
+                                document.getElementById("nav-third").setAttribute("href", "{% url 'accounts:sign up' %}")
+                            </script>
+                        {% endif %}  
+                        {% if author %}
+                            <script>
+                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
+                            </script>
+                            <!-- a commend to activate  -->
+                            <!--There is a popup list which decides to show a list of friend requests-->
+                            <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Requests</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    </div>
+                                    <div class="modal-body">
+                                    {% if friend_requests %}
+                                    <ul>
+                                        {% for req in friend_requests %}
+                                            <li>
+                                                <div class = "card">                                         
+                                                    <div class="card-body">
+                                                        <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">{{ req.pub_date|timesince }} ago</span></h4></div>
+                                                        <!--Debug: {{ req.author_to.displayName }}-->
+                                                        <form action="{% url 'friendship:handle request' %}" method="POST"> {% csrf_token %}
+                                                            <input type="hidden" name="request_id" value="{{ req.id }}"></input>
+                                                            <input style="width: 78px" class="btn btn-primary" name="method" type="submit" value="Accept"></input>
+                                                            <input style="width: 78px" class="btn btn-danger" name="method" type="submit" value="Deny"></input>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                    <div class="card">
+                                        <div class="card-tile">
+                                            No Friend Requests
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+
+                            
+                        {% endif %}
+                    </div>
+                    <div class="col-8">
+                        <div class="row">
+                        </div>
+                        <div class="row">
+                                <h1>Friend List:</h1>
+                                {% if friends %}
+                                <ul>
+                                {% for friend in friends %}
+                                <li>
+                                    {% include 'friendship/friend_card.html' with friend=friend %}
+                                    <!--
+                                        <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>
+                                    -->        
+                                </li>
+                                {% endfor %}
+                                </ul>
+                                {% else %}
+                                    No friends
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </body>
+</html>
+
+
+   
+
+
