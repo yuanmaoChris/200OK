@@ -57,9 +57,8 @@ class Author(AbstractBaseUser):
     avatar = models.ImageField(upload_to='avatar/', default = 'avatar/default-avatar.png', blank=True, null=True)
     github = models.URLField(default="", max_length=100, null=True)
     bio = models.CharField(default="", max_length=200, null=True)
-    
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)
-    last_login=models.DateField(verbose_name="date joined", auto_now=True)
+    last_login=models.DateField(verbose_name="last login", auto_now=True)
     is_active=models.BooleanField(default=True)
     is_admin=models.BooleanField(default=False)
     objects = AuthorManager()

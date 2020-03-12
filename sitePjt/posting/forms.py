@@ -1,17 +1,6 @@
 from django import forms
 from .models import Post, Comment
 
-class PostForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = [
-            'author', 
-            'content', 
-            'visibility',
-            'category',
-        ]
-
-
 class PostNewForm(forms.ModelForm):
     content = forms.CharField(
         widget=forms.Textarea(
@@ -28,8 +17,8 @@ class PostNewForm(forms.ModelForm):
         fields = [
             'title',
             'content',
-            'content_type',
-            'category',
+            'contentType',
+            'categories',
             'visibility',
             'unlisted',
     
@@ -40,6 +29,6 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = [
-            'content',
+            'comment',
         ]
     

@@ -8,7 +8,6 @@ class FriendRequest(models.Model):
     author_from = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_from')
     author_to = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_to')
     pub_date = models.DateTimeField('date posted', auto_now_add=True, blank=True)
-    is_approved = models.BooleanField(default="False")
     
 class Friendship(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

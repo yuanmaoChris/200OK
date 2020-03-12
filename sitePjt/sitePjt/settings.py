@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'posting.apps.PostingConfig',
+    'api.apps.ApiConfig',
     'friendship.apps.FriendshipConfig',
     'accounts.apps.AccountsConfig',
     'django.contrib.admin',

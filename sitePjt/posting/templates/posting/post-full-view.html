@@ -6,7 +6,7 @@
         </div>
         <div class="card-subtile">
             <h5>Title: {{post.title}}</h5>
-            <h5>Category: {{post.category}}</h5>
+            <h5>Category: {{post.categories}}</h5>
         </div>
             <div class="card-content">
                 <p><span>   </span>{{ post.content }}</p>
@@ -32,7 +32,7 @@
                                         <input type="text" name="title" class="form-control" id="post-edit-title" placeholder=" {{ post.title }}">
                                     </div>
                                     <div class="form-group">
-                                        <input type="text" name="category" class="form-control" id="post-edit-cate" placeholder="{{ post.category }}">
+                                        <input type="text" name="categories" class="form-control" id="post-edit-cate" placeholder="{{ post.categories }}">
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Content</label>
@@ -40,7 +40,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Content Type</label>
-                                        <select name="content_type" class="form-control" id="post-edit-content-type">
+                                        <select name="contentType" class="form-control" id="post-edit-content-type">
                                             <option value="text">text/plain</option>
                                             <option value="md">text/markdown</option>
                                         </select>

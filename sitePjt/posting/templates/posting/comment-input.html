@@ -5,7 +5,7 @@
         <form action="{% url 'posting:comment events' post.id %}" method="POST">
             {% csrf_token %}
             <div>   
-                <input class="textarea form-control float-none" rows="4" cols="50" type="text" name="content" style="width: 400px;margin: 0 auto;"></input>
+                <input class="textarea form-control float-none" rows="4" cols="50" type="text" name="comment" style="width: 400px;margin: 0 auto;"></input>
                 <input class='btn btn-primary float-right'  type="submit" value="Comment"></input>
             </div>
         </form>

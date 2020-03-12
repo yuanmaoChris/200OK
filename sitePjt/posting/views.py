@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.urls import reverse
 from django.views import generic
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from datetime import datetime
@@ -9,7 +10,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import Post, Comment
-from .forms import PostForm, PostNewForm, CommentForm
+
+
+from .forms import PostNewForm, CommentForm
 from .serializers import *
 from .models import Post###, VisibleTo
 from friendship import views as FriendshipViews
@@ -18,9 +21,16 @@ User = get_user_model()
 
 #helper funciton
 
-def getVisiblePosts(requester):
+def getVisiblePosts(requester, author=None):
     result = []
-    posts = Post.objects.filter(unlisted=False).order_by('-pub_date')
+    if requester.is_anonymous:
+        return Post.objects.filter(visibility='PUBLIC',unlisted=False).order_by('-published')
+    
+    if author:
+        posts = Post.objects.filter(author=author,unlisted=False).order_by('-published')
+    else:
+        posts = Post.objects.filter(unlisted=False).order_by('-published')
+
     for post in posts:
         if post.author == requester:
             result.append(post)
@@ -46,15 +56,6 @@ def getVisiblePosts(requester):
 
 def ViewPublicPosts(request):
     form = PostNewForm(request.POST or None)
-    if request.user.is_anonymous:
-        posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-pub_date')
-        context = {
-            'post_list': posts,
-            'form': form,
-
-        }
-
-        return render(request, "posting/stream.html", context)
     if request.method == 'POST':
         try:
             if form.is_valid():
@@ -90,7 +91,7 @@ def ViewPostDetails(request, post_id):
     }
     return render(request, "posting/post-details.html", context)
 
-
+@login_required
 def DeletePost(request, post_id):
     try:
         post = Post.objects.get(id=post_id)
@@ -100,6 +101,8 @@ def DeletePost(request, post_id):
 
     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
+
+@login_required
 def editPost(request, post_id):
     form = request.POST or None
     if request.method == 'POST':
@@ -111,8 +114,8 @@ def editPost(request, post_id):
                 post.content = form['content']
             if form['visibility']:
                 post.visibility = form['visibility']
-            if form['content_type']:
-                post.content_type = form['content_type']
+            if form['contentType']:
+                post.contentType = form['contentType']
             post.save()
         except Exception as e:
             print(e)
@@ -122,6 +125,7 @@ def editPost(request, post_id):
 
     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
+@login_required
 def postCommentHandler(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
     if request.method in ['POST', 'PUT']:
@@ -136,7 +140,7 @@ def postCommentHandler(request, post_id, comment_id=None):
             form_data['user'] = request.user
             form_data['post'] = post
             comment = Comment(post=post, author=request.user,
-                              content=form_data['content'])
+                              comment=form_data['comment'])
             comment.save()
             context['success'] = True
             context['message'] = "Comment Added"
@@ -147,6 +151,8 @@ def postCommentHandler(request, post_id, comment_id=None):
 
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 
+
+@login_required
 def deleteComment(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
     context = {
@@ -169,7 +175,7 @@ def ViewUserPosts(request, author_id):
     author = User.objects.filter(id=author_id)[0]
 
     if request.method == 'GET':
-        posts = Post.objects.filter(author=author).order_by('-pub_date')[:]
+        posts = getVisiblePosts(request.user, author)
         count = len(posts)
         #get from front-end or default
         size = 10
@@ -188,43 +194,3 @@ def ViewUserPosts(request, author_id):
     }
     
     return render(request, "posting/user-post-list.html", context)
-
-'''
-@api_view(['GET', 'POST'])
-def post_list(request):
-    if request.method == 'GET':
-        data = Post.objects.all()
-
-        serializer = PostSerializer(
-            data, context={'request': request}, many=True)
-
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['PUT', 'DELETE'])
-def post_detail(request, pk):
-    try:
-        post = Post.objects.get(pk=pk)
-    except Post.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'PUT':
-        serializer = PostSerializer(
-            post, data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-'''

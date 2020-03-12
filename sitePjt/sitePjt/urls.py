@@ -5,10 +5,11 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('service/', views.ViewHomePage, name='home page'),
+    path('', views.ViewHomePage, name='home page'),
     path('accounts/', include('accounts.urls')),
-    path('service/', include('posting.urls')),
-    path('service/', include('friendship.urls')),
+    path('', include('posting.urls')),
+    path('', include('friendship.urls')),
+    path('service/', include('api.urls')),
 ]
 
 if settings.DEBUG:

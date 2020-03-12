@@ -3,7 +3,7 @@ from .models import *
 
 
 class AuthorSerializer(serializers.ModelSerializer):
-
+	
 	id = serializers.SerializerMethodField('get_id')
 
 	def get_id(self, obj):
