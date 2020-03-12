@@ -76,8 +76,11 @@ def handleRequest(request):
             fr = FriendRequest.objects.get(id=form['request_id'])
             author_from = Author.objects.filter(id=fr.author_from.id)[0]
             author_to = Author.objects.filter(id=fr.author_to.id)[0]
+            fr2 = FriendRequest.objects.filter(author_from=author_to, author_to=author_from)
             fr.delete()
             if form['method'] == 'Accept':
+                if fr2.exists:
+                    fr2.delete()
                 if author_from.id < author_to.id:
                     a, b = author_from, author_to
                 else:
