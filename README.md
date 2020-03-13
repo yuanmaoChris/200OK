@@ -68,6 +68,32 @@ $ sudo pip install -r requirements.txt
 $ python manage.py runserver
 ```
 
+Usage
+=====
+
+ ### Login
+    http://127.0.0.1:8000
+ 
+ ### Sign Up
+    http://127.0.0.1:8000/accounts/register/
+  
+ ### Public Posts List Without authentication
+    http://127.0.0.1:8000/posts/
+
+ ### Author Profile 
+    http://127.0.0.1:8000/accounts/author/profile/{author_id}
+    
+ ### Author Friend List
+    http://127.0.0.1:8000/author/{author_id}/friends/
+    
+ ### Author Posts
+    http://127.0.0.1:8000/author/{author_id}/posts/
+ 
+ ### Swagger Document For API
+    http://127.0.0.1:8000/swagger-docs/ 
+    However, we did not finish all requests and response in phase 1.
+    Will finish in next phase
+ 
 Contributors / Licensing
 ========================
 
