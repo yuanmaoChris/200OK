@@ -36,7 +36,10 @@ def getVisiblePosts(requester, author=None):
     result = []
     #the current user hasn't login yet, show some random public posts
     if requester.is_anonymous:
-        return Post.objects.filter(visibility='PUBLIC',unlisted=False).order_by('-published')
+        if author:
+            return Post.objects.filter(author=author, visibility='PUBLIC',unlisted=False).order_by('-published')
+        else:
+            return Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published')
     
     #only check one author's posts or all posts
     if author:

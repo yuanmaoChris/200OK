@@ -5,7 +5,7 @@
                 <br>
                 <div class="card-subtile " style="text-align: right;">
                     {{ comment.author.displayName }}
-                    <span id="timestamp">{{ comment.pub_date }}</span>
+                    <span id="timestamp">{{ comment.published }}</span>
                     {% if comment.author == request.user %}
                         <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
                                 {% csrf_token %}

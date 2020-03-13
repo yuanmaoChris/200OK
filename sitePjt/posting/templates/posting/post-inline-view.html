@@ -2,7 +2,7 @@
     <div class="card-body">
       <a class="displa-name" href="{% url 'accounts:view profile' post.author.id %}">{{post.author.displayName}}</a>
       <br>
-      <span id="timestamp">{{ post.pub_date|timesince }} ago</span>
+      <span id="timestamp">{{ post.published|timesince }} ago</span>
       <div class="card-title">
           <p style="font-size: larger;">{{ post.title }}</p></p>
       </div>

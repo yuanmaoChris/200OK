@@ -5,7 +5,7 @@ from .models import *
 class FriendRequestSerializer(serializers.ModelSerializer):
 
 	pub_date = serializers.DateTimeField('date posted', auto_now_add=True, blank=True)
-    is_approved = serializers.BooleanField(default="False")
+	is_approved = serializers.BooleanField(default="False")
 
 	class Meta:
 		model = FriendRequest
