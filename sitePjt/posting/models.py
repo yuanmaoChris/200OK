@@ -23,7 +23,6 @@ UNLISTED = {
     namely a Post model, belong to author
 '''
 class Post(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
@@ -32,10 +31,10 @@ class Post(models.Model):
     origin = models.CharField(max_length=50, blank=True)
     source = models.CharField(max_length=50, blank=True)
     content = models.CharField(max_length=200)
-    categories = models.CharField(max_length=200)
+    categories = models.CharField(max_length=200, blank=True)
     unlisted = models.BooleanField(default=False, choices=UNLISTED)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
-    visibility = models.CharField(max_length=10, default = 'PUBL', choices=POST_VISIBILITY)
+    visibility = models.CharField(max_length=10, default = 'PUBLIC', choices=POST_VISIBILITY)
 
     def __str__(self):
         return super().__str__() + "    ------      " +self.title

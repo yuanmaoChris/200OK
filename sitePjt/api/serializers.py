@@ -45,6 +45,25 @@ class PostSerializer(serializers.ModelSerializer):
         comments = Comment.objects.filter(post=obj)
         count = len(comments)
         return CommentListSerializer(comments, context={'count': count}, exclude=['query']).data
+    
+    def create(self, validated_data):
+        validated_data['author'] = self.context.get('author')
+        return Post.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.source = validated_data.get('source', instance.source)
+        instance.origin = validated_data.get('origin', instance.origin)
+        instance.description = validated_data.get('description', instance.description)
+        instance.contentType = validated_data.get('contentType', instance.contentType)
+        instance.content = validated_data.get('content', instance.content)
+        instance.categories = validated_data.get('categories', instance.categories)
+        instance.published = validated_data.get('published', instance.published)
+        instance.id = validated_data.get('id', instance.id)
+        instance.visibility = validated_data.get('visibility', instance.visibility)
+        instance.unlisted = validated_data.get('unlisted', instance.unlisted)
+        instance.save()
+        return instance
 
 
 class PostListSerializer(serializers.Serializer):

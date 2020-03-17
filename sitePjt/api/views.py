@@ -10,7 +10,7 @@ from django.db.models import Q
 import json
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError
 from posting.models import Post, Comment
-from friendship.models import Friendship, FriendRequest
+from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
 from friendship import views as FriendshipViews
 from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, CommentSerializer, CommentListSerializer, FriendshipSerializer
@@ -32,8 +32,8 @@ def view_public_post(request):
     return HttpResponseBadRequest()
 
 
-@api_view(['GET'])
-def view_auth_posts(request):
+@api_view(['GET', 'POST'])
+def handle_auth_posts(request):
     if request.method == 'GET':
         try:
             posts = getVisiblePosts(request.user)
@@ -44,7 +44,41 @@ def view_auth_posts(request):
         except Exception as e:
             print(e)
         return HttpResponseNotFound()
-    return HttpResponseBadRequest()
+    elif request.method == 'POST':
+        try:
+            context = {
+                "query": "addPost",
+                "success": None,
+                "message": None,
+            }
+            if not request.user.is_anonymous:
+                data = request.body
+                post = json.loads(data)
+                post_form = post.get('post_form')
+                #post_form['author'] = request.user
+                #print(post_form)
+            
+                serializer = PostSerializer(data=post_form, context = {'author': request.user})
+                if serializer.is_valid():
+                    serializer.save()
+                    context['success'] = True
+                    context['message'] = "New Post Added"
+                    return Response(context, status=200)
+                else:
+                    print(serializer.errors)
+                    context['success'] = False
+                    context['message'] = "Invalid form data"
+                    return Response(context, status=403)
+            else:
+                context['success'] = False
+                context['message'] = "Login First!"
+                return Response(context, status=403)
+
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError()
+    else:
+        return HttpResponseBadRequest()
 
 
 @api_view(['GET'])
@@ -68,9 +102,11 @@ def view_single_post(request, post_id):
     if request.method == 'GET':
         try:
             post = Post.objects.get(id=post_id)
-            print(post)
-            serializer = PostSerializer(post)
-            return Response(serializer.data)
+            if checkVisibility(request.user, post):
+                serializer = PostSerializer(post)
+                return Response(serializer.data)
+            else:
+                return Response(b"You dont have visibility to this post.", status=403)
         except Exception as e:
             print(e)
         return HttpResponseNotFound()
@@ -95,26 +131,27 @@ def handle_comments(request, post_id):
     elif request.method == 'POST':
         try:
             post = Post.objects.get(id=post_id)
-            form = CommentForm(request.POST or None)
             context = {
                 "query": "addComment",
                 "success": None,
                 "message": None,
             }
-            if form.is_valid():
-                if checkVisibility(request.user, post):
-                    form_data = form.cleaned_data
-                    comment = Comment(post=post, author=request.user,
-                                      comment=form_data['comment'])
-                    comment.save()
-                    context['success'] = True
-                    context['message'] = "Comment Added"
-                    return Response(context, status=200)
-                else:
-                    print(form.errors)
-                    context['success'] = False
-                    context['message'] = "Comment not Allowed"
-                    return Response(context, status=403)
+            if checkVisibility(request.user, post):
+                #Check Visibility
+                data = request.body
+                body = json.loads(data)
+                content = body['comment']
+                contentType = body['contentType']
+                comment = Comment(post=post, author=request.user,
+                                comment=content, contentType=contentType)
+                comment.save()
+                context['success'] = True
+                context['message'] = "Comment Added"
+                return Response(context, status=200)
+            else:
+                context['success'] = False
+                context['message'] = "Comment not Allowed"
+                return Response(context, status=403)
         except Exception as e:
             print(e)
     return HttpResponseBadRequest()
@@ -194,7 +231,7 @@ def get_friendlist(request, author_id):
             return HttpResponseServerError()
     elif request.method == 'POST':
         try:
-            data = request.body.decode('utf-8')
+            data = request.body
             body = json.loads(data)
             authors = body['authors']
             print(authors)
@@ -212,6 +249,70 @@ def get_friendlist(request, author_id):
             print(e)
             return HttpResponseServerError()
 
+    else:
+        return HttpResponseBadRequest()
+
+
+@api_view(['GET'])
+def check_friendship(request, author1_id, author2_id):
+    if request.method == 'GET':
+        try:
+            context = {
+                'query': 'friends',
+                'friends': None,
+                'authors': []
+            }
+            context['authors'].append(author1_id)
+            context['authors'].append(author2_id)
+            friend1 = Friend.objects.get(friend_id=author1_id) #Get a friend in Frien table
+            friend2 = Friend.objects.get(friend_id=author2_id)
+            if friend1 and friend2:
+                if FriendshipViews.checkFriendship(friend1, friend2):
+                    context['friends'] = True
+                    return Response(context, status=200)
+            else:
+                context['friends'] = False
+                return Response(context, status=200)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError()
+    else:
+        return HttpResponseBadRequest()
+
+
+@api_view(['POST'])
+def make_friendRequest(request):
+    if request.method == 'POST':
+        try:
+            context = {
+                'query': 'friends',
+                'success': None,
+                'authors': []
+            }
+            # Get a friend in Frien table
+            data = request.body
+            body = json.loads(data)
+            author = body['author']
+            friend = body['friend']
+            author_from, created_from = Friend.objects.get_or_create(**author)
+            author_to, created_to = Friend.objects.get_or_create(**friend)
+            context['authors'].append(author_from.friend_id)
+            context['authors'].append(author_to.friend_id)
+
+            #Create a new friend request if authors are not friend and no such friend request exists
+            if not FriendshipViews.checkFriendship(author_from, author_to):
+                request = FriendRequest.objects.get_or_create(author_from=author_from, author_to=author_to)
+
+            request = FriendRequest.objects.filter(author_from=author_from, author_to=author_to)
+            if request:
+                context['success'] = True
+                return Response(context, status=200)
+            else:
+                return Response(b"Invalid authors info", status=403)
+
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError()
     else:
         return HttpResponseBadRequest()
 
