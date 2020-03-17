@@ -10,7 +10,7 @@ Author = get_user_model()
 
 def checkFriendship(friend1, friend2):
     '''
-        given 2 authors IDs check weather they're friends
+        given 2 authors check weather they're friends
     '''
 
     if friend1.friend_id < friend2.friend_id:

@@ -213,14 +213,14 @@ def ViewComment(request, post_id):
 def get_friendlist(request, author_id):
     if request.method == 'GET':
         try:
-            author = Author.objects.get(id=author_id)
-            friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
+            friend = Friend.objects.get(friend_id=author_id)
+            friendships = Friendship.objects.filter(Q(author_a=friend) | Q(author_b=friend))
             result = []
             for friendship in friendships:
-                if friendship.author_a == author:
-                    result.append(friendship.author_b.id)
+                if friendship.author_a == friend:
+                    result.append(friendship.author_b.friend_id)
                 else:
-                    result.append(friendship.author_a.id)
+                    result.append(friendship.author_a.friedn_id)
             if result:
                 serializer = FriendshipSerializer(result, exclude=['author'])
                 return Response(serializer.data)
@@ -234,12 +234,13 @@ def get_friendlist(request, author_id):
             data = request.body
             body = json.loads(data)
             authors = body['authors']
-            print(authors)
+            author = Friend.objects.get_or_create(author_id)
             friendIDList = []
             if data:
                 for friend_id in authors:
-                    if FriendshipViews.checkFriendship(author_id, friend_id):
-                        friendIDList.append(friend_id)
+                    friend = Friend.objects.get_or_create(friend_id=friend_id)
+                    if FriendshipViews.checkFriendship(author, friend):
+                        friendIDList.append(friend.friend_id)
                 serializer = FriendshipSerializer(
                     friendIDList, context={'author': author_id})
                 return Response(serializer.data)
@@ -266,11 +267,8 @@ def check_friendship(request, author1_id, author2_id):
             context['authors'].append(author2_id)
             friend1 = Friend.objects.get(friend_id=author1_id) #Get a friend in Frien table
             friend2 = Friend.objects.get(friend_id=author2_id)
-            print(friend1)
-            print(friend2)
             if friend1 and friend2:
                 if FriendshipViews.checkFriendship(friend1, friend2):
-                    print("your heeeeeree")
                     context['friends'] = True
                     return Response(context, status=200)
             context['friends'] = False
