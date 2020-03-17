@@ -68,9 +68,11 @@ def view_single_post(request, post_id):
     if request.method == 'GET':
         try:
             post = Post.objects.get(id=post_id)
-            print(post)
-            serializer = PostSerializer(post)
-            return Response(serializer.data)
+            if checkVisibility(request.user, post):
+                serializer = PostSerializer(post)
+                return Response(serializer.data)
+            else:
+                return Response(b"You dont have visibility to this post.", status=403)
         except Exception as e:
             print(e)
         return HttpResponseNotFound()
@@ -83,11 +85,14 @@ def handle_comments(request, post_id):
     if request.method == 'GET':
         try:
             post = Post.objects.get(id=post_id)
-            comments = Comment.objects.filter(post=post)
-            count = len(comments)
-            serializer = CommentListSerializer(
-                comments, context={'query': 'comments', 'count': count})
-            return Response(serializer.data)
+            if checkVisibility(request.user, post):
+                comments = Comment.objects.filter(post=post)
+                count = len(comments)
+                serializer = CommentListSerializer(
+                    comments, context={'query': 'comments', 'count': count})
+                return Response(serializer.data)
+            else:
+                return Response(b"You dont have visibility to this post.", status=403)
         except Exception as e:
             print(e)
         return HttpResponseNotFound()
@@ -95,26 +100,27 @@ def handle_comments(request, post_id):
     elif request.method == 'POST':
         try:
             post = Post.objects.get(id=post_id)
-            form = CommentForm(request.POST or None)
             context = {
                 "query": "addComment",
                 "success": None,
                 "message": None,
             }
-            if form.is_valid():
-                if checkVisibility(request.user, post):
-                    form_data = form.cleaned_data
-                    comment = Comment(post=post, author=request.user,
-                                      comment=form_data['comment'])
-                    comment.save()
-                    context['success'] = True
-                    context['message'] = "Comment Added"
-                    return Response(context, status=200)
-                else:
-                    print(form.errors)
-                    context['success'] = False
-                    context['message'] = "Comment not Allowed"
-                    return Response(context, status=403)
+            if checkVisibility(request.user, post):
+
+                data = request.body.decode('utf-8')
+                body = json.loads(data)
+                content = body['comment']
+                contentType = body['contentType']
+                comment = Comment(post=post, author=request.user,
+                                    comment=content, contentType=contentType)
+                comment.save()
+                context['success'] = True
+                context['message'] = "Comment Added"
+                return Response(context, status=200)
+            else:
+                context['success'] = False
+                context['message'] = "Comment not Allowed"
+                return Response(context, status=403)
         except Exception as e:
             print(e)
     return HttpResponseBadRequest()
@@ -153,7 +159,7 @@ def ViewProfile(request, author_id):
 
     return HttpResponseBadRequest()
 
-
+'''
 @api_view(['GET'])
 def ViewComment(request, post_id):
 
@@ -170,7 +176,7 @@ def ViewComment(request, post_id):
             return HttpResponseServerError()
     else:
         return HttpResponseBadRequest()
-
+'''
 
 @api_view(['GET', 'POST'])
 def get_friendlist(request, author_id):
@@ -197,7 +203,6 @@ def get_friendlist(request, author_id):
             data = request.body.decode('utf-8')
             body = json.loads(data)
             authors = body['authors']
-            print(authors)
             friendIDList = []
             if data:
                 for friend_id in authors:
