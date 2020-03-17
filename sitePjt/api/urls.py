@@ -11,4 +11,5 @@ urlpatterns = [
     path('author/posts/', views.view_auth_posts, name='view authenticated posts'),
     path('author/<str:author_id>/posts/', views.view_author_posts, name='view author posts'),
     path('author/<str:author_id>/', views.ViewProfile, name='view profile'),
+    path('author/<str:author_id>/friends/', views.get_friendlist, name='get friend list'),
 ]

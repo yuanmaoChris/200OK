@@ -6,11 +6,14 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework.parsers import JSONParser
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+import json
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError
 from posting.models import Post, Comment
+from friendship.models import Friendship, FriendRequest
 from posting.forms import CommentForm
 from friendship import views as FriendshipViews
-from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, CommentSerializer, CommentListSerializer
+from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, CommentSerializer, CommentListSerializer, FriendshipSerializer
 Author = get_user_model()
 
 @api_view(['GET'])
@@ -168,9 +171,51 @@ def ViewComment(request, post_id):
     else:
         return HttpResponseBadRequest()
 
+
+@api_view(['GET', 'POST'])
+def get_friendlist(request, author_id):
+    if request.method == 'GET':
+        try:
+            author = Author.objects.get(id=author_id)
+            friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
+            result = []
+            for friendship in friendships:
+                if friendship.author_a == author:
+                    result.append(friendship.author_b.id)
+                else:
+                    result.append(friendship.author_a.id)
+            if result:
+                serializer = FriendshipSerializer(result, exclude=['author'])
+                return Response(serializer.data)
+            else:
+                return HttpResponseNotFound(b"User Not found")
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError()
+    elif request.method == 'POST':
+        try:
+            data = request.body.decode('utf-8')
+            body = json.loads(data)
+            authors = body['authors']
+            print(authors)
+            friendIDList = []
+            if data:
+                for friend_id in authors:
+                    if FriendshipViews.checkFriendship(author_id, friend_id):
+                        friendIDList.append(friend_id)
+                serializer = FriendshipSerializer(
+                    friendIDList, context={'author': author_id})
+                return Response(serializer.data)
+            else:
+                return Response(b"Invalid json file", status=403)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError()
+
+    else:
+        return HttpResponseBadRequest()
+
 #helper funciton
-
-
 def getVisiblePosts(requester, author=None):
     result = []
     if requester.is_anonymous:
