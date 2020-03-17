@@ -266,13 +266,15 @@ def check_friendship(request, author1_id, author2_id):
             context['authors'].append(author2_id)
             friend1 = Friend.objects.get(friend_id=author1_id) #Get a friend in Frien table
             friend2 = Friend.objects.get(friend_id=author2_id)
+            print(friend1)
+            print(friend2)
             if friend1 and friend2:
                 if FriendshipViews.checkFriendship(friend1, friend2):
+                    print("your heeeeeree")
                     context['friends'] = True
                     return Response(context, status=200)
-            else:
-                context['friends'] = False
-                return Response(context, status=200)
+            context['friends'] = False
+            return Response(context, status=200)
         except Exception as e:
             print(e)
             return HttpResponseServerError()
