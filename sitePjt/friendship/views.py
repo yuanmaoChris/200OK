@@ -1,5 +1,6 @@
 from .models import Friendship, FriendRequest, Friend
 from django.db.models import Q
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -8,10 +9,15 @@ Author = get_user_model()
 
 #helper function
 
-def checkFriendship(friend1, friend2):
+def checkFriendship(friend1_id, friend2_id):
     '''
         given 2 authors check weather they're friends
     '''
+    try:
+        friend1 = Friend.objects.get(friend_id=friend1_id)
+        friend2 = Friend.objects.get(friend_id=friend2_id)
+    except Exception as e:
+        return False
 
     if friend1.friend_id < friend2.friend_id:
         author_from, author_to = friend1, friend2
@@ -46,48 +52,45 @@ def getAllFriends(author_id):
     send friend request from one author to another
 '''
 def sendRequest(request):
+    form = request.POST or None
+    form_from = {
+        'friend_id': form.get('friend_from_friend_id'),
+        'friend_displayName': form.get('friend_from_friend_displayName'),
+        'friend_url': form.get('friend_from_friend_url'),
+        'friend_host': form.get('friend_from_friend_host')
+    }
+    form_to = {
+        'friend_id': form.get('friend_to_friend_id'),
+        'friend_displayName': form.get('friend_to_friend_displayName'),
+        'friend_url': form.get('friend_to_friend_url'),
+        'friend_host': form.get('friend_to_friend_host')
+    }
+
     if request.method == 'POST':
         try:
-            
-            form = request.POST or None
-            #TO DO:
-            #Use friend instead of author
-            '''
-            friend_from = form.get('friend_from_id')
-            friend_from = form.get('friend_from_id')
-            friend_from = form.get('friend_from_id')
-            friend_from = form.get('friend_from_id')
-            friend_to = form.get('friend_to_id')
-            friend_to = form.get('friend_to_id')
-            friend_to = form.get('friend_to_id')
-            friend_to = form.get('friend_to_id')
-            friend_from = Friend.objects.get_or_create(friend_id=friend_from)
-            friend_to = Friend.objects.get_or_create(friend_id=friend_to)
-            if friend_from < friend_to:
+            # form = request.POST or None
+            friend_from, created_from = Friend.objects.get_or_create(**form_from)
+            friend_to, created_to = Friend.objects.get_or_create(**form_to)
+            if friend_from.friend_id < friend_to.friend_id:
                 a, b = friend_from, friend_to
             else:
                 a, b = friend_to, friend_from
-            #check weather they're already friends
-            friendship = Friendship.objects.filter(author_a_id=a, author_b_id=b)
-            if not friendship.exists():
-                friend_req = FriendRequest.objects.filter(author_from_id=author_from, author_to_id=author_to)
-                #check weather friend request already sent
-                if not friend_req.exists():
-                    FriendRequest.objects.create(
-                        author_from_id=form.get('author_from_id'),
-                        author_from_displayName=form.get('author_from_displayName'),
-                        author_from_url=form.get('author_from_url'),
-                        author_from_host=form.get('author_from_host'),
-                        author_to_id=form.get('author_to_id'),
-                        author_to_displayName=form.get('author_to_displayName'),
-                        author_to_url=form.get('author_to_url'),
-                        author_to_host=form.get('author_to_host'),
-                        )
-            '''
+            #check if there is an oppsite request
+            fr = FriendRequest.objects.filter(author_from=friend_to, author_to=friend_from)
+            if fr.exists():
+                fr[0].delete()
+                friendship = Friendship.objects.create(author_a=a, author_b=b)
+            else:
+
+                #check weather they're already friends
+                friendship = Friendship.objects.filter(author_a=a, author_b=b)
+                if not friendship:
+                    friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+            
         except Exception as e:
             print(e)
 
-    return HttpResponseRedirect(reverse('accounts:view profile', args=(form['author_to'],)), {})
+    return HttpResponseRedirect(reverse('accounts:view profile', args=(form_to['friend_id'],)), {})
 
 '''
     deal with friend request (either Accept or Decline)
@@ -97,28 +100,25 @@ def handleRequest(request):
     if request.method == 'POST':
         try:
             fr = FriendRequest.objects.get(id=form['request_id'])
-            '''
             ##Update
-            author_from_id= Author.objects.filter(id=fr.author_from.id)[0]
-            author_to_id = Author.objects.filter(id=fr.author_to.id)[0]
+            author_from= fr.author_from
+            author_to = fr.author_to
             fr2 = FriendRequest.objects.filter(author_from=author_to, author_to=author_from)
-            #####
+            if fr2.exists:
+                fr2.delete()
             fr.delete()
+
             if form['method'] == 'Accept':
-                if fr2.exists:
-                    fr2.delete()
-                ################ need to change
-                if author_from.id < author_to.id:
+                if author_from.friend_id < author_to.friend_id:
                     a, b = author_from, author_to
                 else:
                     a, b = author_to, author_from
-                ################
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
                 #build friendship if they were not friends
                 if not friendship.exists():
                     friendship = Friendship(author_a=a, author_b=b)
                     friendship.save()
-                '''
+                
         except Exception as e:
             print(e)
     return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
@@ -156,7 +156,8 @@ def getFriendsList(request, author_id):
             #get friend list
             context['friends'] = getAllFriends(author_id)
             #get friend requests
-            friend_requests = FriendRequest.objects.filter(author_to=request.user)
+            friend = Friend.objects.get(friend_id=request.user.id)
+            friend_requests = FriendRequest.objects.filter(author_to=friend)
             context['friend_requests'] = friend_requests
         except Exception as e:
                 print(e)
@@ -170,9 +171,9 @@ def deleteFriend(request):
     form = request.POST or None
     
     try:
-        author = Author.objects.filter(id=request.user.id)[0]
-        friend = Author.objects.filter(id=form['friend_id'])[0]
-        if author.id < friend.id:
+        author = Friend.objects.filter(friend_id=request.user.id)[0]
+        friend = Friend.objects.filter(friend_id=form['friend_id'])[0]
+        if author.friend_id < friend.friend_id:
             a, b = author, friend
         else:
             a, b = friend, author

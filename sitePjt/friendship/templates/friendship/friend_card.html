@@ -1,8 +1,8 @@
 <form action="{% url 'friendship:delete friend' %}" method='POST'> {% csrf_token %}
 <div class="card" style="width: 600px; height: 75px;">
     <div class="card-body">
-            <a href="{% url 'accounts:view profile' friend.id %}" class="text-dark font-weight-bold" style="text-decoration: none; font-size: large;" > {{ friend.displayName }} </a>           
-            <input type="hidden" name="friend_id" value="{{ friend.id }}"></input>
+            <a href="{% url 'accounts:view profile' friend.friend_id %}" class="text-dark font-weight-bold" style="text-decoration: none; font-size: large;" > {{ friend.friend_displayName }} </a>           
+            <input type="hidden" name="friend_id" value="{{ friend.friend_id }}"></input>
             <input type="submit" class="btn btn-danger float-right" value="Unfriend"></input>       
     </div>
 </div>
