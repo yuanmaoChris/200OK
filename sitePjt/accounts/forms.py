@@ -1,6 +1,7 @@
 from django import forms
 from .models import Author
-#from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+import uuid
+from django.conf import settings
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth import (
     authenticate,
@@ -13,8 +14,7 @@ class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(
-        label='Password confirmation', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
 
     class Meta:
         model = Author
@@ -34,8 +34,11 @@ class UserCreationForm(forms.ModelForm):
         '''
                 Save the provided password in hashed format
         '''
-        user = super().save(commit=False)
+        user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.id = uuid.uuid4().urn[9:]
+        user.url = settings.HOSTNAME + "/author/" + user.id + "/"
+        user.active = False
         if commit:
             user.save()
         return user
@@ -61,34 +64,6 @@ class UserChangeForm(forms.ModelForm):
         '''
         return self.initial["password"]
 
-'''
-class UserAdmin(BaseUserAdmin):
-    # The forms to add and change user instances
-    form = UserChangeForm
-    add_form = UserCreationForm
-
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', 'is_admin')
-    list_filter = ('is_admin',)
-    fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Permissions', {'fields': ('is_admin',)}),
-    )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email','password1', 'password2', 'is_admin'),
-        }),
-    )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
-'''
-
 class UserLoginForm(forms.Form):
     email = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
@@ -104,6 +79,7 @@ class UserLoginForm(forms.Form):
             if not user.check_password(password):
                 raise forms.ValidationError('Incorrect password')
         return super(UserLoginForm,self).clean(*args, **kwargs)
+
 
 class UserProfileForm(forms.ModelForm):
     class Meta:

@@ -46,6 +46,7 @@
 </style>
   </head>
   <body>
+    <h1> {{ request.user }} </h1>
       <div class="signup-box" id="signupForm">
             <form action="{% url 'accounts:sign up' %}" class="form-container" enctype="multipart/form-data" method="POST">
               {% csrf_token %}

@@ -26,62 +26,47 @@ def login_view(request):
         if user:
             login(request, user)
         else:
-            print("user does not exist")
-            return render(request, "accounts/login.html", {'form': UserLoginForm()})
+            print("returned None")
         if next:
             return redirect(next)
         return redirect('/posts/')
-    else:
-        form = UserLoginForm()
-        context = {
-            'form': form,
-        }
-        return render(request, "accounts/login.html", context)
 
-
-'''
-    registe new user by creating and saving a UserCreationForm
-'''
-
+    context = {
+        'form': form,
+    }
+    return render(request, "accounts/login.html", context)
 
 def register_view(request):
-    next = request.GET.get('next')
-    if request.user.is_authenticated:
-        print("authenticated!")
-        return redirect('/posts/')
+    '''
+    registe new user by creating and saving a UserCreationForm
+    '''
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password1')
-            new_user = authenticate(request, email=email, password=password)
+            new_user = authenticate(email=email, password=password)
             login(request, new_user)
-            if next:
-                return redirect(next)
             return redirect('/posts/')
     else:
         form = UserCreationForm()
-        context = {
-            'form': form,
-        }
-        return render(request, "accounts/signup.html", context)
-
-
-'''
-    simply logout and jump back to login page
-'''
+    return render(request, "accounts/signup.html", context={'form': form})
 
 
 def logout_view(request):
+    '''
+    simply logout and jump back to login page
+    '''
     logout(request)
     return redirect('/accounts/login/')
 
-'''
-    given an author id to find the specified user's information
-'''
+
 @login_required
 def profile_view(request, author_id):
+    '''
+    given an author id to find the specified user's information
+    '''
     form = request.POST
     if request.method == "POST":
         print(form)
