@@ -10,6 +10,7 @@ from django.contrib.auth import (
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
 from posting import views as PostingView
+from friendship.models import Friend
 
 '''
     check if input email/password is valid and the user actually exist before login
@@ -74,6 +75,9 @@ def profile_view(request, author_id):
             displayName=form['displayName'],
             bio=form['bio'],
             github=form['github'],
+        )
+        Friend.objects.filter(friend_id=author_id).update(
+            friend_displayName=form['displayName']
         )
 
     author = Author.objects.filter(id=author_id)[0]
