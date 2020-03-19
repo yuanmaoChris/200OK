@@ -32,8 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         #get source field done plz..
-        fields = ('title', 'source', 'origin',
-                  'description', 'contentType', 'content',
+        fields = ('title', 'source', 'origin', 'contentType', 'content',
                   'author', 'categories', 'published', 'id', 'visibility',
                   'unlisted', 'comments'
                   )

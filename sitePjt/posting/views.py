@@ -60,7 +60,7 @@ def getVisiblePosts(requester, author=None):
                 result.append(post)
             else:
                 for friend in FriendshipViews.getAllFriends(post.author.id):
-                    if FriendshipViews.checkFriendship(friend.id, requester.id):
+                    if FriendshipViews.checkFriendship(friend.friend_id, requester.id):
                         result.append(post)
         elif post.visibility == 'SERVERONLY':   #requires to be local friends
             if post.author.host == requester.host:
