@@ -9,6 +9,14 @@ from datetime import datetime
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAdminUser,
+    IsAuthenticatedOrReadOnly
+    )
+
 from .models import Post, Comment
 
 
@@ -73,7 +81,7 @@ def getVisiblePosts(requester, author=None):
 '''
 def ViewPublicPosts(request):
     form = PostNewForm(request.POST or None)
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.activated:
         try:
             if form.is_valid():
                 form_data = form.cleaned_data
@@ -110,11 +118,12 @@ def ViewPostDetails(request, post_id):
 '''
 @login_required
 def DeletePost(request, post_id):
-    try:
-        post = Post.objects.get(id=post_id)
-        post.delete()
-    except Exception as e:
-        print(e)
+    if request.user.activated:
+        try:
+            post = Post.objects.get(id=post_id)
+            post.delete()
+        except Exception as e:
+            print(e)
 
     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
 
@@ -124,7 +133,7 @@ def DeletePost(request, post_id):
 @login_required
 def editPost(request, post_id):
     form = request.POST or None
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.activated:
         try:
             post = Post.objects.get(id=post_id)
             if form['title']:
@@ -150,7 +159,7 @@ def editPost(request, post_id):
 @login_required
 def postCommentHandler(request, post_id, comment_id=None):
     post = Post.objects.get(id=post_id)
-    if request.method in ['POST', 'PUT']:
+    if request.method in ['POST', 'PUT'] and request.user.activated:
         form = CommentForm(request.POST or None)
         context = {
             "query": "addComment",
@@ -179,20 +188,21 @@ def postCommentHandler(request, post_id, comment_id=None):
 '''
 @login_required
 def deleteComment(request, post_id, comment_id=None):
-    post = Post.objects.get(id=post_id)
-    context = {
-        "query": "deleteComment",
-            "success": None,
-            "message": None,
-    }
-    try:
-        comment = Comment(id=comment_id)
-        comment.delete()
-        context['success'] = True
-        context['message'] = "Comment deleted"
-    except:
-        context['success'] = False
-        context['message'] = "Delete not Allowed"
+    if request.user.activated:
+        post = Post.objects.get(id=post_id)
+        context = {
+            "query": "deleteComment",
+                "success": None,
+                "message": None,
+        }
+        try:
+            comment = Comment(id=comment_id)
+            comment.delete()
+            context['success'] = True
+            context['message'] = "Comment deleted"
+        except:
+            context['success'] = False
+            context['message'] = "Delete not Allowed"
 
     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
 

@@ -52,43 +52,44 @@ def getAllFriends(author_id):
     send friend request from one author to another
 '''
 def sendRequest(request):
-    form = request.POST or None
-    form_from = {
-        'friend_id': form.get('friend_from_friend_id'),
-        'friend_displayName': form.get('friend_from_friend_displayName'),
-        'friend_url': form.get('friend_from_friend_url'),
-        'friend_host': form.get('friend_from_friend_host')
-    }
-    form_to = {
-        'friend_id': form.get('friend_to_friend_id'),
-        'friend_displayName': form.get('friend_to_friend_displayName'),
-        'friend_url': form.get('friend_to_friend_url'),
-        'friend_host': form.get('friend_to_friend_host')
-    }
+    if request.user.activated:
+        form = request.POST or None
+        form_from = {
+            'friend_id': form.get('friend_from_friend_id'),
+            'friend_displayName': form.get('friend_from_friend_displayName'),
+            'friend_url': form.get('friend_from_friend_url'),
+            'friend_host': form.get('friend_from_friend_host')
+        }
+        form_to = {
+            'friend_id': form.get('friend_to_friend_id'),
+            'friend_displayName': form.get('friend_to_friend_displayName'),
+            'friend_url': form.get('friend_to_friend_url'),
+            'friend_host': form.get('friend_to_friend_host')
+        }
 
-    if request.method == 'POST':
-        try:
-            # form = request.POST or None
-            friend_from, created_from = Friend.objects.get_or_create(**form_from)
-            friend_to, created_to = Friend.objects.get_or_create(**form_to)
-            if friend_from.friend_id < friend_to.friend_id:
-                a, b = friend_from, friend_to
-            else:
-                a, b = friend_to, friend_from
-            #check if there is an oppsite request
-            fr = FriendRequest.objects.filter(author_from=friend_to, author_to=friend_from)
-            if fr.exists():
-                fr[0].delete()
-                friendship = Friendship.objects.create(author_a=a, author_b=b)
-            else:
+        if request.method == 'POST':
+            try:
+                # form = request.POST or None
+                friend_from, created_from = Friend.objects.get_or_create(**form_from)
+                friend_to, created_to = Friend.objects.get_or_create(**form_to)
+                if friend_from.friend_id < friend_to.friend_id:
+                    a, b = friend_from, friend_to
+                else:
+                    a, b = friend_to, friend_from
+                #check if there is an oppsite request
+                fr = FriendRequest.objects.filter(author_from=friend_to, author_to=friend_from)
+                if fr.exists():
+                    fr[0].delete()
+                    friendship = Friendship.objects.create(author_a=a, author_b=b)
+                else:
 
-                #check weather they're already friends
-                friendship = Friendship.objects.filter(author_a=a, author_b=b)
-                if not friendship:
-                    friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
-            
-        except Exception as e:
-            print(e)
+                    #check weather they're already friends
+                    friendship = Friendship.objects.filter(author_a=a, author_b=b)
+                    if not friendship:
+                        friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+                
+            except Exception as e:
+                print(e)
 
     return HttpResponseRedirect(reverse('accounts:view profile', args=(form_to['friend_id'],)), {})
 
@@ -97,7 +98,7 @@ def sendRequest(request):
 '''
 def handleRequest(request):
     form = request.POST or None
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.activated:
         try:
             fr = FriendRequest.objects.get(id=form['request_id'])
             ##Update
@@ -168,19 +169,20 @@ def getFriendsList(request, author_id):
     delete a specified friend
 '''
 def deleteFriend(request):
-    form = request.POST or None
-    
-    try:
-        author = Friend.objects.filter(friend_id=request.user.id)[0]
-        friend = Friend.objects.filter(friend_id=form['friend_id'])[0]
-        if author.friend_id < friend.friend_id:
-            a, b = author, friend
-        else:
-            a, b = friend, author
-        friendship = Friendship.objects.get(author_a=a, author_b=b)
-        friendship.delete()
+    if request.user.activated:
+        form = request.POST or None
+        
+        try:
+            author = Friend.objects.filter(friend_id=request.user.id)[0]
+            friend = Friend.objects.filter(friend_id=form['friend_id'])[0]
+            if author.friend_id < friend.friend_id:
+                a, b = author, friend
+            else:
+                a, b = friend, author
+            friendship = Friendship.objects.get(author_a=a, author_b=b)
+            friendship.delete()
 
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
         
     return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
