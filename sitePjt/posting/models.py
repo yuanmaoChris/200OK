@@ -46,6 +46,7 @@ class Post(models.Model):
 
     def __str__(self):
         return super().__str__() + "    ------      " +self.title
+
 '''
     namely a Comment model, belong to author and post
 '''    

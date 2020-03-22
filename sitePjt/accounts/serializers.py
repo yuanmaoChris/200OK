@@ -1,14 +1,24 @@
 from rest_framework import serializers
-from .models import *
+from django.contrib.auth import get_user_model
+
+Author = get_user_model()
 
 
 class AuthorSerializer(serializers.ModelSerializer):
-	
-	id = serializers.SerializerMethodField('get_id')
 
-	def get_id(self, obj):
-		return "http://service/author/" + obj.uuid_str
+    class Meta:
+        model = Author
+        fields = ('displayName', 'date_joined', 'last_login',
+                  'bio', 'github', 'host', 'url', 'avatar',
+                  )
 
-	class Meta:
-		model = Post
-		fields = ('id', 'host', 'displayName', 'url', 'content', 'github', 'bio')
+    def create(self, validated_data):
+        return Author.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.displayName = validated_data.get(
+            'displayName', instance.displayName)
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.github = validated_data.get('github', instance.github)
+        instance.save()
+        return instance

@@ -12,7 +12,10 @@
         </div>
         <div class="post-action">
             {% if post.author == request.user and allowEdit %}
-            <a  style="width: 78px; position: absolute; right:   5px; bottom:   10px;" class="btn btn-danger" href="{% url 'posting:delete post' post.id %}">Delete</a >
+            <form action="{% url 'posting:delete post' post.id %}" method="POST">
+                {% csrf_token %}
+                <input style="width: 78px; position: absolute; right:   5px; bottom:   10px;" class="btn btn-danger"  type="submit" value="Delete">
+            </form>
             <a  style="width: 78px; position: absolute; right:  90px; bottom:   10px;" id="edit-button" data-toggle="modal" data-target="#input-form{{post.id}}"  class="btn btn-primary" href="{% url 'posting:edit post' post.id %}">Edit</a >
             
             <!-- Modal -->

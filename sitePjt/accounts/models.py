@@ -80,7 +80,13 @@ class Author(AbstractBaseUser):
         return self.host + "/author/" + self.id + "/"
 
     def has_perm(self, perm, obj=None):
-        return True
+        if perm in ['owner of post', 'owner of comment']:
+            return obj and obj.author.id == self.id
+        
+        if perm == 'owner of porfile':
+            return obj and obj.id == self.id
+
+        return self.is_admin
 
     def has_module_perms(self, app_label):
         return True

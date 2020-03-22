@@ -2,7 +2,7 @@
    <div class="card" style="width: 600px;">
         <h4> Comments</h4>
         {% if post %}  
-        <form action="{% url 'posting:comment events' post.id %}" method="POST">
+        <form action="{% url 'posting:comment handler' post.id %}" method="POST">
             {% csrf_token %}
             <div>   
                 <input class="textarea form-control float-none" rows="4" cols="50" type="text" name="comment" style="width: 400px;margin: 0 auto;"></input>

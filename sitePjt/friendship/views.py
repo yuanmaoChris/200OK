@@ -186,3 +186,41 @@ def deleteFriend(request):
             print(e)
         
     return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
+
+
+def checkVisibility(requester, post):
+    '''
+        To check visibility of requester toward a post.
+            parameter: 
+                requester: a author want to see a post.
+                post: a post which the requester wants to see.
+            return:
+                True: the requester is able to see the post
+                False: the requester is not able to see the post
+    '''
+    #public post or self post
+    if post.visibility == 'PUBLIC' or post.author == requester:
+        return True
+    else:
+        req_friendsList = FriendshipViews.getAllFriends(requester.id)
+        if post.visibility == 'FRIENDS':
+            if post.author in req_friendsList:
+                return True
+        elif post.visibility == 'FOAF':
+            #Case1: author and requester are friends => return True
+            if post.author in req_friendsList:
+                return True
+            #Case2: author and a friend of requester are friends => return True
+            else:
+                for friend in req_friendsList:
+                    if FriendshipViews.checkFriendship(friend.id, post.id):
+                        return True
+
+        elif post.visibility == 'SERVERONLY':
+            print("SERVERONLY unimplemented.But I give you visibility by this time.")
+            if post.author.host == requester.host:
+                return True
+       #TODO: To check visibility within visibleTo
+        #if request.user.id in post.visibleTo and (not post in post_list):
+            #post_list.append(post)
+    return False
