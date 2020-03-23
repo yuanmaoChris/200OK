@@ -1,7 +1,7 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import (
-    BaseUserManager, AbstractBaseUser
+    BaseUserManager, AbstractBaseUser,User
 )
 from django.conf import settings
 
@@ -27,6 +27,24 @@ class AuthorManager(BaseUserManager):
         user.activated = is_activated
         user.active = is_active
         user.admin = is_admin
+        user.save(using=self._db)
+        return user
+
+    def create_node(self, email, displayName, password=None):
+        """
+        Creates and saves a superuser with the given email, date of
+        birth and password.
+        """
+        user = self.create_user(
+            email,
+            password=password,
+            displayName=displayName,
+        )
+        user.admin = False
+        user.activated = False
+        user.node=True
+        user.share=False
+        user.share_image=False
         user.save(using=self._db)
         return user
 
@@ -65,8 +83,11 @@ class Author(AbstractBaseUser):
     last_login=models.DateField(verbose_name="last login", auto_now=True)
 
     active=models.BooleanField(default=True)
-    activated = models.BooleanField(default=False)
+    activated=models.BooleanField(default=False)
+    node=models.BooleanField(default=False)
     admin=models.BooleanField(default=False)
+    share=models.BooleanField(default=False)
+    share_image=models.BooleanField(default=False)
 
     objects = AuthorManager()
 
@@ -74,7 +95,7 @@ class Author(AbstractBaseUser):
     REQUIRED_FIELDS = ['displayName', ]
 
     def __str__(self):
-        return self.email
+        return self.displayName
 
     def get_url(self):
         return self.host + "/author/" + self.id + "/"
@@ -83,8 +104,14 @@ class Author(AbstractBaseUser):
         if perm in ['owner of post', 'owner of comment']:
             return obj and obj.author.id == self.id
         
-        if perm == 'owner of porfile':
+        elif perm == 'owner of porfile':
             return obj and obj.id == self.id
+        
+        elif perm in ['share']:
+            return self.share
+
+        elif perm in ['share_image']:
+            return self.share_image
 
         return self.is_admin
 
@@ -96,9 +123,13 @@ class Author(AbstractBaseUser):
         return self.activated
     
     @property
-    def is_staff(self):
-        return self.admin
+    def is_node(self):
+        return self.node
     
     @property
     def is_admin(self):
+        return self.admin
+    
+    @property
+    def is_staff(self):
         return self.admin

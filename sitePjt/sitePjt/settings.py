@@ -140,8 +140,10 @@ STATICFILES_DIRS = [
 MEDIA_ROOT = os.path.join(LOCAL_STATIC_CDN_PATH, 'media')
 MEDIA_URL = '/media/'
 
-
 AUTH_USER_MODEL = 'accounts.Author'
-HOSTNAME = "127.0.0.1:8000"
 
+try:
+    HOSTNAME = socket.gethostname()
+except:
+    HOSTNAME = "127.0.0.1:8000"
 

@@ -8,13 +8,14 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from django.contrib.auth import get_user_model
-from posting.forms import PostNewForm, CommentForm
+from posting.forms import PostForm, CommentForm
 from posting.models import Post, Comment
 from .helper_functions import getVisiblePosts
 from friendship.views import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
+import base64
 Author = get_user_model()
 
 class ViewPublicPosts(APIView):
@@ -31,7 +32,7 @@ class ViewPublicPosts(APIView):
         """
         Return a list of all public posts.
         """
-        form = PostNewForm(request.POST or None)
+        form = PostForm(request.POST or None)
         posts = getVisiblePosts(request.user)
         context = {
             'post_list': posts,
@@ -41,13 +42,18 @@ class ViewPublicPosts(APIView):
         #return a response instead
         
     def post(self, request, format=None):
-        form = PostNewForm(request.POST or None)
         try:
+            form = PostForm(request.POST, request.FILES)
             if form.is_valid():
                 form_data = form.cleaned_data
-                form.cleaned_data['author'] = request.user
-                newpost = Post.objects.create(**form.cleaned_data)
-                form = PostNewForm()
+                contentType = form_data.get('contentType')
+                if contentType in ['png', 'jpeg','app']:
+                    form_data['content'] = base64.b64encode(
+                        request.FILES['image'].read()).decode("utf-8")
+                form_data['author'] = request.user
+                form_data.pop('image')
+                newpost = Post.objects.create(**form_data)
+                form = PostForm()
             else:
                 print(form.errors)
         except Exception as e:

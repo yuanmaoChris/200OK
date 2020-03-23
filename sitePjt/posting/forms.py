@@ -1,7 +1,8 @@
 from django import forms
 from .models import Post, Comment
 
-class PostNewForm(forms.ModelForm):
+
+class PostForm(forms.ModelForm):
     content = forms.CharField(
         widget=forms.Textarea(
             attrs={
@@ -12,6 +13,8 @@ class PostNewForm(forms.ModelForm):
             }
         )
     )
+    image = forms.ImageField()
+
     class Meta:
         model = Post
         fields = [
@@ -21,7 +24,7 @@ class PostNewForm(forms.ModelForm):
             'categories',
             'visibility',
             'unlisted',
-    
+            'image',
         ]
 
 

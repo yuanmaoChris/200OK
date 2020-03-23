@@ -1,9 +1,9 @@
 <h1 style="text-align:center">Welcome Back {{ request.user.displayName }} !</h1>
 <div class="card" style="width: 600px;">
-    <form action="." method="POST" class="post-form">
+    <form action="." method="POST" class="post-form" enctype="multipart/form-data">
         <div>
             {% csrf_token %}
-            {{ form.as_ul }}
+            {{ form.as_p }}
         <input type="submit" value="Post">
         </div>
     </form>
