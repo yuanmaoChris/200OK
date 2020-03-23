@@ -18,17 +18,17 @@
                                     {%  if  not request.user.is_authenticated  %}
                                     
                                     {% else %}
-                                        {% if request.user.id != id  %}
+                                        {% if request.user.id != author.id  %}
                                             <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}
                                                 <input type="hidden" name="friend_from_friend_id" value="{{ request.user.id }}"></input>
                                                 <input type="hidden" name="friend_from_friend_displayName" value="{{ request.user.displayName }}"></input>
                                                 <input type="hidden" name="friend_from_friend_url" value="{{ request.user.url }}"></input>
                                                 <input type="hidden" name="friend_from_friend_host" value="{{ request.user.host }}"></input>
 
-                                                <input type="hidden" name="friend_to_friend_id" value="{{ id }}"></input>
-                                                <input type="hidden" name="friend_to_friend_displayName" value="{{ displayName }}"></input>
-                                                <input type="hidden" name="friend_to_friend_url" value="{{ url }}"></input>
-                                                <input type="hidden" name="friend_to_friend_host" value="{{ host }}"></input>
+                                                <input type="hidden" name="friend_to_friend_id" value="{{ author.id }}"></input>
+                                                <input type="hidden" name="friend_to_friend_displayName" value="{{ author.displayName }}"></input>
+                                                <input type="hidden" name="friend_to_friend_url" value="{{ author.url }}"></input>
+                                                <input type="hidden" name="friend_to_friend_host" value="{{ author.host }}"></input>
                                                 <div style="margin-top: 10px;">
                                                     <input type="submit" class="btn btn-primary" id="btnRequest" value="request" />
                                                 </div>
@@ -44,7 +44,7 @@
                                 </div>
                             </div>
                             <div class="userData ml-3">
-                                <h2 class="d-block" style="font-size: 1.5rem; font-weight: bold"><a href="javascript:void(0);">{{ displayName }}</a></h2>
+                                <h2 class="d-block" style="font-size: 1.5rem; font-weight: bold"><a href="javascript:void(0);">{{ author.displayName }}</a></h2>
                                 <h6 class="d-block"><a href="javascript:void(0)">#</a> Posts</h6>
                             </div>
                             <div class="ml-auto">
@@ -68,8 +68,9 @@
                                                     <label style="font-weight:bold;">Display Name</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" id="display-input" name="displayName" class="form-control classname" value="{{ displayName }}" readonly />                                      
+                                                    <input type="text" id="display-input" name="displayName" class="form-control classname" value="{{ author.displayName }}" readonly />                                      
                                                 </div>
+
                                             </div>
 
                                             <hr />
@@ -79,7 +80,7 @@
                                                     <label style="font-weight:bold;">Date Joined</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" class="form-control classname" value="{{ joined_date }}" readonly />  
+                                                    <input type="text" class="form-control classname" value="{{ author.date_joined }}" readonly />  
                                                 </div>
                                             </div>
                                             <hr /> 
@@ -89,7 +90,7 @@
                                                     <label style="font-weight:bold;">Bio</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text"  id="bio-input" name="bio" class="form-control classname" value="{{ bio }}" readonly />                                           
+                                                    <input type="text"  id="bio-input" name="bio" class="form-control classname" value="{{ author.bio }}" readonly />                                           
                                                 </div>
                                             </div>
                                             <hr />
@@ -99,7 +100,7 @@
                                                     <label style="font-weight:bold;">Github</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
-                                                    <input type="text" id="github-input" name="github" class="form-control classname" value="{{ github }}" readonly />      
+                                                    <input type="text" id="github-input" name="github" class="form-control classname" value="{{ author.github }}" readonly />      
  
                                                 </div>
                                             </div>

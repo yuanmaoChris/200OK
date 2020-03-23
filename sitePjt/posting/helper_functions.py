@@ -1,5 +1,5 @@
-from friendship import views as FriendshipViews
-from posting.models import Post, Comment
+from friendship.helper_functions import checkFriendship, getAllFriends
+from .models import Post, Comment
 
 #helper funciton
 '''
@@ -26,8 +26,7 @@ def getVisiblePosts(requester, author=None):
 
     #only check one author's posts or all posts
     if author:
-        posts = Post.objects.filter(
-            author=author, unlisted=False).order_by('-published')
+        posts = Post.objects.filter(author=author, unlisted=False).order_by('-published')
     else:
         posts = Post.objects.filter(unlisted=False).order_by('-published')
 
@@ -37,17 +36,22 @@ def getVisiblePosts(requester, author=None):
         elif post.visibility == 'PUBLIC':  # everyone can see's post
             result.append(post)
         elif post.visibility == 'FRIENDS':  # if friends then append this post
-            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+            if checkFriendship(post.author.id, requester.id):
                 result.append(post)
         elif post.visibility == 'FOAF':  # friends of friends also can see
-            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+            if checkFriendship(post.author.id, requester.id):
                 result.append(post)
             else:
-                for friend in FriendshipViews.getAllFriends(post.author.id):
-                    if FriendshipViews.checkFriendship(friend.id, requester.id):
+                for friend in getAllFriends(post.author.id):
+                    if checkFriendship(friend.friend_id, requester.id):
                         result.append(post)
         elif post.visibility == 'SERVERONLY':  # requires to be local friends
             if post.author.host == requester.host:
                 result.append(post)
             print("SERVERONLY unimplemented.")
+    if author == requester:
+        unlisted_posts = Post.objects.filter(author=author, unlisted=True)
+        for post in unlisted_posts:
+            result.append(post)
+
     return result

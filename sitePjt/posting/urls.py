@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views
-from .api import views as APIviews
+from . import views as APIviews
 app_name = 'posting'
 
 urlpatterns = [

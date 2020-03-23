@@ -13,7 +13,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from posting.models import Post, Comment
 from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
-from friendship import views as FriendshipViews
+from friendship.helper_functions import checkFriendship, getAllFriends
 from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, CommentSerializer, CommentListSerializer, FriendshipSerializer
 from .permissions import IsAuthenticatedAndNode
 Author = get_user_model()
@@ -109,6 +109,7 @@ def handle_auth_posts(request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedAndNode])
 def view_author_posts(request, author_id):
     '''
        G To get all visiable posts by given author
@@ -135,6 +136,7 @@ def view_author_posts(request, author_id):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedAndNode])
 def view_single_post(request, post_id):
     '''
         GET: To get a single visiable post by given post id 
@@ -161,6 +163,7 @@ def view_single_post(request, post_id):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedAndNode])
 def handle_comments(request, post_id):
     '''
         GET: To get comments from visible posts
@@ -227,6 +230,7 @@ def handle_comments(request, post_id):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedAndNode])
 def ViewProfile(request, author_id):
     '''
         GET: To get a author profile by given author id 
@@ -277,6 +281,7 @@ def ViewProfile(request, author_id):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedAndNode])
 def get_friendlist(request, author_id):
     '''
         GET: To get by friend list given author_id
@@ -321,7 +326,7 @@ def get_friendlist(request, author_id):
             friendIDList = []
             #Add id of friends to result list if there is any
             for friend_id in authors:
-                if FriendshipViews.checkFriendship(author.friend_id, friend_id):
+                if checkFriendship(author.friend_id, friend_id):
                     friend = Friend.objects.get(friend_id=friend_id)
                     friendIDList.append(friend.friend_url)
 
@@ -338,6 +343,7 @@ def get_friendlist(request, author_id):
         
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedAndNode])
 def check_friendship(request, author1_id, author2_id):
     '''
         GET: To check author 1 and author 2 are friend or not 
@@ -355,7 +361,7 @@ def check_friendship(request, author1_id, author2_id):
             context['authors'].append(author2_id)
 
             #Case 1: authors are in friendship
-            if FriendshipViews.checkFriendship(author1_id, author2_id):
+            if checkFriendship(author1_id, author2_id):
                 context['friends'] = True
                 return Response(context, status=200)
             #Case 2: authors are in friendship
@@ -372,6 +378,7 @@ def check_friendship(request, author1_id, author2_id):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticatedAndNode])
 def make_friendRequest(request):
     '''
         POST: To make a single frendrequest
@@ -404,7 +411,7 @@ def make_friendRequest(request):
             context['authors'].append(author_to.friend_id)
 
             #Create a new friend request if authors are not friend and no such friend request exists
-            friendship = FriendshipViews.checkFriendship(author_from.friend_id, author_to.friend_id)
+            friendship = checkFriendship(author_from.friend_id, author_to.friend_id)
             if not friendship:
                 #mutual request means author A had requested author B as friend, 
                 #meanwhile author B sends a friendrequest to author A
@@ -470,17 +477,17 @@ def getVisiblePosts(requester, author=None):
             result.append(post)
         #Friends only post
         elif post.visibility == 'FRIENDS':
-            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+            if checkFriendship(post.author.id, requester.id):
                 result.append(post)
         #Friend of a friend post
         elif post.visibility == 'FOAF':
             #user and author are in friendship
-            if FriendshipViews.checkFriendship(post.author.id, requester.id):
+            if checkFriendship(post.author.id, requester.id):
                 result.append(post)
             else:
-                for friend in FriendshipViews.getAllFriends(post.author.id):
+                for friend in getAllFriends(post.author.id):
                     #user is in friendship with one of friends of the author
-                    if FriendshipViews.checkFriendship(friend.id, requester.id):
+                    if checkFriendship(friend.id, requester.id):
                         result.append(post)
         #Server only post
         elif post.visibility == 'SERVERONLY':
@@ -506,7 +513,7 @@ def checkVisibility(requester, post):
     if  post.visibility == 'PUBLIC' or post.author == requester:
         return True
     else:
-        req_friendsList = FriendshipViews.getAllFriends(requester.id)
+        req_friendsList = getAllFriends(requester.id)
         if post.visibility == 'FRIENDS':
             if post.author in req_friendsList:
                 return True
@@ -517,7 +524,7 @@ def checkVisibility(requester, post):
             #Case2: author and a friend of requester are friends => return True
             else:
                 for friend in req_friendsList:
-                    if FriendshipViews.checkFriendship(friend.id, post.id):
+                    if checkFriendship(friend.id, post.id):
                         return True
 
         elif post.visibility == 'SERVERONLY':

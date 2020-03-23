@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 from django.contrib.auth import (
     authenticate,
     get_user_model,
@@ -9,13 +12,13 @@ from django.contrib.auth import (
 )
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
 from .models import Author
+from .permissions import IsActivated, IsActivatedOrReadOnly
 from posting import views as PostingView
 from friendship.models import Friend
 
 '''
     check if input email/password is valid and the user actually exist before login
 '''
-
 
 def login_view(request):
     next = request.GET.get('next')
@@ -63,42 +66,101 @@ def logout_view(request):
     return redirect('/accounts/login/')
 
 
-@login_required
-def profile_view(request, author_id):
-    '''
-    given an author id to find the specified user's information
-    '''
-    form = request.POST
-    if request.method == "POST":
-        print(form)
-        Author.objects.filter(id=author_id).update(
-            displayName=form['displayName'],
-            bio=form['bio'],
-            github=form['github'],
-        )
-        Friend.objects.filter(friend_id=author_id).update(
-            friend_displayName=form['displayName']
-        )
+#@login_required
+# def profile_view(request, author_id):
+#     '''
+#     given an author id to find the specified user's information
+#     '''
+#     form = request.POST
+#     if request.method == "POST":
+#         print(form)
+#         Author.objects.filter(id=author_id).update(
+#             displayName=form['displayName'],
+#             bio=form['bio'],
+#             github=form['github'],
+#         )
+#         Friend.objects.filter(friend_id=author_id).update(
+#             friend_displayName=form['displayName']
+#         )
 
-    author = Author.objects.filter(id=author_id)[0]
-    posts_list = []
-    '''
-        current user is browsing others profile page, so only show allowed posts
-    '''
-    if request.user.id != author_id:
-        posts_list = PostingView.getVisiblePosts(request.user, author)
+#     author = Author.objects.filter(id=author_id)[0]
+#     posts_list = []
+#     '''
+#         current user is browsing others profile page, so only show allowed posts
+#     '''
+#     if request.user.id != author_id:
+#         posts_list = PostingView.getVisiblePosts(request.user, author)
 
-    context = {
-        'displayName': author.displayName,
-        'avatar': author.avatar,
-        'github': author.github,
-        'url': author.url,
-        'host': author.host,
-        'bio': author.bio,
-        'email': author.email,
-        'id': author.id,
-        'joined_date': author.date_joined,
-        'post_list': posts_list,
-    }
+#     context = {
+#         'displayName': author.displayName,
+#         'avatar': author.avatar,
+#         'github': author.github,
+#         'url': author.url,
+#         'host': author.host,
+#         'bio': author.bio,
+#         'email': author.email,
+#         'id': author.id,
+#         'joined_date': author.date_joined,
+#         'post_list': posts_list,
+#     }
 
-    return render(request, "accounts/profile.html", context)
+#     return render(request, "accounts/profile.html", context)
+
+
+class ProfileView(APIView):
+    """
+    View to a detail of author profile and its posts list in the system.
+
+    * Requires token authentication.
+    * Only authenticated authors are able to access this view.
+    """
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsActivatedOrReadOnly]
+
+    def get(self, request, author_id, format=None):
+        '''
+            current user is browsing others profile page, so only show allowed posts
+        '''
+        try:
+            author = Author.objects.filter(id=author_id)
+            if not author.exists():
+                return HttpResponseNotFound("Author Profile Not Found.")
+            author = Author.objects.get(id=author_id)
+            posts_list = []
+            #Viewing other's profile. Get all visible posts of that author.
+            if request.user.id != author_id:
+                posts_list = PostingView.getVisiblePosts(request.user, author)
+            context = {
+                'author': author,
+                'post_list': posts_list,
+            }
+            return render(request, "accounts/profile.html", context)
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+    def post(self, request, author_id, format=None):
+        try:
+            author = Author.objects.filter(id=author_id)
+            if not author.exists():
+                return HttpResponseNotFound("Author Profile Not Found.")
+            form = request.POST
+            Author.objects.filter(id=author_id).update(
+                displayName=form['displayName'],
+                bio=form['bio'],
+                github=form['github'],
+            )
+            Friend.objects.filter(friend_id=author_id).update(
+                friend_displayName=form['displayName']
+            )
+            author = Author.objects.get(id=author_id)
+            posts_list = []
+            #Viewing other's profile. Get all visible posts of that author.
+            if request.user.id != author_id:
+                posts_list = PostingView.getVisiblePosts(request.user, author)
+            context = {
+                'author': author,
+                'post_list': posts_list,
+            }
+            return render(request, "accounts/profile.html", context)
+        except Exception as e:
+            return HttpResponseServerError(e)

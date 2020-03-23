@@ -1,234 +1,284 @@
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.http import HttpResponseRedirect, HttpResponseNotFound
-# from django.urls import reverse
-# from django.views import generic
-# from django.contrib.auth.decorators import login_required
-# from django.contrib.auth import get_user_model
-# from django.utils.timezone import now
-# from datetime import datetime
-# from rest_framework.response import Response
-# from rest_framework.decorators import api_view
-# from rest_framework import status
+from django.shortcuts import render, reverse, redirect
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAdminUser,
+    IsAuthenticatedOrReadOnly,
+)
+from django.contrib.auth import get_user_model
+from .forms import PostForm
+from .models import Post, Comment
+from .helper_functions import getVisiblePosts
+from friendship.helper_functions import checkVisibility
+from .serializers import PostSerializer, CommentSerializer
+from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
+import base64
 
-# from rest_framework.permissions import (
-#     AllowAny,
-#     IsAuthenticated,
-#     IsAdminUser,
-#     IsAuthenticatedOrReadOnly
-#     )
-
-# from .models import Post, Comment
-
-
-# from .forms import PostNewForm, CommentForm
-# from .serializers import *
-# from .models import Post###, VisibleTo
-# from friendship import views as FriendshipViews
-
-# User = get_user_model()
-
-# #helper funciton
-# '''
-#     get all visible posts, depends on the state of current user
-
-#     POST_VISIBILITY = (
-#     ('PUBLIC', 'Public'),
-#     ('PRIVATE', 'Prviate to self'),
-#     ('FRIENDS', 'Private to friends'),
-#     ('FOAF', 'Private to friends of friends'),
-#     ('SERVERONLY', 'Private to local friends'),
-#     )
-
-# '''
-# def getVisiblePosts(requester, author=None):
-#     result = []
-#     #the current user hasn't login yet, show some random public posts
-#     if requester.is_anonymous:
-#         if author:
-#             return Post.objects.filter(author=author, visibility='PUBLIC',unlisted=False).order_by('-published')
-#         else:
-#             return Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published')
-    
-#     #only check one author's posts or all posts
-#     if author:
-#         posts = Post.objects.filter(author=author,unlisted=False).order_by('-published')
-#     else:
-#         posts = Post.objects.filter(unlisted=False).order_by('-published')
-
-#     for post in posts:
-#         if post.author == requester:    #my post
-#             result.append(post)
-#         elif post.visibility == 'PUBLIC':   #everyone can see's post
-#             result.append(post)
-#         elif post.visibility == 'FRIENDS':  #if friends then append this post
-#             if FriendshipViews.checkFriendship(post.author.id, requester.id):
-#                 result.append(post)
-#         elif post.visibility == 'FOAF':     #friends of friends also can see
-#             if FriendshipViews.checkFriendship(post.author.id, requester.id):
-#                 result.append(post)
-#             else:
-#                 for friend in FriendshipViews.getAllFriends(post.author.id):
-#                     if FriendshipViews.checkFriendship(friend.friend_id, requester.id):
-#                         result.append(post)
-#         elif post.visibility == 'SERVERONLY':   #requires to be local friends
-#             if post.author.host == requester.host:
-#                 result.append(post)
-#             print("SERVERONLY unimplemented.")
-#     return result
-
-# '''
-#     show a list of public posts, check visibility before display to user
-# '''
-# def ViewPublicPosts(request):
-#     form = PostNewForm(request.POST or None)
-#     if request.method == 'POST' and request.user.activated:
-#         try:
-#             if form.is_valid():
-#                 form_data = form.cleaned_data
-#                 form.cleaned_data['author'] = request.user
-#                 newpost =Post.objects.create(**form.cleaned_data)
-#                 form = PostNewForm()
-#             else:
-#                 print(form.errors)
-#         except Exception as e:
-#             print(e)
-#     posts = getVisiblePosts(request.user)
-#     context = {
-#         'post_list': posts,
-#         'form': form,
-#     }
-
-#     return render(request, "posting/stream.html", context)
-
-# '''
-#     given a post_id show all its details, including comments
-# '''
-# def ViewPostDetails(request, post_id):
-#     post = Post.objects.get(id=post_id)
-
-#     comments = Comment.objects.filter(post=post)[:10]
-#     context = {
-#         'post': post,
-#         'comment_list': comments,
-#     }
-#     return render(request, "posting/post-details.html", context)
-
-# '''
-#     delete a specified post by post_id
-# '''
-# @login_required
-# def DeletePost(request, post_id):
-#     if request.user.activated:
-#         try:
-#             post = Post.objects.get(id=post_id)
-#             post.delete()
-#         except Exception as e:
-#             print(e)
-
-#     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
-
-# '''
-#     use POST to resend a form to update an existing post
-# '''
-# @login_required
-# def editPost(request, post_id):
-#     form = request.POST or None
-#     if request.method == 'POST' and request.user.activated:
-#         try:
-#             post = Post.objects.get(id=post_id)
-#             if form['title']:
-#                 post.title = form['title']
-#             if form['content']:
-#                 post.content = form['content']
-#             if form['visibility']:
-#                 post.visibility = form['visibility']
-#             if form['contentType']:
-#                 post.contentType = form['contentType']
-#             post.save()
-#         except Exception as e:
-#             print(e)
-#             return render(request, 'post/postDetail.html', {
-#                 'error_message': "Failed to edit post.",
-#             })
-
-#     return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
-
-# '''
-#     create a new comment under a specified post
-# '''
-# @login_required
-# def postCommentHandler(request, post_id, comment_id=None):
-#     post = Post.objects.get(id=post_id)
-#     if request.method in ['POST', 'PUT'] and request.user.activated:
-#         form = CommentForm(request.POST or None)
-#         context = {
-#             "query": "addComment",
-#             "success": None,
-#             "message": None,
-#         }
-#         if form.is_valid():
-#             form_data = form.cleaned_data
-#             form_data['user'] = request.user
-#             form_data['post'] = post
-#             comment = Comment(post=post, author=request.user,
-#                               comment=form_data['comment'])
-#             comment.save()
-#             context['success'] = True
-#             context['message'] = "Comment Added"
-#         else:
-#             print(form.errors)
-#             context['success'] = False
-#             context['message'] = "Comment not Allowed"
-
-#     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
+Author = get_user_model()
 
 
-# '''
-#     delete a specified comment by its comment_id
-# '''
-# @login_required
-# def deleteComment(request, post_id, comment_id=None):
-#     if request.user.activated:
-#         post = Post.objects.get(id=post_id)
-#         context = {
-#             "query": "deleteComment",
-#                 "success": None,
-#                 "message": None,
-#         }
-#         try:
-#             comment = Comment(id=comment_id)
-#             comment.delete()
-#             context['success'] = True
-#             context['message'] = "Comment deleted"
-#         except:
-#             context['success'] = False
-#             context['message'] = "Delete not Allowed"
+class ViewPublicPosts(APIView):
 
-#     return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), context)
+    """
+    View to  a list of public posts, checking visibility before display to user
 
-# '''
-#     show a specified author's posts, 10 posts each time
-# '''
-# def ViewUserPosts(request, author_id):
-#     author = User.objects.filter(id=author_id)[0]
+    * Requires token authentication.
+    * Only activated users are able to read-only this view.
+    """
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsActivatedOrReadOnly]
 
-#     if request.method == 'GET':
-#         posts = getVisiblePosts(request.user, author)
-#         count = len(posts)
-#         #get from front-end or default
-#         size = 10
-#         origin = None
-#         next = None
-#         preivous = None
+    def get(self, request, format=None):
+        """
+        Return a list of all public posts.
+        """
+        form = PostForm(request.POST or None)
+        posts = getVisiblePosts(request.user)
+        context = {
+            'post_list': posts,
+            'form': form,
+        }
+        return render(request, "posting/stream.html", context)
+        #return a response instead
 
-#     context = {
-#         "query": "posts",
-#         "count": count,
-#         "size": size,
-#         "next": next,
-#         "previous": preivous,
-#         "posts": posts,
-#         "allowEdit":True,
-#     }
-    
-#     return render(request, "posting/user-post-list.html", context)
+    def post(self, request, format=None):
+        try:
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                form_data = form.cleaned_data
+                contentType = form_data.get('contentType')
+                if contentType in ['png', 'jpeg', 'app']:
+                    form_data['content'] = base64.b64encode(
+                        request.FILES['image'].read()).decode("utf-8")
+                form_data['author'] = request.user
+                form_data.pop('image')
+                newpost = Post.objects.create(**form_data)
+                form = PostForm()
+            else:
+                return HttpResponseForbidden("invalid input")
+        except Exception as e:
+            print(e)
+        posts = getVisiblePosts(request.user)
+        return render(request, "posting/stream.html", {'post_list': posts, 'form': form})
+        #return a response instead
+
+
+class ViewPostDetails(APIView):
+    """
+    View to a list a detail of post and its comments in the system.
+
+    * Requires token authentication.
+    * Only authenticated authors are able to access this view.
+    """
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, post_id, format=None):
+        """
+        Return a detail of post by given Post Id.
+        """
+        post = Post.objects.filter(id=post_id)
+        if not post.exists():
+            return HttpResponseNotFound("Post not found")
+        post = Post.objects.get(id=post_id)
+        if not checkVisibility(request.user, post):
+            return HttpResponseForbidden("You don't have visibility.")
+        comments = Comment.objects.filter(post=post)[:10]
+        context = {
+            'post': post,
+            'comment_list': comments,
+        }
+        return render(request, "posting/post-details.html", context)
+
+#We are using POST method to delete.
+#Need to use Delete Method to do this.
+
+
+class DeletePost(APIView):
+    """
+    Delete to a post by given Post ID in the system.
+
+    * Requires token authentication.
+    * Only authenticated and its owner author is able to access this view.
+    """
+
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsActivated]
+
+    def post(self, request, post_id, format=None):
+        """
+        Deleting to a post by given Post Id.
+        """
+        try:
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post not found.")
+            post = Post.objects.get(id=post_id)
+            if request.user.has_perm('owner of post', post):
+                post.delete()
+            else:
+                return HttpResponseForbidden("You must be the owner of this post.")
+            return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
+
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+
+class EditPost(APIView):
+    """
+    Edit to a post by given Post ID in the system.
+
+    * Requires token authentication.
+    * Only authenticated and its owner author is able to access this view.
+    """
+    '''
+    use POST to resend a form to update an existing post
+    '''
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsActivated]
+
+    def post(self, request, post_id, format=None):
+        """
+        Edit a post by given Post Id.
+        """
+        try:
+            form = request.POST or None
+            post = Post.objects.filter(id=post_id)
+            if post.exists():
+                post = Post.objects.get(id=post_id)
+                if request.user.has_perm('owner of post', post):
+                    serializer = PostSerializer(post, data=form, context={
+                                                'author': request.user}, partial=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
+                    else:
+                        print(serializer.errors)
+                        return Response("Save failed. Invalid data",)
+                else:
+                    return HttpResponseForbidden("You must be the owner of this post.")
+            else:
+                return HttpResponseNotFound()
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+
+class CommentHandler(APIView):
+    """
+    Create or Delete a comment to a Post to a given Post ID in the system.
+
+    * Requires token authentication.
+    * Only authenticated author is able to access this view.
+    """
+
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsActivated]
+
+    def post(self, request, post_id, comment_id=None, format=None):
+        """
+        Create a comment to a given Post Id.
+        """
+        try:
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found")
+            post = Post.objects.get(id=post_id)
+            if not checkVisibility(request.user, post):
+                return HttpResponseForbidden("You don't have visibility.")
+            serializer = CommentSerializer(data=request.POST, context={
+                                           'author': request.user, 'post': post}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
+            else:
+                return Response("Comment save failed. Invalid data")
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+    def delete(self, request, post_id, comment_id=None, format=None):
+        '''
+        delete a specified comment by its comment_id
+        '''
+        try:
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found")
+            post = Post.objects.get(id=post_id)
+            if not checkVisibility(request.user, post):
+                return HttpResponseForbidden("You don't have visibility.")
+
+            comment = Comment.objects.filter(id=comment_id)
+            if not comment.exists():
+                return HttpResponseNotFound("Comment Not Found")
+            comment = Comment.objects.get(id=comment_id)
+
+            if request.user.has_perm('owner of comment', comment):
+                comment.delete()
+                return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
+            else:
+                return HttpResponseForbidden("You must be the owner of this comment.")
+
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+    #To be removed
+    def get(self, request, post_id, comment_id=None, format=None):
+        '''
+        delete a specified comment by its comment_id
+        '''
+        try:
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found")
+            post = Post.objects.get(id=post_id)
+            if not checkVisibility(request.user, post):
+                return HttpResponseForbidden("You don't have visibility.")
+
+            comment = Comment.objects.filter(id=comment_id)
+            if not comment.exists():
+                return HttpResponseNotFound("Comment Not Found")
+            comment = Comment.objects.get(id=comment_id)
+
+            if request.user.has_perm('owner of comment', comment):
+                comment.delete()
+                return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
+            else:
+                return HttpResponseForbidden("You must be the owner of this comment.")
+
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+
+class ViewUserPosts(APIView):
+    """
+    View to a list of Posts to a given Author ID in the system.
+
+    * Requires token authentication.
+    * Only authenticated and own author is able to access this view.
+    """
+    '''
+    show a specified author's posts.
+    '''
+    #authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, author_id, format=None):
+        """
+        Get a list of posts to a given Author Id.
+        """
+        try:
+            author = Author.objects.filter(id=author_id)
+            if not author.exists():
+                return HttpResponseNotFound("Author Not Found")
+            author = Author.objects.get(id=author_id)
+            posts = getVisiblePosts(request.user, author)
+            context = {
+                "posts": posts,
+                "allowEdit": True,
+            }
+            return render(request, "posting/user-post-list.html", context)
+        except Exception as e:
+            return HttpResponseServerError(e)
