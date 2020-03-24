@@ -10,6 +10,7 @@ from rest_framework.permissions import (
 from django.contrib.auth import get_user_model
 from .forms import PostForm
 from .models import Post, Comment
+from accounts.models import ServerNode
 from .helper_functions import getVisiblePosts,getNodePublicPosts,getNodePostComment,getNodePost,getNodeAuthorPosts,postNodePostComment
 from friendship.helper_functions import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
@@ -38,7 +39,8 @@ class ViewPublicPosts(APIView):
         try:
             form = PostForm(request.POST or None)
             posts = getVisiblePosts(request.user)
-            remote_posts = getNodePublicPosts()
+            nodes = ServerNode.objects.all()
+            remote_posts = getNodePublicPosts(nodes)
             if len(remote_posts) > 0:
                 posts = list(posts) + remote_posts
                 posts.sort(key=lambda x: x.published, reverse=True)
@@ -71,6 +73,7 @@ class ViewPublicPosts(APIView):
         except Exception as e:
             print(e)
         posts = getVisiblePosts(request.user)
+        nodes = ServerNode.objects.all()
         remote_posts = getNodePublicPosts()
         if len(remote_posts) > 0:
             posts = list(posts) + remote_posts
@@ -97,12 +100,14 @@ class ViewPostDetails(APIView):
         post = Post.objects.filter(id=post_id)
         
         if not post.exists():
-            post = getNodePost(post_id)
+            node = ServerNode.objects.all()
+            post = getNodePost(post_id,Node=node)
             if post != None:
                 if not checkVisibility(request.user, post):
                     return HttpResponseForbidden("You don't have visibility.")
                 else:
-                    comments = getNodePostComment(post.id)[:10]
+                    nodes = ServerNode.objects.all()
+                    comments = getNodePostComment(post.id,nodes)[:10]
             else:
                 return HttpResponseNotFound("Post not found")
         else:
@@ -216,7 +221,8 @@ class CommentHandler(APIView):
             post = Post.objects.filter(id=post_id)
 
             if not post.exists():
-                post = getNodePost(post_id)
+                node = ServerNode.objects.all()
+                post = getNodePost(post_id,Node=node)
                 if post == None:
                     return HttpResponseNotFound("Post Not Found")
                 else:
@@ -225,7 +231,6 @@ class CommentHandler(APIView):
                     #postNodePostComment(post_id,comment_data=comment)
             else:
                 post = Post.objects.get(id=post_id)
-
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
             serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post}, partial=True)

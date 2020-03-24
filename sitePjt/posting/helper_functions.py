@@ -3,7 +3,7 @@ from django.db.models.functions import Cast
 import datetime
 from django.db.models import DateTimeField
 from .models import Post, Comment
-from accounts.models import Author
+from accounts.models import Author,ServerNode
 import requests
 from requests.auth import HTTPBasicAuth
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, PostListSerializer, PostCreateSerializer
@@ -65,95 +65,93 @@ def getVisiblePosts(requester, author=None):
     return result
 
 def getNodePublicPosts(Node=None, user=None):
-    user = 'cmput404w20t05@gmail.com'
-    pwd = 'demo'
-    #Try request from remote server
-    #TODO:headers={"content-type":request.user.id}
-    response = requests.get('https://cmput404w20t05.herokuapp.com/api/posts', auth=(user, pwd))
-    #TODO:Error Handle
     remote_posts = []
-    if response.status_code == 200:
-        remote_public_posts =response.json()    
-        for item in remote_public_posts['posts']:
-            #Get 
-            #everything is a string up to here
-            '''   
-            serializer = PostCreateSerializer(data=item, context=item)
-            if serializer.is_valid():
-                remote_posts.append(Post(**serializer.data))
-            '''
-            post = PostSerializer(data=item)
-            if post.is_valid():
-                #print(post.validated_data)
-                author = Author(**item.get('author'))
-                author.id = findAuthorIdFromUrl(item.get('author')['url'])
-                published = parse_datetime(item['published'])
-                post = Post(**post.validated_data)
-                post.id = item['id']
-                post.published = published
-                post.author = author
-                remote_posts.append(post)
-            else:
-                author = getJsonDecodeAuthor(item['author'])
-                post = getJsonDecodePost(item)
-                post.author = author
-                remote_posts.append(post)
-                
-            
+    for n in Node:
+        url = n.host_url
+        url = url +'posts'
+        response = requests.get(url, auth=(n.server_username, n.server_password))
+        if response.status_code == 200:
+            remote_public_posts =response.json()    
+            for item in remote_public_posts['posts']:
+                #Get 
+                #everything is a string up to here
+                '''   
+                serializer = PostCreateSerializer(data=item, context=item)
+                if serializer.is_valid():
+                    remote_posts.append(Post(**serializer.data))
+                '''
+                post = PostSerializer(data=item)
+                if post.is_valid():
+                    #print(post.validated_data)
+                    author = Author(**item.get('author'))
+                    author.id = findAuthorIdFromUrl(item.get('author')['url'])
+                    published = parse_datetime(item['published'])
+                    post = Post(**post.validated_data)
+                    post.id = item['id']
+                    post.published = published
+                    post.author = author
+                    remote_posts.append(post)
+                else:
+                    author = getJsonDecodeAuthor(item['author'])
+                    post = getJsonDecodePost(item)
+                    post.author = author
+                    remote_posts.append(post)       
     return remote_posts
+
 def getNodePostComment(post_id,Node=None):
-    user = 'cmput404w20t05@gmail.com'
-    pwd = 'demo'
-    #Try request from remote server
-    url = 'https://cmput404w20t05.herokuapp.com/api/posts/{}/comments'.format(str(post_id))
-    response = requests.get(url, auth=(user, pwd))
     #TODO: Error Handle
     remote_comments = []
-    if response.status_code == 200:
-        remote_comments_data = response.json()
-        for item in remote_comments_data['comments']:
-            #author.id = findAuthorIdFromUrl(item.get('author')['url'])
-            comment = CommentSerializer(data=item)
-            if comment.is_valid():
-                comment = Comment(**comment.validated_data)
-                published = parse_datetime(item['published'])
-                author = Author(**item.get('author'))
-                comment.id = item['id']
-                comment.published = published
-                comment.author = author
-                remote_comments.append(comment)
-            else:
-                comment = getJsonDecodeComment(item)
-                remote_comments.append(comment)
+    for n in Node:
+        url = n.host_url
+        url = url +'posts/{}/comments'.format(str(post_id))
+        response = requests.get(url, auth=(n.server_username, n.server_password))
+        if response.status_code == 200:
+            remote_comments_data = response.json()
+            for item in remote_comments_data['comments']:
+                #author.id = findAuthorIdFromUrl(item.get('author')['url'])
+                comment = CommentSerializer(data=item)
+                if comment.is_valid():
+                    comment = Comment(**comment.validated_data)
+                    published = parse_datetime(item['published'])
+                    author = Author(**item.get('author'))
+                    comment.id = item['id']
+                    comment.published = published
+                    comment.author = author
+                    remote_comments.append(comment)
+                else:
+                    comment = getJsonDecodeComment(item)
+                    remote_comments.append(comment)
+
     return remote_comments  
 
 def getNodePost(post_id,Node=None):
-    user = 'cmput404w20t05@gmail.com'
-    pwd = 'demo'
-    #Try request from remote server
-    url = 'https://cmput404w20t05.herokuapp.com/api/posts/{}'.format(str(post_id))
-    response = requests.get(url, auth=(user, pwd))
-    #TODO: Error Handle
     post = None
-    if response.status_code == 200:  
-        remote_post =response.json()
-        if 'post' in remote_post.keys():
-            remote_post = remote_post['post']
-        post = PostSerializer(data=remote_post)
-        if post.is_valid():
-            post = Post(**post.validated_data)
-            author = Author(**remote_post.get('author'))
-            author.id = findAuthorIdFromUrl(remote_post.get('author')['url'])
-            published = parse_datetime(remote_post['published'])
-            post.id = remote_post['id']
-            post.published = published
-            post.author = author
-        else:
-            author = getJsonDecodeAuthor(remote_post['author'])
-            post = getJsonDecodePost(remote_post)
-            post.author = author
+    for n in Node:
+        url = n.host_url
+        url = url +'posts/{}'.format(str(post_id))
+        response = requests.get(url, auth=(n.server_username, n.server_password))
+        #TODO: Error Handle
+        if response.status_code == 200:  
+            remote_post =response.json()
+            if 'post' in remote_post.keys():
+                remote_post = remote_post['post']
+            post = PostSerializer(data=remote_post)
+            if post.is_valid():
+                post = Post(**post.validated_data)
+                author = Author(**remote_post.get('author'))
+                author.id = findAuthorIdFromUrl(remote_post.get('author')['url'])
+                published = parse_datetime(remote_post['published'])
+                post.id = remote_post['id']
+                post.published = published
+                post.author = author
+            else:
+                author = getJsonDecodeAuthor(remote_post['author'])
+                post = getJsonDecodePost(remote_post)
+                post.author = author
+
     return post
 
+#TODO: Need To handle post
 def postNodePostComment(post_id,comment_data,Node=None):
     user = '5000@remote.com'
     pwd = '1'
@@ -161,7 +159,6 @@ def postNodePostComment(post_id,comment_data,Node=None):
     url = 'http://127.0.0.1:5000/service/posts/{}/comments/'.format(str(post_id))
     comment = CommentSerializer(instance=comment_data)
     response = requests.get(url, auth=(user, pwd))
-
 
 #TODO: Not Finish Yet, Waiting for friendship
 def getNodeAuthorPosts(author_id,Node=None):
@@ -217,7 +214,6 @@ def getJsonDecodePost(remote_post):
     post.id=remote_post['id'] if 'id' in remote_post.keys() else 'None'
     post.visibility=remote_post['visibility'] if 'visibility' in remote_post.keys() else 'None'
     post.unlisted=remote_post['unlisted'] if 'count' in remote_post.keys() else 'None'
-    
     #post.count=remote_post['count'] if 'count' in remote_post.keys() else 'None'
     #post.size=remote_post['size'] if 'size' in remote_post.keys() else 'None'
     #post.next=remote_post['next'] if 'next' in remote_post.keys() else 'None'

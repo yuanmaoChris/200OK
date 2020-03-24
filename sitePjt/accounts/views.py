@@ -11,7 +11,7 @@ from django.contrib.auth import (
     logout
 )
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
-from .models import Author
+from .models import Author,ServerNode
 from .permissions import IsActivated, IsActivatedOrReadOnly
 from posting import views as PostingView
 from friendship.models import Friend
@@ -125,7 +125,8 @@ class ProfileView(APIView):
         try:
             author = Author.objects.filter(id=author_id)
             if not author.exists():
-                author = getNodeAuthor(author_id)
+                nodes = ServerNode.objects.all()
+                author = getNodeAuthor(author_id,nodes)
                 if author == None:
                     return HttpResponseNotFound("Author Profile Not Found.")
             else:    
@@ -170,16 +171,17 @@ class ProfileView(APIView):
             return HttpResponseServerError(e)
 
 def getNodeAuthor(author_id,Node=None):
-    user = 'cmput404w20t05@gmail.com'
-    pwd = 'demo'
-    #Try request from remote server
-    url = 'https://cmput404w20t05.herokuapp.com/api/author/{}'.format(str(author_id))
-    response = requests.get(url, auth=(user, pwd))
     author = None
+    for n in Node:
+        url = n.host_url
+        url = url +'author/{}'.format(str(author_id))
+        response = requests.get(url, auth=(n.server_username, n.server_password))
+
     #TODO: Issues Author Serializers is not working here
     if response.status_code == 200:
         remote_author = response.json()
         author = getJsonDecodeAuthor(remote_author)
+
     return author
 
 def findAuthorIdFromUrl(url):
