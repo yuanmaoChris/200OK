@@ -50,7 +50,7 @@ class ViewPublicPosts(APIView):
             if form.is_valid():
                 form_data = form.cleaned_data
                 contentType = form_data.get('contentType')
-                if contentType in ['png', 'jpeg', 'app']:
+                if contentType in ['image/png;base64', 'image/jpeg;base64', 'application/base64']:
                     form_data['content'] = base64.b64encode(
                         request.FILES['image'].read()).decode("utf-8")
                 form_data['author'] = request.user
@@ -145,7 +145,15 @@ class EditPost(APIView):
         Edit a post by given Post Id.
         """
         try:
-            form = request.POST or None
+            '''
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                form_data = form.cleaned_data
+            contentType = form_data.get('contentType')
+            if contentType in ['image/png;base64', 'image/jpeg;base64', 'application/base64']:
+                form_data['content'] = base64.b64encode(request.FILES['image'].read()).decode("utf-8")
+            '''
+            form = request.POST
             post = Post.objects.filter(id=post_id)
             if post.exists():
                 post = Post.objects.get(id=post_id)
@@ -188,8 +196,7 @@ class CommentHandler(APIView):
             post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
-            serializer = CommentSerializer(data=request.POST, context={
-                                           'author': request.user, 'post': post}, partial=True)
+            serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post}, partial=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})

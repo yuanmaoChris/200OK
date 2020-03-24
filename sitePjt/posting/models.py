@@ -10,15 +10,15 @@ POST_VISIBILITY = (
     ('SERVERONLY', 'Private to local friends'),
 )
 CONTENT_TYPE = {
-    ('text', 'text/plain'),
-    ('md', 'text/markdown'),
-    ('png', 'image/png;base64'),
-    ('jpeg', 'image/jpeg;base64'),
-    ('app', 'application/base64'),
+    ('text/plain', 'Plain text'),
+    ('text/markdown', 'Markdown'),
+    ('image/png;base64', 'Image/png'),
+    ('image/jpeg;base64', 'Image/jpeg'),
+    ('application/base64', 'Application'),
 }
 CONTENT_TYPE_COMMENT = {
-    ('text', 'text/plain'),
-    ('md', 'text/markdown'),
+    ('text/plain', 'Plain Text'),
+    ('text/markdown', 'Markdown'),
 }
 
 UNLISTED = {
@@ -33,10 +33,10 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
-    contentType = models.CharField(max_length=4, default = 'text', choices=CONTENT_TYPE)
-    origin = models.CharField(max_length=50, blank=True)
-    source = models.CharField(max_length=50, blank=True)
-    content = models.CharField(max_length=200)
+    contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
+    origin = models.CharField(max_length=200, blank=True)
+    source = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
     categories = models.CharField(max_length=200, blank=True)
     unlisted = models.BooleanField(default=False, choices=UNLISTED)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
@@ -54,6 +54,6 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    contentType = models.CharField(max_length=4, default = 'text', choices=CONTENT_TYPE_COMMENT)
+    contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE_COMMENT)
     comment = models.CharField(max_length=200)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
