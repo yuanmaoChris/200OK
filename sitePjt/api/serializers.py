@@ -28,13 +28,18 @@ class AuthorSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
     comments = serializers.SerializerMethodField('get_comment')
-
+    categories = serializers.StringRelatedField(many=True)
+    count = serializers.IntegerField(default=50)
+    size = serializers.IntegerField(default=50)
+    next = serializers.CharField(max_length=200,default='NOT IMPLEMENTED')
+    description = serializers.CharField(max_length=200,default='NOT IMPLEMENTED')
+    visibleTo = serializers.StringRelatedField(many=True)
     class Meta:
         model = Post
         #get source field done plz..
         fields = ('title', 'source', 'origin', 'contentType', 'content',
                   'author', 'categories', 'published', 'id', 'visibility',
-                  'unlisted', 'comments'
+                  'unlisted', 'comments','count','size','next','description','visibleTo'
                   )
 
     def get_author(self, obj):
@@ -55,7 +60,7 @@ class PostSerializer(serializers.ModelSerializer):
         instance.origin = validated_data.get('origin', instance.origin)
         instance.contentType = validated_data.get('contentType', instance.contentType)
         instance.content = validated_data.get('content', instance.content)
-        instance.categories = validated_data.get('categories', instance.categories)
+        instance.categories = validated_data.get('categories', instance.categories) 
         instance.published = validated_data.get('published', instance.published)
         instance.id = validated_data.get('id', instance.id)
         instance.visibility = validated_data.get('visibility', instance.visibility)
@@ -68,9 +73,12 @@ class PostListSerializer(serializers.Serializer):
     query = serializers.SerializerMethodField('get_query')
     count = serializers.SerializerMethodField('get_count')
     posts = serializers.SerializerMethodField('get_posts')
+    size = serializers.IntegerField(default=50)
+    next = serializers.CharField(default='None',max_length=50)
+    previous = serializers.CharField(default='None',max_length=50)
 
     class Meta:
-        fields = ('query', 'count', 'posts')
+        fields = ('query', 'count', 'posts','previous','size','next')
 
     def get_query(self, obj):
         return self.context.get('query')

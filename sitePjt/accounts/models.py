@@ -133,3 +133,8 @@ class Author(AbstractBaseUser):
     @property
     def is_staff(self):
         return self.admin
+class ServerNode(models.Model):
+    server_username = models.CharField(max_length=100)
+    server_password = models.CharField(max_length=100)
+    token = models.CharField(max_length=200,blank =True)
+    host_url = models.CharField(max_length=200)

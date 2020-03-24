@@ -170,26 +170,34 @@ class ProfileView(APIView):
             return HttpResponseServerError(e)
 
 def getNodeAuthor(author_id,Node=None):
-    user = '5000@remote.com'
-    pwd = '1'
+    user = 'cmput404w20t05@gmail.com'
+    pwd = 'demo'
     #Try request from remote server
-    url = 'http://127.0.0.1:5000/service/author/{}/'.format(str(author_id))
+    url = 'https://cmput404w20t05.herokuapp.com/api/author/{}'.format(str(author_id))
     response = requests.get(url, auth=(user, pwd))
     author = None
     #TODO: Issues Author Serializers is not working here
     if response.status_code == 200:
         remote_author = response.json()
-        author = Author()
-        author.id = findAuthorIdFromUrl(remote_author['url'])
-        author.url = remote_author['url']
-        author.displayName = remote_author['displayName']
-        author.bio =  remote_author['bio']
-        author.host = remote_author['host']
-        author.date_joined = remote_author['date_joined']
-        author.last_login = remote_author['last_login']
-        author.github = remote_author['github']
+        author = getJsonDecodeAuthor(remote_author)
     return author
 
 def findAuthorIdFromUrl(url):
-    idx = url[:-1].rindex('/')
-    return url[idx+1:-1]
+    if url[-1] == '/':
+        idx = url[:-1].rindex('/')
+        return url[idx+1:-1]
+    else:
+        idx = url.rindex('/')
+        return url[idx+1:]
+
+def getJsonDecodeAuthor(remote_author):
+    author = Author()
+    author.id = findAuthorIdFromUrl(remote_author['url'])
+    author.url = remote_author['url'] if 'url' in remote_author.keys() else 'None'
+    author.displayName = remote_author['displayName'] if 'displayName' in remote_author.keys() else 'None'
+    author.bio =  remote_author['bio'] if 'bio' in remote_author.keys() else 'None'
+    author.host = remote_author['host'] if 'host' in remote_author.keys() else 'None'
+    author.github = remote_author['github'] if 'github' in remote_author.keys() else 'None'
+    author.date_joined = remote_author['date_joined'] if 'date_joined' in remote_author.keys() else 'None'
+    author.last_login = remote_author['last_login'] if 'last_login' in remote_author.keys() else 'None'
+    return author

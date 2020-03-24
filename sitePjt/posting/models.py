@@ -42,7 +42,7 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False, choices=UNLISTED)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
     visibility = models.CharField(max_length=10, default = 'PUBLIC', choices=POST_VISIBILITY)
-    #TODO:visibleTo
+    visibleTo =models.CharField(max_length=100, default='', blank=True )
     #visibleTo: field: array of author
 
     def __str__(self):
