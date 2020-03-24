@@ -15,7 +15,8 @@ from .models import Author
 from .permissions import IsActivated, IsActivatedOrReadOnly
 from posting import views as PostingView
 from friendship.models import Friend
-
+import requests
+from .serializers import AuthorSerializer
 '''
     check if input email/password is valid and the user actually exist before login
 '''
@@ -124,8 +125,11 @@ class ProfileView(APIView):
         try:
             author = Author.objects.filter(id=author_id)
             if not author.exists():
-                return HttpResponseNotFound("Author Profile Not Found.")
-            author = Author.objects.get(id=author_id)
+                author = getNodeAuthor(author_id)
+                if author == None:
+                    return HttpResponseNotFound("Author Profile Not Found.")
+            else:    
+                author = Author.objects.get(id=author_id)
             posts_list = []
             #Viewing other's profile. Get all visible posts of that author.
             if request.user.id != author_id:
@@ -164,3 +168,28 @@ class ProfileView(APIView):
             return render(request, "accounts/profile.html", context)
         except Exception as e:
             return HttpResponseServerError(e)
+
+def getNodeAuthor(author_id,Node=None):
+    user = '5000@remote.com'
+    pwd = '1'
+    #Try request from remote server
+    url = 'http://127.0.0.1:5000/service/author/{}/'.format(str(author_id))
+    response = requests.get(url, auth=(user, pwd))
+    author = None
+    #TODO: Issues Author Serializers is not working here
+    if response.status_code == 200:
+        remote_author = response.json()
+        author = Author()
+        author.id = findAuthorIdFromUrl(remote_author['url'])
+        author.url = remote_author['url']
+        author.displayName = remote_author['displayName']
+        author.bio =  remote_author['bio']
+        author.host = remote_author['host']
+        author.date_joined = remote_author['date_joined']
+        author.last_login = remote_author['last_login']
+        author.github = remote_author['github']
+    return author
+
+def findAuthorIdFromUrl(url):
+    idx = url[:-1].rindex('/')
+    return url[idx+1:-1]

@@ -58,3 +58,4 @@ class Comment(models.Model):
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE_COMMENT)
     comment = models.CharField(max_length=200)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
+

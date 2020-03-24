@@ -10,7 +10,7 @@ from rest_framework.permissions import (
 from django.contrib.auth import get_user_model
 from .forms import PostForm
 from .models import Post, Comment
-from .helper_functions import getVisiblePosts
+from .helper_functions import getVisiblePosts,getNodePublicPosts,getNodePostComment,getNodePost,getNodeAuthorPosts,postNodePostComment
 from friendship.helper_functions import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
@@ -35,13 +35,22 @@ class ViewPublicPosts(APIView):
         """
         Return a list of all public posts.
         """
-        form = PostForm(request.POST or None)
-        posts = getVisiblePosts(request.user)
-        context = {
-            'post_list': posts,
-            'form': form,
-        }
-        return render(request, "posting/stream.html", context)
+        try:
+            form = PostForm(request.POST or None)
+            posts = getVisiblePosts(request.user)
+            remote_posts = getNodePublicPosts()
+            if len(remote_posts) > 0:
+                posts = list(posts) + remote_posts
+                posts.sort(key=lambda x: x.published, reverse=True)
+            #Fixed: fix time order with remote posts
+            context = {
+                'post_list': posts,
+                'form': form,
+            }
+            return render(request, "posting/stream.html", context)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError(e)
         #return a response instead
 
     def post(self, request, format=None):
@@ -62,6 +71,10 @@ class ViewPublicPosts(APIView):
         except Exception as e:
             print(e)
         posts = getVisiblePosts(request.user)
+        remote_posts = getNodePublicPosts()
+        if len(remote_posts) > 0:
+            posts = list(posts) + remote_posts
+        #TODO: fix time order with remote posts
         return render(request, "posting/stream.html", {'post_list': posts, 'form': form})
         #return a response instead
 
@@ -81,12 +94,21 @@ class ViewPostDetails(APIView):
         Return a detail of post by given Post Id.
         """
         post = Post.objects.filter(id=post_id)
+        
         if not post.exists():
-            return HttpResponseNotFound("Post not found")
-        post = Post.objects.get(id=post_id)
-        if not checkVisibility(request.user, post):
-            return HttpResponseForbidden("You don't have visibility.")
-        comments = Comment.objects.filter(post=post)[:10]
+            post = getNodePost(post_id)
+            if post != None:
+                if not checkVisibility(request.user, post):
+                    return HttpResponseForbidden("You don't have visibility.")
+                else:
+                    comments = getNodePostComment(post.id)[:10]
+            else:
+                return HttpResponseNotFound("Post not found")
+        else:
+            post = Post.objects.get(id=post_id)
+            if not checkVisibility(request.user, post):
+                return HttpResponseForbidden("You don't have visibility.")
+            comments = Comment.objects.filter(post=post)[:10]
         context = {
             'post': post,
             'comment_list': comments,
@@ -191,9 +213,18 @@ class CommentHandler(APIView):
         """
         try:
             post = Post.objects.filter(id=post_id)
+
             if not post.exists():
-                return HttpResponseNotFound("Post Not Found")
-            post = Post.objects.get(id=post_id)
+                post = getNodePost(post_id)
+                if post == None:
+                    return HttpResponseNotFound("Post Not Found")
+                else:
+                    pass
+                    #TODO: POST A comment 
+                    #postNodePostComment(post_id,comment_data=comment)
+            else:
+                post = Post.objects.get(id=post_id)
+
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
             serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post}, partial=True)
@@ -278,6 +309,7 @@ class ViewUserPosts(APIView):
         """
         try:
             author = Author.objects.filter(id=author_id)
+            print(author)
             if not author.exists():
                 return HttpResponseNotFound("Author Not Found")
             author = Author.objects.get(id=author_id)

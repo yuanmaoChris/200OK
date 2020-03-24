@@ -13,7 +13,6 @@ urlpatterns = [
     path('author/posts/', views.handle_auth_posts, name='handle authenticated posts'), #OK GET POST
     path('author/<str:author_id>/posts/', views.view_author_posts, name='view author posts'),#OK GET (POST Json)
     path('author/<str:author_id>/', views.ViewProfile, name='view profile'), #OK  GET (POST form)
-    
     path('author/<str:author_id>/friends/', views.get_friendlist, name='get friend list'), #OK 
     path('author/<str:author1_id>/friends/<str:author2_id>/', views.check_friendship, name='check friendship'), #OK
     path('friendrequest/', views.make_friendRequest, name='make friend request'), #OK (POST)
