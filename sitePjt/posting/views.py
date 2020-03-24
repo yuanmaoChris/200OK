@@ -74,7 +74,8 @@ class ViewPublicPosts(APIView):
         remote_posts = getNodePublicPosts()
         if len(remote_posts) > 0:
             posts = list(posts) + remote_posts
-        #TODO: fix time order with remote posts
+        #Fixed: fix time order with remote posts
+        posts.sort(key=lambda x: x.published, reverse=True)
         return render(request, "posting/stream.html", {'post_list': posts, 'form': form})
         #return a response instead
 
