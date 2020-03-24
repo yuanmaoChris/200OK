@@ -144,6 +144,10 @@ def view_single_post(request, post_id):
     if request.method == 'GET':
         try:
             #Get the post specified by request
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post not found.")
+
             post = Post.objects.get(id=post_id)
 
             #Case 1: User has visibility

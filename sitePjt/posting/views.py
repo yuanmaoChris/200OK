@@ -80,18 +80,23 @@ class ViewPostDetails(APIView):
         """
         Return a detail of post by given Post Id.
         """
-        post = Post.objects.filter(id=post_id)
-        if not post.exists():
-            return HttpResponseNotFound("Post not found")
-        post = Post.objects.get(id=post_id)
-        if not checkVisibility(request.user, post):
-            return HttpResponseForbidden("You don't have visibility.")
-        comments = Comment.objects.filter(post=post)[:10]
-        context = {
-            'post': post,
-            'comment_list': comments,
-        }
-        return render(request, "posting/post-details.html", context)
+        try:
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post not found")
+            post = Post.objects.get(id=post_id)
+            if not checkVisibility(request.user, post):
+                return HttpResponseForbidden("You don't have visibility.")
+            comments = Comment.objects.filter(post=post)
+            if comments.exists():
+                comments = comments[:10]
+            context = {
+                'post': post,
+                'comment_list': comments,
+            }
+            return render(request, "posting/post-details.html", context)
+        except Exception as e:
+            return HttpResponseServerError(e)
 
 #We are using POST method to delete.
 #Need to use Delete Method to do this.
