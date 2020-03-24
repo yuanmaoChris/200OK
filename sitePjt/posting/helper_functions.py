@@ -1,5 +1,7 @@
 from friendship.helper_functions import checkFriendship, getAllFriends
 from .models import Post, Comment
+import requests
+from requests.auth import HTTPBasicAuth
 
 #helper funciton
 '''
@@ -55,3 +57,6 @@ def getVisiblePosts(requester, author=None):
             result.append(post)
 
     return result
+
+#def getNodePublicPosts(node):
+

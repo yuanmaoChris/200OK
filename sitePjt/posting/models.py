@@ -34,6 +34,7 @@ class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
+    #TODO: Update origin url
     origin = models.CharField(max_length=200, blank=True)
     source = models.CharField(max_length=200, blank=True)
     content = models.TextField()

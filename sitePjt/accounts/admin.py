@@ -23,7 +23,7 @@ class AuthorAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'admin', 'node'),
+            'fields': ('email', 'displayName' ,'password1', 'password2', 'admin', 'node'),
         }),
     )
     search_fields = ('email', 'displayName')

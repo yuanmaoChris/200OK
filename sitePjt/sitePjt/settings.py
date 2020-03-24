@@ -142,8 +142,6 @@ MEDIA_URL = '/media/'
 
 AUTH_USER_MODEL = 'accounts.Author'
 
-try:
-    HOSTNAME = socket.gethostname()
-except:
-    HOSTNAME = "127.0.0.1:8000"
+
+HOSTNAME = "127.0.0.1:8000"
 
