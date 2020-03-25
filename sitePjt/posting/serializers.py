@@ -1,7 +1,36 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Post, Comment
+from accounts.models import Author
 from accounts.serializers import AuthorSerializer
+from django.utils.dateparse import parse_datetime
+
+
+class PostCreateSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField('get_author')
+    published = serializers.SerializerMethodField('get_published')
+    id = serializers.SerializerMethodField('get_id')
+    unlisted = serializers.SerializerMethodField('get_unlisted')
+
+    class Meta:
+        model = Post
+        #get source field done plz..
+        fields = ('title', 'source', 'origin', 'contentType', 'content',
+                  'author', 'categories', 'published', 'id', 'visibility',
+                  'unlisted',
+                  )
+
+    def get_author(self, obj):
+    	return Author(**self.context['author'])
+    
+    def get_unlisted(self, obj):
+    	return self.context['unlisted'] == 'True'
+    
+    def get_id(self, obj):
+    	return self.context['id']
+    
+    def get_published(self, obj):
+    	return parse_datetime(self.context['published'])
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
@@ -16,7 +45,7 @@ class PostSerializer(serializers.ModelSerializer):
                   )
 
     def get_author(self, obj):
-	    return AuthorSerializer(obj.author).data
+    	return AuthorSerializer(obj.author).data
 
     def get_comment(self, obj):
         comments = Comment.objects.filter(post=obj)

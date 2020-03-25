@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Author
+from .models import Author,ServerNode
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .forms import UserChangeForm, UserCreationForm
 
@@ -23,7 +23,7 @@ class AuthorAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'admin', 'node'),
+            'fields': ('email', 'displayName' ,'password1', 'password2', 'admin', 'node'),
         }),
     )
     search_fields = ('email', 'displayName')
@@ -31,6 +31,7 @@ class AuthorAdmin(BaseUserAdmin):
     filter_horizontal = ()
 
 admin.site.register(Author, AuthorAdmin)
+admin.site.register(ServerNode)
 
 
 

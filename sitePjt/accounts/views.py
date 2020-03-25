@@ -11,11 +11,12 @@ from django.contrib.auth import (
     logout
 )
 from .forms import UserLoginForm, UserProfileForm, UserCreationForm
-from .models import Author
+from .models import Author,ServerNode
 from .permissions import IsActivated, IsActivatedOrReadOnly
 from posting import views as PostingView
 from friendship.models import Friend
-
+import requests
+from .serializers import AuthorSerializer
 '''
     check if input email/password is valid and the user actually exist before login
 '''
@@ -124,8 +125,12 @@ class ProfileView(APIView):
         try:
             author = Author.objects.filter(id=author_id)
             if not author.exists():
-                return HttpResponseNotFound("Author Profile Not Found.")
-            author = Author.objects.get(id=author_id)
+                nodes = ServerNode.objects.all()
+                author = getNodeAuthor(author_id,nodes)
+                if author == None:
+                    return HttpResponseNotFound("Author Profile Not Found.")
+            else:    
+                author = Author.objects.get(id=author_id)
             posts_list = []
             #Viewing other's profile. Get all visible posts of that author.
             if request.user.id != author_id:
@@ -164,3 +169,37 @@ class ProfileView(APIView):
             return render(request, "accounts/profile.html", context)
         except Exception as e:
             return HttpResponseServerError(e)
+
+def getNodeAuthor(author_id,Node=None):
+    author = None
+    for n in Node:
+        url = n.host_url
+        url = url +'author/{}'.format(str(author_id))
+        response = requests.get(url, auth=(n.server_username, n.server_password))
+
+    #TODO: Issues Author Serializers is not working here
+    if response.status_code == 200:
+        remote_author = response.json()
+        author = getJsonDecodeAuthor(remote_author)
+
+    return author
+
+def findAuthorIdFromUrl(url):
+    if url[-1] == '/':
+        idx = url[:-1].rindex('/')
+        return url[idx+1:-1]
+    else:
+        idx = url.rindex('/')
+        return url[idx+1:]
+
+def getJsonDecodeAuthor(remote_author):
+    author = Author()
+    author.id = findAuthorIdFromUrl(remote_author['url'])
+    author.url = remote_author['url'] if 'url' in remote_author.keys() else 'None'
+    author.displayName = remote_author['displayName'] if 'displayName' in remote_author.keys() else 'None'
+    author.bio =  remote_author['bio'] if 'bio' in remote_author.keys() else 'None'
+    author.host = remote_author['host'] if 'host' in remote_author.keys() else 'None'
+    author.github = remote_author['github'] if 'github' in remote_author.keys() else 'None'
+    author.date_joined = remote_author['date_joined'] if 'date_joined' in remote_author.keys() else 'None'
+    author.last_login = remote_author['last_login'] if 'last_login' in remote_author.keys() else 'None'
+    return author

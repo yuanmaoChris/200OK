@@ -78,7 +78,7 @@ class Author(AbstractBaseUser):
     url = models.CharField(default="", max_length=100)
     avatar = models.ImageField(upload_to='avatar/', default = 'avatar/default-avatar.png', blank=True, null=True)
     github = models.URLField(default="", max_length=100, null=True)
-    bio = models.CharField(default="This guy is too lazy to write a bio...", max_length=200, null=True)
+    bio = models.CharField(default="This guy is too lazy to write a bio...", max_length=200, blank=True, null=True)
     date_joined=models.DateField(verbose_name="date joined", auto_now=True)
     last_login=models.DateField(verbose_name="last login", auto_now=True)
 
@@ -133,3 +133,8 @@ class Author(AbstractBaseUser):
     @property
     def is_staff(self):
         return self.admin
+class ServerNode(models.Model):
+    server_username = models.CharField(max_length=100)
+    server_password = models.CharField(max_length=100)
+    token = models.CharField(max_length=200,blank =True)
+    host_url = models.CharField(max_length=200)

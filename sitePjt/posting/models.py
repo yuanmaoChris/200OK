@@ -34,6 +34,7 @@ class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
+    #TODO: Update origin url
     origin = models.CharField(max_length=200, blank=True)
     source = models.CharField(max_length=200, blank=True)
     content = models.TextField()
@@ -41,7 +42,7 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False, choices=UNLISTED)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
     visibility = models.CharField(max_length=10, default = 'PUBLIC', choices=POST_VISIBILITY)
-    #TODO:visibleTo
+    visibleTo =models.CharField(max_length=100, default='', blank=True )
     #visibleTo: field: array of author
 
     def __str__(self):
@@ -57,3 +58,4 @@ class Comment(models.Model):
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE_COMMENT)
     comment = models.CharField(max_length=200)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
+

@@ -118,11 +118,12 @@ def view_author_posts(request, author_id):
     if request.method == 'GET':
         try:
             #Get author instance whose posts to view
+            author = Author.objects.filter(id=author_id)
+            if not author.exsits():
+                return HttpResponseNotFound("Author Profile Not Found.")
             author = Author.objects.get(id=author_id)
-
             #filter out all posts that requester does not have visibility of
             posts = getVisiblePosts(request.user, author)
-            
             count = len(posts)
             serializer = PostListSerializer(
                 posts, context={'query': 'posts', 'count': count})
@@ -146,8 +147,7 @@ def view_single_post(request, post_id):
             #Get the post specified by request
             post = Post.objects.filter(id=post_id)
             if not post.exists():
-                return HttpResponseNotFound("Post not found.")
-
+                return HttpResponseNotFound("Post Not Found.")
             post = Post.objects.get(id=post_id)
 
             #Case 1: User has visibility
@@ -177,6 +177,9 @@ def handle_comments(request, post_id):
     if request.method == 'GET':
         try:
             #Get the post specified by request
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found.")
             post = Post.objects.get(id=post_id)
             #Reject request if anonymous user or user does not have visibility
             if request.user.is_anonymous or not checkVisibility(request.user, post):
@@ -197,6 +200,9 @@ def handle_comments(request, post_id):
     elif request.method == 'POST':
         try:
             #Get the post specified by request
+            post = Post.objects.filter(id=post_id)
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found.")
             post = Post.objects.get(id=post_id)
             #Initialize response context
             context = {
@@ -322,12 +328,17 @@ def get_friendlist(request, author_id):
             #Parse author list from reqeust
             body = json.loads(request.body)
             authors = body['authors']
-            try:
-                #Get the friend instance of the author
-                author = Friend.objects.get(friend_id=author_id)
-            except Exception as e:
-                return HttpResponseForbidden(e)
             friendIDList = []
+            #Get the friend instance of the author
+            author = Friend.objects.filter(friend_id=author_id)
+
+            #No Friend object of author found, return an empty list of authors
+            if not author.exists():
+                serializer = FriendshipSerializer(
+                    friendIDList, context={'author': author_id})
+                return Response(serializer.data)
+
+            author = Friend.objects.get(friend_id=author_id)
             #Add id of friends to result list if there is any
             for friend_id in authors:
                 if checkFriendship(author.friend_id, friend_id):
@@ -389,10 +400,6 @@ def make_friendRequest(request):
     '''
     #Handling POST method
     if request.method == 'POST':
-        #Reject anonymous user's request
-        if request.user.is_anonymous:
-            return HttpResponseForbidden("Login required!")
-        
         try:
             #Initialize response context
             context = {
