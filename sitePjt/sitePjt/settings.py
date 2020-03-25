@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import socket
-
+import django_heroku
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -133,15 +133,14 @@ STATIC_URL = '/static/'
 LOCAL_STATIC_CDN_PATH = os.path.join(os.path.dirname(BASE_DIR), 'static_cdn_test')
 
 STATIC_ROOT = os.path.join(LOCAL_STATIC_CDN_PATH, 'static')# live cdn AWS S3
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'staticfiles'),
-]
+#STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles'),]
 
 MEDIA_ROOT = os.path.join(LOCAL_STATIC_CDN_PATH, 'media')
 MEDIA_URL = '/media/'
 
-
 AUTH_USER_MODEL = 'accounts.Author'
-HOSTNAME = "127.0.0.1:8000"
 
 
+HOSTNAME = "https://peaceful-savannah-82754.herokuapp.com"
+# Activate Django-Heroku.
+django_heroku.settings(locals())

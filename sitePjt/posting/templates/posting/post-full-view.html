@@ -1,83 +1,97 @@
-
 <div class="card" style="width: 600px;height:300px">
     <div class="card-body">
         <div class='card-title'>
-            <h5 class="post-tile"><b>{{ post.author.displayName }} </b> <span id="timestamp">{{ post.pubulished|timesince }} ago</span></h5> 
+            <h5 class="post-tile"><b>{{ post.author.displayName }} </b> <span id="timestamp"> {{ post.published|timesince }} ago</span></h5> 
         </div>
         <div class="card-subtile">
             <h5>Title: {{post.title}}</h5>
             <h5>Category: {{post.categories}}</h5>
         </div>
-            <div class="card-content">
-                <p><span>   </span>{{ post.content }}</p>
-            </div>
-            <div class="post-action">
-                {% if post.author == request.user and allowEdit %}
-                <a  style="width: 78px; position: absolute; right:   5px; bottom:   10px;" class="btn btn-danger" href="{% url 'posting:delete post' post.id %}">Delete</a>
-                <a  style="width: 78px; position: absolute; right:  90px; bottom:   10px;" id="edit-button" data-toggle="modal" data-target="#input-form"  class="btn btn-primary" href="{% url 'posting:edit post' post.id %}">Edit</a>
-                
-                <!-- Modal -->
-                <div class="modal fade" id="input-form" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Edit Post</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        </div>
-                            <form action="{% url 'posting:edit post' post.id %}" method="POST" class="post-form"> {% csrf_token %}
-                                <div class="modal-body">
-                                    <div class="form-group">
-                                        <input type="text" name="title" class="form-control" id="post-edit-title" placeholder=" {{ post.title }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="text" name="categories" class="form-control" id="post-edit-cate" placeholder="{{ post.categories }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="exampleFormControlTextarea1">Content</label>
-                                        <textarea  name="content" class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="{{ post.content }}" style="resize:none"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="exampleFormControlTextarea1">Content Type</label>
-                                        <select name="contentType" class="form-control" id="post-edit-content-type">
-                                            <option value="text">text/plain</option>
-                                            <option value="md">text/markdown</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="post-edit-unlisted-type">Unlisted</label>
-                                        <select name="unlisted" class="form-control" id="post-edit-unlisted-type">
-                                            <option value="True">True</option>
-                                            <option value="False">False</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="post-edit-visibility">Visibility</label>
-                                        <select name="visibility" class="form-control" id="post-edit-visibility">
-                                            <option value="PUBLIC">Public</option>
-                                            <option value="PRIVATE"> Prviate to self</option>
-                                            <option value="FRIENDS">Private to friends</option>
-                                            <option value="FOAF">Private to friends of friends</option>
-                                            <option value="SERVERONLY">Private to local friends</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                <button style="width: 78px" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <input style="width: 78px" type="submit" class="btn btn-primary" value="Save"></input>
-                            </form>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                
+        <div class="card-content">
+            <div class="content-container" style="width:480px;height:180px;">
+                {% if post.contentType == 'image/png;base64' %}
+                <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:100%;max-height:100%;padding-bottom: 10px;"/>
 
+                {% elif post.contentType == 'image/jpeg;base64' %}
+                <img src="data:image/jpeg;base64, {{ post.content }}" alt="Post Image" style="max-width:100%;max-height:100%;padding-bottom: 10px;"/>
 
+                {% elif post.contentType == 'application/base64' %}
+                <p>I dont know how to display application yet</p>
+            
+                {% else %}
+                <p><span>   </span>{{ post.content }}</p >
                 {% endif %}
-
-
             </div>
         </div>
+        <div class="post-action">
+            {% if post.author == request.user and allowEdit %}
+            <form action="{% url 'posting:delete post' post.id %}" method="POST">
+                {% csrf_token %}
+                <input style="width: 78px; position: absolute; right:   5px; bottom:   10px;" class="btn btn-danger"  type="submit" value="Delete">
+            </form>
+            <a  style="width: 78px; position: absolute; right:  90px; bottom:   10px;" id="edit-button" data-toggle="modal" data-target="#input-form{{post.id}}"  class="btn btn-primary" href="{% url 'posting:edit post' post.id %}">Edit</a >
+            
+            <!-- Modal -->
+            <div class="modal fade" id="input-form{{post.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Post</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                        <form action="{% url 'posting:edit post' post.id %}" method="POST" class="post-form"> {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <input type="text" name="title" class="form-control" id="post-edit-title" placeholder=" {{ post.title }}">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="categories" class="form-control" id="post-edit-cate" placeholder="{{ post.categories }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleFormControlTextarea1">Content</label>
+                                    <textarea  name="content" class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="{{ post.content }}" style="resize:none"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleFormControlTextarea1">Content Type</label>
+                                    <select name="contentType" class="form-control" id="post-edit-content-type">
+                                        <option value="text/plain">text/plain</option>
+                                        <option value="text/markdown">text/markdown</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="post-edit-unlisted-type">Unlisted</label>
+                                    <select name="unlisted" class="form-control" id="post-edit-unlisted-type">
+                                        <option value="True">True</option>
+                                        <option value="False">False</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="post-edit-visibility">Visibility</label>
+                                    <select name="visibility" class="form-control" id="post-edit-visibility">
+                                        <option value="PUBLIC">Public</option>
+                                        <option value="PRIVATE"> Prviate to self</option>
+                                        <option value="FRIENDS">Private to friends</option>
+                                        <option value="FOAF">Private to friends of friends</option>
+                                        <option value="SERVERONLY">Private to local friends</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            <button id="reset" style="width: 78px" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <input style="width: 78px" type="submit" class="btn btn-primary" value="Save"></input>
+                            <script>
+                                document.getElementById("reset").reset(); 
+                            </script>
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
 
 </div>

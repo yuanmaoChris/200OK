@@ -1,21 +1,33 @@
 from rest_framework import serializers
 from .models import *
 
+class FriendshipSerializer(serializers.Serializer):
+    query = serializers.SerializerMethodField('get_query')
+    author = serializers.SerializerMethodField('get_author')
+    authors = serializers.SerializerMethodField('get_authors')
 
-class FriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('query', 'author', 'authors')
 
-	pub_date = serializers.DateTimeField('date posted', auto_now_add=True, blank=True)
-	is_approved = serializers.BooleanField(default="False")
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        exclude = kwargs.pop('exclude', None)
+        if fields is not None and exclude is not None:
+            serializers.ValidationError(
+                "fields and exclude are simultaneously not allowed")
+        super().__init__(*args, **kwargs)
+        if exclude:
+            for item in set(exclude):
+                self.fields.pop(item, None)
+        if fields:
+            for item in set(self.fields.keys()) - set(fields):
+                self.fields.pop(item, None)
 
-	class Meta:
-		model = FriendRequest
-		fields = ('author_from', 'author_to', 'pub_date', 'is_approved')
+    def get_authors(self, obj):
+	    return obj
 
-class FriendshipSerializer(serializers.ModelSerializer):
+    def get_author(self, obj):
+	    return self.context.get('author')
 
-	id = serializers.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-	class Meta:
-		model = FriendRequest
-		fields = ('id', 'author_a', 'author_b')
-
+    def get_query(self, obj):
+        return "friends"

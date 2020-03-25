@@ -10,8 +10,15 @@ POST_VISIBILITY = (
     ('SERVERONLY', 'Private to local friends'),
 )
 CONTENT_TYPE = {
-    ('text', 'text/plain'),
-    ('md', 'text/markdown'),
+    ('text/plain', 'Plain text'),
+    ('text/markdown', 'Markdown'),
+    ('image/png;base64', 'Image/png'),
+    ('image/jpeg;base64', 'Image/jpeg'),
+    ('application/base64', 'Application'),
+}
+CONTENT_TYPE_COMMENT = {
+    ('text/plain', 'Plain Text'),
+    ('text/markdown', 'Markdown'),
 }
 
 UNLISTED = {
@@ -23,22 +30,24 @@ UNLISTED = {
     namely a Post model, belong to author
 '''
 class Post(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
-    contentType = models.CharField(max_length=4, default = 'text', choices=CONTENT_TYPE)
-    description = models.CharField(max_length=50, blank=True)
-    origin = models.CharField(max_length=50, blank=True)
-    source = models.CharField(max_length=50, blank=True)
-    content = models.CharField(max_length=200)
-    categories = models.CharField(max_length=200)
+    contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
+    #TODO: Update origin url
+    origin = models.CharField(max_length=200, blank=True)
+    source = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
+    categories = models.CharField(max_length=200, blank=True)
     unlisted = models.BooleanField(default=False, choices=UNLISTED)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
-    visibility = models.CharField(max_length=10, default = 'PUBL', choices=POST_VISIBILITY)
+    visibility = models.CharField(max_length=10, default = 'PUBLIC', choices=POST_VISIBILITY)
+    visibleTo =models.CharField(max_length=100, default='', blank=True )
+    #visibleTo: field: array of author
 
     def __str__(self):
         return super().__str__() + "    ------      " +self.title
+
 '''
     namely a Comment model, belong to author and post
 '''    
@@ -46,6 +55,7 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    contentType = models.CharField(max_length=4, default = 'text', choices=CONTENT_TYPE)
+    contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE_COMMENT)
     comment = models.CharField(max_length=200)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
+

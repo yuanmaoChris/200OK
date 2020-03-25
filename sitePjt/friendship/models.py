@@ -5,22 +5,36 @@ import uuid
 
 # Create your models here.
 
-'''
-	namely a friend request model between authors
-'''
+
+class Friend(models.Model):
+    friend_id = models.CharField(max_length=100)
+    friend_displayName = models.CharField(max_length=20)
+    friend_host = models.CharField(max_length=100)
+    friend_url = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.friend_displayName
+
 class FriendRequest(models.Model):
-    author_from = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_from')
-    author_to = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_to')
-    pub_date = models.DateTimeField('date posted', auto_now_add=True, blank=True)
+    '''
+    namely a friend request model between authors
+    '''
+    author_from = models.ForeignKey(Friend, on_delete=models.CASCADE, related_name="author_from")
+    author_to = models.ForeignKey(Friend,on_delete=models.CASCADE,related_name="author_to")
+    published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
+
+    def __str__(self):
+        return "From: " + self.author_from.friend_displayName + "   To: " + self.author_to.friend_displayName
     
-'''
+class Friendship(models.Model):
+    '''
 	namely a friendship model between authors
 	Notice: For the purpose of preventing from redundant savings, we always assume author_a has a smaller author_id comparing to author_b;
 			To see building friendship, goto views.py line 81-92
-'''
-class Friendship(models.Model):
+    '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    author_a = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_a')
-    author_b = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='author_b')
-    
+    author_a = models.ForeignKey(Friend, on_delete=models.CASCADE, related_name="author_a")
+    author_b = models.ForeignKey(Friend,on_delete=models.CASCADE,related_name="author_b")
 
+    def __str__(self):
+        return "A: " + self.author_a.friend_displayName + " |   B: " + self.author_b.friend_displayName

@@ -7,7 +7,7 @@
                     {{ comment.author.displayName }}
                     <span id="timestamp">{{ comment.published }}</span>
                     {% if comment.author == request.user %}
-                        <form action="{% url 'posting:delete comment' post.id comment.id%}" method="POST">
+                        <form action="{% url 'posting:comment handler' post.id comment.id%}" method="GET">
                                 {% csrf_token %}
                                 <input  class='btn btn-primary float-right' type="submit" value="Delete">
                         </form>
