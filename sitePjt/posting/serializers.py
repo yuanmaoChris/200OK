@@ -120,7 +120,7 @@ class CommentSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
+'''
 class CommentListSerializer(serializers.Serializer):
     query = serializers.SerializerMethodField('get_query')
     count = serializers.SerializerMethodField('get_count')
@@ -151,3 +151,4 @@ class CommentListSerializer(serializers.Serializer):
 
     def get_comments(self, obj):
         return CommentSerializer(obj, many=True).data
+'''

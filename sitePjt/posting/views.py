@@ -228,18 +228,25 @@ class CommentHandler(APIView):
         Create a comment to a given Post Id.
         """
         try:
+            #Target post on remote server
             post = Post.objects.filter(id=post_id)
             if not post.exists():
                 node = ServerNode.objects.all()
                 if node.exists():
+                    #TODO: get autho post check visibility first
                     post = getNodePost(post_id,node=node)
-                    if post == None:
-                        return HttpResponseNotFound("Post Not Found")
+                    if post:
+                        comment_data = request.POST
+                        comment_data['author'] = request.user
+                        comment_data['post'] = post
+                        remote_comment = Comment(**comment_data)
+                        postNodePostComment(remote_comment)
+                        return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
                     else:
-                        coment = Comment(comment=request.POST['comment'],author=request.user,post=post)
-                        postNodePostComment(coment)
+                        return HttpResponseNotFound("Post Not Found")
                     #TODO: POST A comment 
                     #postNodePostComment(post_id,comment_data=comment)
+            #Target post on local server
             else:
                 post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
