@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-
+#TODO: Hnadle how to share image or not
 class IsShare(BasePermission):
     message = 'Share permission reuired. Awaitting server admin approval.'
     safe_method = ['GET', 'POST']

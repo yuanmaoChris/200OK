@@ -98,7 +98,8 @@ class CommentSerializer(serializers.ModelSerializer):
 	    return AuthorSerializer(obj.author).data
     
     def get_post(self, obj):
-	    return PostSerializer(obj.post).data
+	    #return PostSerializer(obj.post).data
+        return obj.post.id
 
     class Meta:
         model = Comment

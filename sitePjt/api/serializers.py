@@ -34,7 +34,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
     comments = serializers.SerializerMethodField('get_comment')
-    origin = serializers.SerializerMethodField('get_origin')
+    #origin = serializers.SerializerMethodField('get_origin')
     categories = serializers.StringRelatedField(many=True)
     description = serializers.CharField(max_length=200,default='No description')
     visibleTo = serializers.StringRelatedField(many=True)

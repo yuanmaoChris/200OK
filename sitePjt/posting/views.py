@@ -8,6 +8,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from .forms import PostForm
 from .models import Post, Comment
 from accounts.models import ServerNode
@@ -17,7 +18,9 @@ from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 import base64
-
+from rest_framework.renderers import JSONRenderer
+import json
+from django.forms.models import model_to_dict
 Author = get_user_model()
 
 
@@ -70,6 +73,8 @@ class ViewPublicPosts(APIView):
                 form_data['author'] = request.user
                 form_data.pop('image')
                 newpost = Post.objects.create(**form_data)
+                newpost.origin = "{}/posts/{}/".format(settings.HOSTNAME, str(newpost.id))
+                print(newpost.origin)
                 form = PostForm()
             else:
                 return HttpResponseForbidden("invalid input")
@@ -224,23 +229,23 @@ class CommentHandler(APIView):
         """
         try:
             post = Post.objects.filter(id=post_id)
-
             if not post.exists():
-            
                 node = ServerNode.objects.all()
                 if node.exists():
                     post = getNodePost(post_id,node=node)
-                if post == None:
-                    return HttpResponseNotFound("Post Not Found")
-                else:
-                    pass
+                    if post == None:
+                        return HttpResponseNotFound("Post Not Found")
+                    else:
+                        coment = Comment(comment=request.POST['comment'],author=request.user,post=post)
+                        postNodePostComment(coment)
                     #TODO: POST A comment 
                     #postNodePostComment(post_id,comment_data=comment)
             else:
                 post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
-            serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post}, partial=True)
+            
+            serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})

@@ -18,6 +18,14 @@ from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, C
 from .permissions import IsAuthenticatedAndNode
 Author = get_user_model()
 
+def findAuthorIdFromUrl(url):
+    if url[-1] == '/':
+        idx = url[:-1].rindex('/')
+        return url[idx+1:-1]
+    else:
+        idx = url.rindex('/')
+        return url[idx+1:]
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def view_public_post(request):
@@ -41,8 +49,8 @@ def view_public_post(request):
         #method not allowed
         return HttpResponseNotAllowed()
 
-
-@api_view(['GET', 'POST'])
+#TODO: AUTHOR INFO
+@api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def handle_auth_posts(request):
     '''
@@ -52,10 +60,13 @@ def handle_auth_posts(request):
     #Handle GET requests
     if request.method == 'GET':
         try:
-            #anonymous user
-            if request.user.is_anonymous:
-                return HttpResponseForbidden("Login Required.")
-        
+            #Parse post information from request
+            data = json.loads(request.body)
+            '''
+            if not 'requester' in data.key():
+                return HttpResponseForbidden("Who's requesting posts? Put author info in JSON body under 'requester'")
+            requster, _ = Author.objects.get_or_create(**post['requester'])
+            '''
             #Get all posts that current authenticated user has visitbility of
             posts = getVisiblePosts(request.user)
             count = len(posts)
@@ -65,6 +76,10 @@ def handle_auth_posts(request):
         except Exception as e:
             return HttpResponseServerError(e)
 
+    #Method not allowed
+    else:
+        return HttpResponseNotAllowed()
+    '''
     #Handle POST requests
     elif request.method == 'POST':
         try:
@@ -74,40 +89,32 @@ def handle_auth_posts(request):
                 "success": None,
                 "message": None,
             }
-            #Use is Authenticated
-            if not request.user.is_anonymous:
-                #Make a new post
-                #Parse post information from request
-                data = request.body
-                post = json.loads(data)
-                post_form = post.get('post_form')
+            #Parse requester information from request
+            data = json.loads(request.body)
+            #Make a new post
+            #Parse post information from request
+            post_form = data.get('post_form')
             
-                serializer = PostSerializer(data=post_form, context = {'author': request.user})
-                #post information data is valid -> save post to database and return success response
-                if serializer.is_valid():
-                    serializer.save()
-                    context['success'] = True
-                    context['message'] = "New Post Added"
-                    return Response(context, status=200)
-                #post information data is invalid -> return failure response
-                else:
-                    print(serializer.errors)
-                    context['success'] = False
-                    context['message'] = "Invalid form data"
-                    return Response(context, status=403)
-            #User is not authenticated
+            serializer = PostSerializer(data=post_form, context = {'author': requester})
+            #post information data is valid -> save post to database and return success response
+            if serializer.is_valid():
+                newpost = serializer.save()
+                newpost.origin = "{}/posts/{}/".format(settings.HOSTNAME, newpost.id)
+                context['success'] = True
+                context['message'] = "New Post Added"
+                return Response(context, status=200)
+            #post information data is invalid -> return failure response
             else:
+                print(serializer.errors)
                 context['success'] = False
-                context['message'] = "Login First!"
+                context['message'] = "Invalid form data"
                 return Response(context, status=403)
+
         #Server error when handling request
         except Exception as e:
             return HttpResponseServerError(e)
-    #Method not allowed
-    else:
-        return HttpResponseNotAllowed()
-
-
+        '''
+#TODO: get_or_create
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def view_author_posts(request, author_id):
@@ -135,7 +142,7 @@ def view_author_posts(request, author_id):
     #Method not allowed       
     return HttpResponseNotAllowed()
 
-
+#TODO: get_or_create
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def view_single_post(request, post_id):
@@ -171,7 +178,7 @@ def view_single_post(request, post_id):
     #Method not allowed
     return HttpResponseNotAllowed()
 
-
+#TODO: get_or_create
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedAndNode])
 def handle_comments(request, post_id):
@@ -188,7 +195,7 @@ def handle_comments(request, post_id):
                 return HttpResponseNotFound("Post Not Found.")
             post = Post.objects.get(id=post_id)
             #Reject request if anonymous user or user does not have visibility
-            if request.user.is_anonymous or not checkVisibility(request.user, post):
+            if not checkVisibility(request.user, post):
                 return HttpResponseForbidden(b"You dont have visibility.")
             
             #Valid request -> get comments data and return in response
@@ -204,39 +211,56 @@ def handle_comments(request, post_id):
         
     #Handler POST requests (add a comment to the post)
     elif request.method == 'POST':
+        #Initialize response context
+        context = {
+                "query": "addComment",
+                "success": False,
+                "message": "Comment not Allowed",
+            }
         try:
-            #Get the post specified by request
+            #Parse comment form data from request
+            data = request.body
+            body = json.loads(data)
+            if not ('post' in body.keys() and 'comment' in  body.keys() and 'author' in body['comment'].keys()):
+                return Response(context, status=403)
+            post_info = body['post']
+            comment_info = body['comment']
+            author_info = comment_info['author']
+            author_info['id'] = findAuthorIdFromUrl(author_info['id'])
+            author_info['email'] = "{}@remote_user.com".format(author_info['id'])
+            #Get target post object on local server
+            post_id = findAuthorIdFromUrl(post_info)
             post = Post.objects.filter(id=post_id)
             if not post.exists():
-                return HttpResponseNotFound("Post Not Found.")
-            post = Post.objects.get(id=post_id)
-            #Initialize response context
-            context = {
-                "query": "addComment",
-                "success": None,
-                "message": None,
-            }
-            #Authenticated user who has visibility to the post
-            if not request.user.is_anonymous and checkVisibility(request.user, post):
-                #Parse comment form data from request
-                data = request.body
-                body = json.loads(data)
-                content = body['comment']
-                contentType = body['contentType']
-                #Create a new comment and save to database
-                comment = Comment(post=post, author=request.user,
-                                comment=content, contentType=contentType)
-                comment.save()
+                return Response(context, status=403)
+            post = post[0]
+
+            #Get comment author object on local server
+            comment_author, _ = Author.objects.get_or_create(**author_info)
+
+            #Check visibility
+            if not checkVisibility(comment_author, post):
+                return Response(context, status=403)
+            
+            comment_info['author'] = comment_author
+            comment_info['post'] = post
+
+            new_comment = Comment.objects.filter(**comment_info)
+            if new_comment.exists():
+                return Response(context, status=403)
+
+            #Create a comment as required
+            new_comment = Comment.objects.create(**comment_info)
+
+            if new_comment:
                 #return success response
                 context['success'] = True
                 context['message'] = "Comment Added"
                 return Response(context, status=200)
-            #Anonymous user or user does not have visibility
+            #comment create failed.
             else:
-                #return failure response
-                context['success'] = False
-                context['message'] = "Comment not Allowed"
                 return Response(context, status=403)
+
         #Server error when handling request       
         except Exception as e:
             return HttpResponseServerError(e)
@@ -245,7 +269,7 @@ def handle_comments(request, post_id):
         return HttpResponseNotAllowed()
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def ViewProfile(request, author_id):
     '''
@@ -267,6 +291,10 @@ def ViewProfile(request, author_id):
         #Server error when handling request
         except Exception as e:
              return HttpResponseServerError(e)
+        #Method not allowed
+    else:
+        return HttpResponseNotAllowed()
+    '''
     #Handling POST request (Updating a author's profile)
     elif request.method == 'POST':
         #check user authenticaiton first
@@ -291,10 +319,7 @@ def ViewProfile(request, author_id):
         #Server error when handling request
         except Exception as e:
             return HttpResponseServerError(e)
-    #Method not allowed
-    else:
-        return HttpResponseNotAllowed()
-
+    '''
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedAndNode])
@@ -319,7 +344,7 @@ def get_friendlist(request, author_id):
                         result.append(friendship.author_b.friend_url)
                     else:
                         result.append(friendship.author_a.friend_url)
-
+                        
             #return result  
             serializer = FriendshipSerializer(result, exclude=['author'])
             return Response(serializer.data)
@@ -378,6 +403,7 @@ def check_friendship(request, author1_id, author2_id):
                 'friends': None,
                 'authors': []
             }
+            #TODO: return url instead and do parse id from url
             context['authors'].append(author1_id)
             context['authors'].append(author2_id)
 
@@ -413,6 +439,7 @@ def make_friendRequest(request):
                 'success': None,
                 'authors': []
             }
+            #TODO: use url field instead of id and parse id from url
             #Parser author info and friend info from request
             body = json.loads(request.body)
             author = body['author']

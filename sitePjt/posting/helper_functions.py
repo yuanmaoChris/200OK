@@ -151,13 +151,11 @@ def getNodePost(post_id,node):
     return post
 
 #TODO: Need To handle post
-def postNodePostComment(post_id,comment_data,Node=[]):
-    user = '5000@remote.com'
-    pwd = '1'
-    #Try request from remote server
-    url = 'http://127.0.0.1:5000/service/posts/{}/comments/'.format(str(post_id))
+def postNodePostComment(comment_data,node=None):
+    
     comment = CommentSerializer(instance=comment_data)
-    response = requests.get(url, auth=(user, pwd))
+    print(comment)
+    #response = requests.get(url, auth=(user, pwd))
 
 #TODO: Not Finish Yet, Waiting for friendship
 def getNodeAuthorPosts(author_id,Node=None):

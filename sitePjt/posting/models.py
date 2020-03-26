@@ -1,7 +1,7 @@
 from django.db import models
 from accounts.models import Author
 import uuid
-
+from django.conf import settings
 POST_VISIBILITY = (
     ('PUBLIC', 'Public'),
     ('PRIVATE', 'Prviate to self'),
@@ -30,12 +30,12 @@ UNLISTED = {
     namely a Post model, belong to author
 '''
 class Post(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, max_length=50, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
     #TODO: Update origin url
-    origin = models.CharField(max_length=200, blank=True)
+    origin = models.CharField(default="",max_length=200, editable=False)
     source = models.CharField(max_length=200, blank=True)
     content = models.TextField()
     categories = models.CharField(max_length=200, blank=True)
