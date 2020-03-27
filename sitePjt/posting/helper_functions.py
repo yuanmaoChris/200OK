@@ -135,7 +135,7 @@ def getNodePostComment(post):
     return remote_comments  
 
 #TODO: Need To handle post
-def postNodePostComment(comment_data,node=None):
+def postNodePostComment(comment_data):
     author = {
         'id':comment_data.author.url,
         'host':comment_data.author.host,
@@ -156,13 +156,14 @@ def postNodePostComment(comment_data,node=None):
         'comment':comment
     }
     #response = requests.get(url, auth=(user, pwd))
-    print(body)
-    node = ServerNode.objects.all()
-    url = node[0].host_url
-    post_id = body['post'].split('/')[-2]
-    url = url + 'posts/{}/comments'.format(str(post_id))
-    response = requests.post(url, json=body, auth=(
-        node[0].server_username, node[0].server_password))
+    nodes = ServerNode.objects.all()
+    for node in nodes:
+        url = node.host_url
+        post_id = body['post'].split('/')[-2]
+        url = url + 'posts/{}/comments'.format(str(post_id))
+        response = requests.post(url, json=body, auth=(node.server_username, node.server_password))
+        if response.status_code == 200:
+            break
 
 #TODO: Not Finish Yet, Waiting for friendship
 def getNodeAuthorPosts(author_id,Node=None):
