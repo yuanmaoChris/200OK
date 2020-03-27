@@ -177,14 +177,15 @@ def getNodeAuthorPosts(author_id,Node=None):
         print(remote_author_posts)
 
 def findAuthorIdFromUrl(url):
-    if not url:
-        return ""
-    if url[-1] == '/':
+    if '/' not in url:
+        return url
+    elif url[-1] == '/':
         idx = url[:-1].rindex('/')
         return url[idx+1:-1]
     else:
         idx = url.rindex('/')
         return url[idx+1:]
+
 
 def getJsonDecodeAuthor(remote_author):
     author = Author()

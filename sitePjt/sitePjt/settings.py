@@ -143,6 +143,6 @@ AUTH_USER_MODEL = 'accounts.Author'
 #8000
 #HOSTNAME = "http://127.0.0.1:8000/"
 #remote HOST name
-HOSTNAME = "http://127.0.0.1:5000/"
+HOSTNAME = "https://floating-chamber-80877.herokuapp.com"
 # Activate Django-Heroku.
 django_heroku.settings(locals())
