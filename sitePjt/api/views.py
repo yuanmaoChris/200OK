@@ -175,6 +175,47 @@ def view_single_post(request, post_id):
         except Exception as e:
             return HttpResponseServerError(e)
 
+    #Ask for a FOAF post 
+    if request.method == 'POST':
+        try:
+            #Parse data from request
+            data = json.loads(request.body)
+
+            #Validate data
+            if not ('postid' in data.keys() and 'url' in  data.keys() and 'author' in data.keys() and 'friends' in data.keys()):
+                return Response("Invalid request data", status=403)
+            
+            #Get the post specified by request
+            post = Post.objects.filter(id=data['postid'])
+            if not post.exists():
+                return HttpResponseNotFound("Post Not Found.")
+            post = post[0]
+            if not post.visibility == "FOAF":
+                return HttpResponseForbidden("Use POST method only for FOAF post request.")
+
+            #Get the requester specified by request
+            reqeuster, _ = Author.objects.get_or_create(**data['author'])
+
+            #Get intersection of post author's friends and requester's friends
+            req_friends = data['friends']
+            auth_friends = []
+            for friend in getAllFriends(post.author.id):
+                auth_friends.append(friend.friend_url)
+
+            common_friends = list(set(req_friends) & set(auth_friends))
+
+            #Case 1: User has visibility
+            if common_friends or requester.url in auth_friends:
+                serializer = PostSerializer(post)
+                response = {}
+                response['query'] = 'posts'
+                response['post'] = serializer.data
+                return Response(response)
+            #Case 2: User does not have visibility
+            else:
+                return HttpResponseForbidden(b"You dont have visibility to this post.")
+        except Exception as e:
+            return HttpResponseServerError(e)
     #Method not allowed
     return HttpResponseNotAllowed()
 
@@ -219,12 +260,11 @@ def handle_comments(request, post_id):
             }
         try:
             #Parse comment form data from request
-            data = request.body
-            body = json.loads(data)
-            if not ('post' in body.keys() and 'comment' in  body.keys() and 'author' in body['comment'].keys()):
+            data = json.loads(request.body)
+            if not ('post' in data.keys() and 'comment' in  data.keys() and 'author' in data['comment'].keys()):
                 return Response(context, status=403)
-            post_info = body['post']
-            comment_info = body['comment']
+            post_info = data['post']
+            comment_info = data['comment']
             author_info = comment_info['author']
             author_info['id'] = findAuthorIdFromUrl(author_info['id'])
             author_info['email'] = "{}@remote_user.com".format(author_info['id'])

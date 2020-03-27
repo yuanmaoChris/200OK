@@ -12,15 +12,14 @@ from django.conf import settings
 from .forms import PostForm
 from .models import Post, Comment
 from accounts.models import ServerNode
-from .helper_functions import getVisiblePosts,getNodePublicPosts,getNodePostComment,getNodePost,getNodeAuthorPosts,postNodePostComment
+from .helper_functions import getVisiblePosts,getRemotePublicPosts,getNodePostComment,getNodePost,getNodeAuthorPosts,postNodePostComment
 from friendship.helper_functions import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 import base64
 from rest_framework.renderers import JSONRenderer
-import json
-from django.forms.models import model_to_dict
+
 Author = get_user_model()
 
 
@@ -42,11 +41,8 @@ class ViewPublicPosts(APIView):
         try:
             form = PostForm(request.POST or None)
             posts = getVisiblePosts(request.user)
-            nodes = ServerNode.objects.all()
-            remote_posts = [] 
-            if nodes.exists(): 
-                for node in nodes:
-                    remote_posts += getNodePublicPosts(node)
+            remote_posts = getRemotePublicPosts() 
+            
             if len(remote_posts) > 0:
                 posts = list(posts) + remote_posts
                 posts.sort(key=lambda x: x.published, reverse=True)
@@ -82,14 +78,11 @@ class ViewPublicPosts(APIView):
             print(e)
         posts = getVisiblePosts(request.user)
         nodes = ServerNode.objects.all()
-        remote_posts = [] 
-        if nodes.exists(): 
-            for node in nodes:
-                remote_posts += getNodePublicPosts(node)
-            if len(remote_posts) > 0:
-                posts = list(posts) + remote_posts
-                #Fixed: fix time order with remote posts
-                posts.sort(key=lambda x: x.published, reverse=True)
+        remote_posts = getRemotePublicPosts()
+        if remote_posts:
+            posts = list(posts) + remote_posts
+            #Fixed: fix time order with remote posts
+            posts.sort(key=lambda x: x.published, reverse=True)
         return render(request, "posting/stream.html", {'post_list': posts, 'form': form})
         #return a response instead
 
@@ -109,6 +102,7 @@ class ViewPostDetails(APIView):
         Return a detail of post by given Post Id.
         """
         post = Post.objects.filter(id=post_id)
+        #Remote request
         if not post.exists():
             node = ServerNode.objects.all()
             if node.exists():
@@ -120,6 +114,7 @@ class ViewPostDetails(APIView):
                     comments = getNodePostComment(post.id,node)[:10]
             else:
                 return HttpResponseNotFound("Post not found")
+        #Local request
         else:
             post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
@@ -211,7 +206,6 @@ class EditPost(APIView):
         except Exception as e:
             return HttpResponseServerError(e)
 
-
 class CommentHandler(APIView):
     """
     Create or Delete a comment to a Post to a given Post ID in the system.
@@ -233,13 +227,10 @@ class CommentHandler(APIView):
             if not post.exists():
                 node = ServerNode.objects.all()
                 if node.exists():
-                    #TODO: get autho post check visibility first
+                    #TODO: get autho post check visibility first 
                     post = getNodePost(post_id,node=node)
                     if post:
-                        comment_data = request.POST
-                        comment_data['author'] = request.user
-                        comment_data['post'] = post
-                        remote_comment = Comment(**comment_data)
+                        remote_comment = Comment(comment=request.POST['comment'],author=request.user,post=post)
                         postNodePostComment(remote_comment)
                         return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
                     else:
