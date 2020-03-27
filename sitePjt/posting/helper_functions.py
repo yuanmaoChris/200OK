@@ -12,6 +12,7 @@ from django.utils.dateparse import parse_datetime
 from django.core import serializers
 import json
 from django.utils import timezone
+from django.db.models import Q
 
 
 #helper funciton

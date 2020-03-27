@@ -484,7 +484,7 @@ def make_friendRequest(request):
             data = json.loads(request.body)
             author = data['author']
             friend = data['friend']
-            
+
             author_from, _ = Friend.objects.get_or_create(**author)
             author_to, _ = Friend.objects.get_or_create(**friend)
             context['authors'].append(author_from.url)
@@ -493,30 +493,34 @@ def make_friendRequest(request):
             #Create a new friend request if authors are not friend and no such friend request exists
             friendship = checkFriendship(author_from.id, author_to.id)
             if not friendship:
-                #mutual request means author A had requested author B as friend, 
+                #mutual request means author A had requested author B as friend,
                 #meanwhile author B sends a friendrequest to author A
                 #Eventually, author A and author B become friends automatically.
-                mutual_req =  FriendRequest.objects.filter(author_from=author_to, author_to=author_from)
+                mutual_req = FriendRequest.objects.filter(
+                    author_from=author_to, author_to=author_from)
                 if mutual_req.exists():
                     mutual_req[0].delete()
                     if author_from.id < author_to.id:
-                        Friendship.objects.create(author_a=author_from, author_b=author_to)
+                        Friendship.objects.create(
+                            author_a=author_from, author_b=author_to)
                     else:
-                        Friendship.objects.create(author_a=author_to, author_b=author_from)
-                    
+                        Friendship.objects.create(
+                            author_a=author_to, author_b=author_from)
+
                     context['success'] = True
                     return Response(context, status=200)
                 #mutual request does not exist
                 else:
                     #Create a request as desired
-                    request, created = FriendRequest.objects.get_or_create(author_from=author_from, author_to=author_to)
+                    request, created = FriendRequest.objects.get_or_create(
+                        author_from=author_from, author_to=author_to)
                     if created:
                         context['success'] = True
                         return Response(context, status=200)
                     else:
                         context['success'] = False
                         return Response(context, status=200)
-            
+
             #Friendship exists
             context['success'] = False
             return Response(context, status=200)

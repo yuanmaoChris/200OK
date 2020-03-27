@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 from rest_framework.views import APIView
+from django.db.models import Q
 Author = get_user_model()
 
 
@@ -56,6 +57,8 @@ class SendFriendRequestView(APIView):
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
                 fr = FriendRequest.objects.filter(author_from=friend_from, author_to=friend_to)
                 if not friendship.exists() and not fr.exists():
+                    print(form_from)
+                    print(form_to)
                     if form_from['host'] == form_to['host']:
                         #Locally
                         friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
@@ -102,7 +105,7 @@ class HandleRequestView(APIView):
             fr.delete()
 
             if form['method'] == 'Accept':
-                if author_from.friend_id < author_to.friend_id:
+                if author_from.id < author_to.id:
                     a, b = author_from, author_to
                 else:
                     a, b = author_to, author_from
@@ -168,15 +171,15 @@ class GetFriendsListView(APIView):
             #get friend list
             context['friends'] = getAllFriends(author_id)
             #get friend requests
-            friend = Friend.objects.filter(friend_id=request.user.id)
+            friend = Friend.objects.filter(id=request.user.id)
             if not friend.exists():
-                friend = Friend(friend_id=request.user.id,
-                                friend_displayName=request.user.displayName,
-                                friend_host=request.user.host,
-                                friend_url=request.user.url
+                friend = Friend(id=request.user.id,
+                                displayName=request.user.displayName,
+                                host=request.user.host,
+                                url=request.user.url
                                 )
                 friend.save()
-            friend = Friend.objects.get(friend_id=request.user.id)
+            friend = Friend.objects.get(id=request.user.id)
             friend_requests = FriendRequest.objects.filter(author_to=friend)
             context['friend_requests'] = friend_requests
             return render(request, 'friendship/friends_list.html', context)
@@ -202,9 +205,9 @@ class DeleteFriendView(APIView):
         '''
         try:
             form = request.POST or None
-            author = Friend.objects.filter(friend_id=request.user.id)[0]
-            friend = Friend.objects.filter(friend_id=form['friend_id'])[0]
-            if author.friend_id < friend.friend_id:
+            author = Friend.objects.filter(id=request.user.id)[0]
+            friend = Friend.objects.filter(id=form['friend_id'])[0]
+            if author.id < friend.id:
                 a, b = author, friend
             else:
                 a, b = friend, author

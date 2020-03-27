@@ -13,7 +13,7 @@
                    
                     <div class="card-body">
                         <div class="card-title"><h4>New Friend Request</h4></div>
-                        <div class="card-subtitle"><h4>From {{ req.author_from.friend_displayName }}</h4></div>
+                        <div class="card-subtitle"><h4>From {{ req.author_from.displayName }}</h4></div>
                         <!--Debug: {{ req.author_to.displayName }}-->
                         <form action="{% url 'friendship:accept request' %}" method="POST"> {% csrf_token %}
                             <input type="hidden" name="request_id" value="{{ req.id }}"></input>

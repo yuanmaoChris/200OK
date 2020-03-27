@@ -116,7 +116,7 @@ class ProfileView(APIView):
     * Only authenticated authors are able to access this view.
     """
     #authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [IsActivatedOrReadOnly]
+    permission_classes = [IsActivated]
 
     def get(self, request, author_id, format=None):
         '''
