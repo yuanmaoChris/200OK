@@ -481,21 +481,17 @@ def make_friendRequest(request):
             }
             #TODO: use url field instead of id and parse id from url
             #Parser author info and friend info from request
-            body = json.loads(request.body)
-            author = body['author']
-            friend = body['friend']
-
-            #Reject making a friend request that is not from the authenticated user
-            if request.user.id != author['friend_id']:
-                return HttpResponseForbidden("Authentication failed!")
+            data = json.loads(request.body)
+            author = data['author']
+            friend = data['friend']
             
-            author_from, created_from = Friend.objects.get_or_create(**author)
-            author_to, created_to = Friend.objects.get_or_create(**friend)
-            context['authors'].append(author_from.friend_id)
-            context['authors'].append(author_to.friend_id)
-
+            author_from, _ = Friend.objects.get_or_create(**author)
+            author_to, _ = Friend.objects.get_or_create(**friend)
+            context['authors'].append(author_from.url)
+            context['authors'].append(author_to.url)
+            print(context)
             #Create a new friend request if authors are not friend and no such friend request exists
-            friendship = checkFriendship(author_from.friend_id, author_to.friend_id)
+            friendship = checkFriendship(author_from.id, author_to.id)
             if not friendship:
                 #mutual request means author A had requested author B as friend, 
                 #meanwhile author B sends a friendrequest to author A
@@ -503,7 +499,7 @@ def make_friendRequest(request):
                 mutual_req =  FriendRequest.objects.filter(author_from=author_to, author_to=author_from)
                 if mutual_req.exists():
                     mutual_req[0].delete()
-                    if author_from.friend_id < author_to.friend_id:
+                    if author_from.id < author_to.id:
                         Friendship.objects.create(author_a=author_from, author_b=author_to)
                     else:
                         Friendship.objects.create(author_a=author_to, author_b=author_from)
@@ -526,6 +522,7 @@ def make_friendRequest(request):
             return Response(context, status=200)
         #Server Error
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
     #Method not allowed
     else:

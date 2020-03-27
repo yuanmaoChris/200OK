@@ -108,6 +108,9 @@ def getRemotePublicPosts():
                     post.author = author
                     remote_posts.append(post)
 
+        else:
+            print(response.json())
+
     return remote_posts
 
 def getNodePostComment(post_id,node):
@@ -164,7 +167,7 @@ def getNodePost(post_id,node):
 #TODO: Need To handle post
 def postNodePostComment(comment_data,node=None):
     author = {
-        'id':comment_data.author.id,
+        'id':comment_data.author.url,
         'host':comment_data.author.host,
         'displayName':comment_data.author.displayName,
         'url':comment_data.author.url,
@@ -183,6 +186,13 @@ def postNodePostComment(comment_data,node=None):
         'comment':comment
     }
     #response = requests.get(url, auth=(user, pwd))
+    print(body)
+    node = ServerNode.objects.all()
+    url = node[0].host_url
+    post_id = body['post'].split('/')[-2]
+    url = url + 'posts/{}/comments/'.format(str(post_id))
+    response = requests.post(url, json=body, auth=(
+        node[0].server_username, node[0].server_password))
 
 #TODO: Not Finish Yet, Waiting for friendship
 def getNodeAuthorPosts(author_id,Node=None):
@@ -194,7 +204,7 @@ def getNodeAuthorPosts(author_id,Node=None):
     authorPosts = None
     if response.status_code == 200:
         remote_author_posts = response.json()
-        print(remote_author_posts)  
+        print(remote_author_posts)
 
 def findAuthorIdFromUrl(url):
     if url[-1] == '/':

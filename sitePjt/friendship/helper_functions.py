@@ -1,5 +1,7 @@
 from .models import Friend, Friendship
+from accounts.models import ServerNode
 from django.db.models import Q
+import requests
 
 def checkFriendship(friend1_id, friend2_id):
     '''
@@ -76,3 +78,28 @@ def checkVisibility(requester, post):
         #if request.user.id in post.visibleTo and (not post in post_list):
             #post_list.append(post)
     return False
+
+
+def SendFriendRequestRemote(author_form, friend_form):
+    body = {
+        'query': 'friendrequest',
+        'author': author_form,
+        'friend': friend_form,
+    }
+    node = ServerNode.objects.filter(host_url=body['friend']['host']+'/')
+    if not node.exists():
+        return False
+    node = node[0]
+    url = "{}friendrequest/".format(node.host_url)
+    response = requests.post(url, json=body,auth=(node.server_username, node.server_password))
+    print(body)
+    # node = ServerNode.objects.all()
+    # url = node[0].host_url
+    # post_id = body['post'].split('/')[-2]
+    # url = url + 'posts/{}/comments/'.format(str(post_id))
+    # response = requests.post(url, json=body, auth=(
+    #     node[0].server_username, node[0].server_password))
+    if response.status_code == 200:
+        return True
+    else:
+        return False

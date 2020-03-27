@@ -7,13 +7,13 @@ import uuid
 
 
 class Friend(models.Model):
-    friend_id = models.CharField(max_length=100)
-    friend_displayName = models.CharField(max_length=20)
-    friend_host = models.CharField(max_length=100)
-    friend_url = models.CharField(max_length=100)
+    id = models.CharField(primary_key=True,max_length=100)
+    displayName = models.CharField(max_length=20)
+    host = models.CharField(max_length=100)
+    url = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.friend_displayName
+        return self.displayName
 
 class FriendRequest(models.Model):
     '''
@@ -24,7 +24,7 @@ class FriendRequest(models.Model):
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
 
     def __str__(self):
-        return "From: " + self.author_from.friend_displayName + "   To: " + self.author_to.friend_displayName
+        return "From: " + self.author_from.displayName + "   To: " + self.author_to.displayName
     
 class Friendship(models.Model):
     '''
@@ -37,4 +37,4 @@ class Friendship(models.Model):
     author_b = models.ForeignKey(Friend,on_delete=models.CASCADE,related_name="author_b")
 
     def __str__(self):
-        return "A: " + self.author_a.friend_displayName + " |   B: " + self.author_b.friend_displayName
+        return "A: " + self.author_a.displayName + " |   B: " + self.author_b.displayName

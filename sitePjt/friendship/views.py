@@ -1,5 +1,5 @@
 from .models import Friendship, FriendRequest, Friend
-from .helper_functions import getAllFriends, checkFriendship
+from .helper_functions import getAllFriends, checkFriendship, SendFriendRequestRemote
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -28,20 +28,20 @@ class SendFriendRequestView(APIView):
         try:
             form = request.POST
             form_from = {
-                'friend_id': form.get('friend_from_friend_id'),
-                'friend_displayName': form.get('friend_from_friend_displayName'),
-                'friend_url': form.get('friend_from_friend_url'),
-                'friend_host': form.get('friend_from_friend_host')
+                'id': form.get('friend_from_friend_id'),
+                'displayName': form.get('friend_from_friend_displayName'),
+                'url': form.get('friend_from_friend_url'),
+                'host': form.get('friend_from_friend_host')
             }
             form_to = {
-                'friend_id': form.get('friend_to_friend_id'),
-                'friend_displayName': form.get('friend_to_friend_displayName'),
-                'friend_url': form.get('friend_to_friend_url'),
-                'friend_host': form.get('friend_to_friend_host')
+                'id': form.get('friend_to_friend_id'),
+                'displayName': form.get('friend_to_friend_displayName'),
+                'url': form.get('friend_to_friend_url'),
+                'host': form.get('friend_to_friend_host')
             }
-            friend_from, created_from = Friend.objects.get_or_create(**form_from)
-            friend_to, created_to = Friend.objects.get_or_create(**form_to)
-            if friend_from.friend_id < friend_to.friend_id:
+            friend_from, _ = Friend.objects.get_or_create(**form_from)
+            friend_to, _ = Friend.objects.get_or_create(**form_to)
+            if friend_from.id < friend_to.id:
                 a, b = friend_from, friend_to
             else:
                 a, b = friend_to, friend_from
@@ -56,10 +56,18 @@ class SendFriendRequestView(APIView):
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
                 fr = FriendRequest.objects.filter(author_from=friend_from, author_to=friend_to)
                 if not friendship.exists() and not fr.exists():
-                    friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+                    if form_from['host'] == form_to['host']:
+                        #Locally
+                        friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+                    else:
+                        #Remote friend request
+                        success = SendFriendRequestRemote(form_from, form_to)
+                        if success:
+                            friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
 
-            return HttpResponseRedirect(reverse('accounts:view profile', args=(form_to['friend_id'],)), {})
+            return HttpResponseRedirect(reverse('accounts:view profile', args=(form_to['id'],)), {})
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
 
 
