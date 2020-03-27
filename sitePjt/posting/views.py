@@ -216,7 +216,7 @@ class CommentHandler(APIView):
                 node = ServerNode.objects.all()
                 if node.exists():
                     #TODO: get autho post check visibility first 
-                    post = getNodePost(post_id,node=node)
+                    post = getNodePost(post_id, node)
                     if post:
                         remote_comment = Comment(comment=request.POST['comment'],author=request.user,post=post)
                         postNodePostComment(remote_comment)

@@ -86,7 +86,7 @@ def SendFriendRequestRemote(author_form, friend_form):
         'author': author_form,
         'friend': friend_form,
     }
-    node = ServerNode.objects.filter(host_url=body['friend']['host']+'/service/')
+    node = ServerNode.objects.filter(host_url=body['friend']['host']+'service/')
     if not node.exists():
         return False
     node = node[0]

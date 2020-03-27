@@ -60,6 +60,7 @@ class SendFriendRequestView(APIView):
                 if not friendship.exists() and not fr.exists():
                     if form_from['host'] == form_to['host']:
                         #Locally
+                        
                         friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
                     else:
                         #Remote friend request
