@@ -124,11 +124,10 @@ class ProfileView(APIView):
         '''
         try:
             author = Author.objects.filter(id=author_id)
+            #view remote user profile
             if not author.exists():
-                node = ServerNode.objects.all()
-                if node.exists():
-                    author = getNodeAuthor(author_id,node)
-                if author == None:
+                author = getRemoteAuthor(author_id)
+                if not author:
                     return HttpResponseNotFound("Author Profile Not Found.")
             else:    
                 author = Author.objects.get(id=author_id)
@@ -171,15 +170,18 @@ class ProfileView(APIView):
         except Exception as e:
             return HttpResponseServerError(e)
 
-def getNodeAuthor(author_id,node):
+
+def getRemoteAuthor(author_id):
     author = None
-    url = node[0].host_url
-    url = url +'author/{}'.format(str(author_id))
-    response = requests.get(url, auth=(node[0].server_username, node[0].server_password))
-    #TODO: Issues Author Serializers is not working here
-    if response.status_code == 200:
-        remote_author = response.json()
-        author = getJsonDecodeAuthor(remote_author)
+    #TODO Stop abusing all nodes, need author object instead of author_id
+    for node in ServerNode.objects.all():
+        url = '{}author/{}'.format(node.host_url, str(author_id))
+        response = requests.get(url, auth=(node.server_username, node.server_password))
+        #TODO: Issues Author Serializers is not working here
+        if response.status_code == 200:
+            remote_author = response.json()
+            author = getJsonDecodeAuthor(remote_author)
+            break
     return author
 
 def findAuthorIdFromUrl(url):

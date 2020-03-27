@@ -141,8 +141,8 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'accounts.Author'
 
 #8000
-HOSTNAME = "https://peaceful-savannah-82754.herokuapp.com"
+HOSTNAME = "http://127.0.0.1:8000/"
 #remote HOST name
-#HOSTNAME = "http://127.0.0.1:5000/service/"
+#HOSTNAME = "http://127.0.0.1:5000/"
 # Activate Django-Heroku.
 django_heroku.settings(locals())

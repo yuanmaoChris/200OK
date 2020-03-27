@@ -50,6 +50,7 @@ class SendFriendRequestView(APIView):
             fr = FriendRequest.objects.filter(author_from=friend_to, author_to=friend_from)
             if fr.exists():
                 fr[0].delete()
+                SendFriendRequestRemote(form_from, form_to)
                 friendship = Friendship.objects.create(author_a=a, author_b=b)
             else:
 
@@ -57,8 +58,6 @@ class SendFriendRequestView(APIView):
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
                 fr = FriendRequest.objects.filter(author_from=friend_from, author_to=friend_to)
                 if not friendship.exists() and not fr.exists():
-                    print(form_from)
-                    print(form_to)
                     if form_from['host'] == form_to['host']:
                         #Locally
                         friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)

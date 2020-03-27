@@ -24,7 +24,6 @@ Author = get_user_model()
 
 
 class ViewPublicPosts(APIView):
-
     """
     View to  a list of public posts, checking visibility before display to user
 
@@ -48,7 +47,7 @@ class ViewPublicPosts(APIView):
                 posts.sort(key=lambda x: x.published, reverse=True)
             #Fixed: fix time order with remote posts
             context = {
-                'post_list': posts,
+                'post_list': posts[:20],
                 'form': form,
             }
             return render(request, "posting/stream.html", context)
@@ -76,14 +75,7 @@ class ViewPublicPosts(APIView):
                 return HttpResponseForbidden("invalid input")
         except Exception as e:
             print(e)
-        posts = getVisiblePosts(request.user)
-        nodes = ServerNode.objects.all()
-        remote_posts = getRemotePublicPosts()
-        if remote_posts:
-            posts = list(posts) + remote_posts
-            #Fixed: fix time order with remote posts
-            posts.sort(key=lambda x: x.published, reverse=True)
-        return render(request, "posting/stream.html", {'post_list': posts, 'form': form})
+        return redirect('/posts/')
         #return a response instead
 
 
@@ -104,14 +96,12 @@ class ViewPostDetails(APIView):
         post = Post.objects.filter(id=post_id)
         #Remote request
         if not post.exists():
-            node = ServerNode.objects.all()
-            if node.exists():
-                post = getNodePost(post_id,node)
+            #TODO Find exactly one node instead of abusing all nodes. 
+            nodes = ServerNode.objects.all()
+            if nodes.exists():
+                post = getNodePost(post_id, nodes)  # TODO USE GET_AUTH_POST!!!
             if post != None:
-                if not checkVisibility(request.user, post):
-                    return HttpResponseForbidden("You don't have visibility.")
-                else:
-                    comments = getNodePostComment(post.id,node)[:10]
+                comments = getNodePostComment(post)
             else:
                 return HttpResponseNotFound("Post not found")
         #Local request
@@ -119,17 +109,15 @@ class ViewPostDetails(APIView):
             post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
-            comments = Comment.objects.filter(post=post)[:10]
+            comments = Comment.objects.filter(post=post)
         context = {
             'post': post,
-            'comment_list': comments,
+            'comment_list': comments[:10],
         }
         return render(request, "posting/post-details.html", context)
 
 #We are using POST method to delete.
 #Need to use Delete Method to do this.
-
-
 class DeletePost(APIView):
     """
     Delete to a post by given Post ID in the system.

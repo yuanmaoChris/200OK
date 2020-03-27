@@ -489,7 +489,7 @@ def make_friendRequest(request):
             author_to, _ = Friend.objects.get_or_create(**friend)
             context['authors'].append(author_from.url)
             context['authors'].append(author_to.url)
-            print(context)
+    
             #Create a new friend request if authors are not friend and no such friend request exists
             friendship = checkFriendship(author_from.id, author_to.id)
             if not friendship:

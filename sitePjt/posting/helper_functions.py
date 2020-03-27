@@ -10,6 +10,7 @@ from requests.auth import HTTPBasicAuth
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, PostListSerializer, PostCreateSerializer
 from django.utils.dateparse import parse_datetime
 from django.core import serializers
+from django.conf import settings
 import json
 from django.utils import timezone
 from django.db.models import Q
@@ -32,7 +33,7 @@ from django.db.models import Q
 def getVisiblePosts(requester, author=None):
     result = []
     #the current user hasn't login yet, show some random public posts
-    if requester.is_anonymous:
+    if requester.is_anonymous or requester.host != settings.HOSTNAME:
         if author:
             return Post.objects.filter(author=author, visibility='PUBLIC', unlisted=False).order_by('-published')
         else:
@@ -78,92 +79,60 @@ def getRemotePublicPosts():
         return remote_posts
 
     for node in nodes:
-        url = node.host_url
-        url += 'posts'
+        url = node.host_url + 'posts'
         response = requests.get(url, auth=(node.server_username, node.server_password))
-       
+
         if response.status_code == 200:
-            remote_public_posts =response.json()
-            for item in remote_public_posts['posts']:
+            response = response.json()
+            remote_public_posts = response['posts']
+            for item in remote_public_posts:
                 #Get 
                 #everything is a string up to here
-                '''   
-                serializer = PostCreateSerializer(data=item, context=item)
-                if serializer.is_valid():
-                    remote_posts.append(Post(**serializer.data))
-                '''
-                post = PostSerializer(data=item)
-                if post.is_valid():
-                    #print(post.validated_data)
-                    author = Author(**item.get('author'))
-                    author.id = findAuthorIdFromUrl(item.get('author')['url'])
-                    published = parse_datetime(item['published'])
-                    post = Post(**post.validated_data)
-                    post.id = item['id']
-                    post.published = published
-                    post.author = author
-                    remote_posts.append(post)
-                else:
-                    author = getJsonDecodeAuthor(item['author'])
-                    post = getJsonDecodePost(item)
-                    post.author = author
-                    remote_posts.append(post)
+                author = getJsonDecodeAuthor(item['author'])
+                post = getJsonDecodePost(item)
+                post.author = author
+                remote_posts.append(post)
 
         else:
             print(response.json())
 
     return remote_posts
 
-def getNodePostComment(post_id,node):
-    #TODO: Error Handle
-    remote_comments = []
-    url = node[0].host_url
-    url = url +'posts/{}/comments/'.format(str(post_id))
-    response = requests.get(url, auth=(node[0].server_username, node[0].server_password))
-    if response.status_code == 200:
-        remote_comments_data = response.json()
-        for item in remote_comments_data['comments']:
-            #author.id = findAuthorIdFromUrl(item.get('author')['url'])
-            comment = CommentSerializer(data=item)
-            if comment.is_valid():
-                comment = Comment(**comment.validated_data)
-                published = parse_datetime(item['published'])
-                author = Author(**item.get('author'))
-                comment.id = item['id']
-                comment.published = published
-                comment.author = author
-                remote_comments.append(comment)
-            else:
-                comment = getJsonDecodeComment(item)
-                remote_comments.append(comment)
 
-    return remote_comments  
-    
-def getNodePost(post_id,node):
+def getNodePost(post_id, nodes):
     post = None
-    url = node[0].host_url
-    url = url +'posts/{}/'.format(str(post_id))
-    response = requests.get(url, auth=(node[0].server_username, node[0].server_password))
-    #TODO: Error Handle
-    if response.status_code == 200:  
-        remote_post =response.json()
-        if 'post' in remote_post.keys():
-            remote_post = remote_post['post']
-        post = PostSerializer(data=remote_post)
-        if post.is_valid():
-            post = Post(**post.validated_data)
-            author = Author(**remote_post.get('author'))
-            author.id = findAuthorIdFromUrl(remote_post.get('author')['url'])
-            published = parse_datetime(remote_post['published'])
-            post.id = remote_post['id']
-            post.published = published
-            post.author = author
-        else:
-            author = getJsonDecodeAuthor(remote_post['author'])
+
+    for node in nodes:
+        url = '{}posts/{}'.format(node.host_url, str(post_id))
+        response = requests.get(url, auth=(
+            node.server_username, node.server_password))
+
+        if response.status_code == 200:
+            response = response.json()
+            remote_post = response['post']
             post = getJsonDecodePost(remote_post)
-            post.author = author
+            post.author = getJsonDecodeAuthor(remote_post['author'])
+            break
 
     return post
+
+def getNodePostComment(post):
+    remote_comments = []
+    '''
+    #TODO add field host of node
+    post_host = post.author.host + ""
+    node = ServerNode.objects.filter(host=)
+    '''
+    for node in ServerNode.objects.all():
+        url ='{}posts/{}/comments'.format(node.host_url, post.id) #TODO cast post.id to string?
+        response = requests.get(url, auth=(node.server_username, node.server_password))
+        if response.status_code == 200:
+            response = response.json()
+            for item in response['comments']:
+                remote_comments.append(getJsonDecodeComment(item))
+            break
+
+    return remote_comments  
 
 #TODO: Need To handle post
 def postNodePostComment(comment_data,node=None):
@@ -191,7 +160,7 @@ def postNodePostComment(comment_data,node=None):
     node = ServerNode.objects.all()
     url = node[0].host_url
     post_id = body['post'].split('/')[-2]
-    url = url + 'posts/{}/comments/'.format(str(post_id))
+    url = url + 'posts/{}/comments'.format(str(post_id))
     response = requests.post(url, json=body, auth=(
         node[0].server_username, node[0].server_password))
 
@@ -200,7 +169,7 @@ def getNodeAuthorPosts(author_id,Node=None):
     user = '5000@remote.com'
     pwd = '1'
     #Try request from remote server
-    url = 'http://127.0.0.1:5000/service/author/{}/posts/'.format(str(author_id))
+    url = 'http://127.0.0.1:5000/service/author/{}/posts'.format(str(author_id))
     response = requests.get(url, auth=(user, pwd))
     authorPosts = None
     if response.status_code == 200:
@@ -208,6 +177,8 @@ def getNodeAuthorPosts(author_id,Node=None):
         print(remote_author_posts)
 
 def findAuthorIdFromUrl(url):
+    if not url:
+        return ""
     if url[-1] == '/':
         idx = url[:-1].rindex('/')
         return url[idx+1:-1]

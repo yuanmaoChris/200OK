@@ -28,7 +28,7 @@ def getAllFriends(author_id):
     '''
     friends = []
     try:
-        author = Friend.objects.get(friend_id=author_id)
+        author = Friend.objects.get(id=author_id)
         friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
         for friendship in friendships:
             if friendship.author_a == author:
@@ -86,11 +86,11 @@ def SendFriendRequestRemote(author_form, friend_form):
         'author': author_form,
         'friend': friend_form,
     }
-    node = ServerNode.objects.filter(host_url=body['friend']['host'])
+    node = ServerNode.objects.filter(host_url=body['friend']['host']+'/service/')
     if not node.exists():
         return False
     node = node[0]
-    url = "{}friendrequest/".format(node.host_url)
+    url = "{}friendrequest".format(node.host_url)
     print(url)
     response = requests.post(url, json=body,auth=(node.server_username, node.server_password))
     print(body)
