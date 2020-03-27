@@ -154,8 +154,8 @@ class ProfileView(APIView):
                 bio=form['bio'],
                 github=form['github'],
             )
-            Friend.objects.filter(friend_id=author_id).update(
-                friend_displayName=form['displayName']
+            Friend.objects.filter(id=author_id).update(
+                displayName=form['displayName']
             )
             author = Author.objects.get(id=author_id)
             posts_list = []

@@ -8,7 +8,7 @@ import uuid
 
 class Friend(models.Model):
     id = models.CharField(primary_key=True,max_length=100)
-    displayName = models.CharField(max_length=20)
+    displayName = models.CharField(max_length=30)
     host = models.CharField(max_length=100)
     url = models.CharField(max_length=100)
 
