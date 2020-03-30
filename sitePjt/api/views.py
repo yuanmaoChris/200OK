@@ -8,14 +8,17 @@ from rest_framework import authentication, permissions
 from rest_framework.parsers import JSONParser
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.conf import settings
 import json
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 from posting.models import Post, Comment
 from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
 from friendship.helper_functions import checkFriendship, getAllFriends
-from .serializers import PostSerializer, AuthorSerializer, PostListSerializer, CommentSerializer, CommentListSerializer, FriendshipSerializer
+from .serializers import PostSerializer, AuthorSerializer, CommentSerializer, FriendshipSerializer
 from .permissions import IsAuthenticatedAndNode
+from .pagination import CustomPagination
+
 Author = get_user_model()
 
 def findAuthorIdFromUrl(url):
@@ -36,16 +39,17 @@ def view_public_post(request):
     '''
     if request.method == 'GET':
         try:
-            #get all public listed posts
-            posts = Post.objects.filter(
-                visibility='PUBLIC', unlisted=False).order_by('-published')
-            #get count of result posts
-            count = len(posts)
-            serializer = PostListSerializer(
-                posts, context={'query': 'posts', 'count': count})
-
-            return Response(serializer.data)
+            paginator = CustomPagination()
+            posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published')
+            try:
+                posts = paginator.paginate_queryset(posts, request)
+            except Exception as e:
+                return HttpResponseNotFound(e)
+            serializer = PostSerializer(posts, many=True)
+            response = paginator.get_paginated_response('posts', 'posts', serializer.data)
+            return response
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
     else:
         #method not allowed
@@ -70,10 +74,15 @@ def handle_auth_posts(request):
             requster, _ = Author.objects.get_or_create(**post['requester'])
             '''
             #Get all posts that current authenticated user has visitbility of
-            posts = getVisiblePosts(request.user)
-            count = len(posts)
-            serializer = PostListSerializer(
-                posts, context={'query': 'posts', 'count': count})
+            posts = getVisiblePosts(request.user) 
+            paginator = CustomPagination()
+            try:
+                posts = paginator.paginate_queryset(posts, request)
+            except Exception as e:
+                return HttpResponseNotFound(e)
+            serializer = PostSerializer(posts, many=True)
+            response = paginator.get_paginated_response('posts', 'posts', serializer.data)
+            return response
             return Response(serializer.data)
         except Exception as e:
             return HttpResponseServerError(e)
@@ -133,10 +142,14 @@ def view_author_posts(request, author_id):
             author = Author.objects.get(id=author_id)
             #filter out all posts that requester does not have visibility of
             posts = getVisiblePosts(request.user, author)
-            count = len(posts)
-            serializer = PostListSerializer(
-                posts, context={'query': 'posts', 'count': count})
-            return Response(serializer.data)
+            paginator = CustomPagination()
+            try:
+                posts = paginator.paginate_queryset(posts, request)
+            except Exception as e:
+                return HttpResponseNotFound(e)
+            serializer = PostSerializer(posts, many=True)
+            response = paginator.get_paginated_response('posts', 'posts', serializer.data)
+            return response
             
         #Server error when handling request
         except Exception as e:
@@ -196,7 +209,7 @@ def view_single_post(request, post_id):
                 return HttpResponseForbidden("Use POST method only for FOAF post request.")
 
             #Get the requester specified by request
-            reqeuster, _ = Author.objects.get_or_create(**data['author'])
+            requester, _ = Author.objects.get_or_create(**data['author'])
 
             #Get intersection of post author's friends and requester's friends
             req_friends = data['friends']
@@ -236,17 +249,22 @@ def handle_comments(request, post_id):
             post = Post.objects.filter(id=post_id)
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found.")
-            post = Post.objects.get(id=post_id)
+            post = post[0]
+            
             #Reject request if anonymous user or user does not have visibility
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden(b"You dont have visibility.")
             
             #Valid request -> get comments data and return in response
-            comments = Comment.objects.filter(post=post)
-            count = len(comments)
-            serializer = CommentListSerializer(
-                comments, context={'query': 'comments', 'count': count})
-            return Response(serializer.data)
+            paginator = CustomPagination()
+            comments = Comment.objects.filter(post=post).order_by('-published')
+            try:
+                comments = paginator.paginate_queryset(comments, request)
+            except Exception as e:
+                return HttpResponseNotFound(e)
+            serializer = CommentSerializer(comments, many=True)
+            response = paginator.get_paginated_response(query="comments", data_name='comments', data=serializer.data)
+            return response
             
         #Server error when handling reqeust
         except Exception as e:
