@@ -67,9 +67,11 @@ def getVisiblePosts(requester, author=None):
             if checkFriendship(post.author.id, requester.id):
                 result.append(post)
         elif post.visibility == 'FOAF':  # friends of friends also can see
+            #Check it requester is friend of author or not.
             if checkFriendship(post.author.id, requester.id):
                 result.append(post)
             else:
+            #Check it requester is FOAF of author or not.
                 for friend in getAllFriends(post.author.id):
                     if checkFriendship(friend.friend_id, requester.id):
                         result.append(post)
@@ -91,25 +93,26 @@ def getRemotePublicPosts():
 
     if not nodes.exists():
         return remote_posts
-
     for node in nodes:
         url = "{}posts".format(node.host_url)
         auth = (node.server_username, node.server_password)
-        response = requests.get(url, auth=auth)
+        try:
+            response = requests.get(url, auth=auth,timeout=5)
+            if response.status_code == 200:
+                response = response.json()
+                remote_public_posts = response['posts']
+                for item in remote_public_posts:
+                    author = getJsonDecodeAuthor(item['author'])
+                    post = getJsonDecodePost(item)
+                    post.author = author
+                    remote_posts.append(post)
+            else:
+                print(response.json())
+                break
+        except Exception as e:
+            print(e)
+            pass
 
-        if response.status_code == 200:
-            response = response.json()
-            remote_public_posts = response['posts']
-            for item in remote_public_posts:
-                #Get
-                #everything is a string up to here
-                author = getJsonDecodeAuthor(item['author'])
-                post = getJsonDecodePost(item)
-                post.author = author
-                remote_posts.append(post)
-
-        else:
-            print(response.json())
 
     return remote_posts
 
@@ -120,35 +123,47 @@ def getRemoteVisiblePost(nodes, requester_id):
         url = '{}author/posts'.format(node.host_url)
         auth = (node.server_username, node.server_password)
         headers = {'X-USER-ID': requester_id}
-        response = requests.get(url, auth=auth, headers=headers)
+        try:
+            response = requests.get(url, auth=auth, headers=headers,timeout=5)
+            if response.status_code == 200:
+                response = response.json()
+                remote_posts = response['posts']
+                for item in remote_posts:
+                    post = getJsonDecodePost(item)
+                    post.author = getJsonDecodeAuthor(item['author'])
+                    posts.append(post)
+            else:
+                print(response.json())
+                break
+        except Exception as e:
+            print(e)
+            pass
 
-        if response.status_code == 200:
-            response = response.json()
-            remote_posts = response['posts']
-            for item in remote_posts:
-                post = getJsonDecodePost(item)
-                post.author = getJsonDecodeAuthor(item['author'])
-                posts.append(post)
-
+        
     return posts
 
 
 def getRemotePost(post_id, nodes, requester_id):
     post = None
-
     for node in nodes:
         url = '{}posts/{}'.format(node.host_url, str(post_id))
         auth = (node.server_username, node.server_password)
         headers = {'X-USER-ID': requester_id}
-        response = requests.get(url, auth=auth, headers=headers)
-
-        if response.status_code == 200:
-            response = response.json()
-            remote_post = response['post']
-            post = getJsonDecodePost(remote_post)
-            post.author = getJsonDecodeAuthor(remote_post['author'])
-            break
-
+        response = None 
+        try:
+            response = requests.get(url, auth=auth, headers=headers,timeout=5)
+            if response.status_code == 200:
+                response = response.json()
+                remote_post = response['post']
+                post = getJsonDecodePost(remote_post)
+                post.author = getJsonDecodeAuthor(remote_post['author'])
+                break
+            else:
+                print(response.json())
+                break
+        except Exception as e:
+            print(e)
+            pass
     return post
 
 
@@ -163,17 +178,21 @@ def getRemotePostComment(post, requester_id):
         url = '{}posts/{}/comments'.format(node.host_url, post.id)
         auth = (node.server_username, node.server_password)
         headers = {'X-USER-ID': requester_id}
-        response = requests.get(url, auth=auth, headers=headers)
-        if response.status_code == 200:
-            response = response.json()
-            for item in response['comments']:
-                remote_comments.append(getJsonDecodeComment(item))
-            break
+        try:
+            response = requests.get(url, auth=auth, headers=headers,timeout=5)
+            if response.status_code == 200:
+                response = response.json()
+                for item in response['comments']:
+                    remote_comments.append(getJsonDecodeComment(item))
+                break
+            else:
+                print(response.json())
+                break
+        except Exception as e:
+            print(e)
+            pass
 
     return remote_comments
-
-#TODO: Need To handle post
-
 
 def postRemotePostComment(comment_data, requester_id):
     author = {
@@ -202,12 +221,16 @@ def postRemotePostComment(comment_data, requester_id):
         headers = {'X-USER-ID': requester_id}
         post_id = body['post'].split('/')[-2]
         url = '{}posts/{}/comments'.format(node.host_url, str(post_id))
-        response = requests.post(url, json=body, auth=auth, headers=headers)
-        if response.status_code == 200:
-            break
-
-#TODO: Not Finish Yet, Waiting for friendship
-
+        try:
+            response = requests.post(url, json=body, auth=auth, headers=headers,timeout=5)
+            if response.status_code == 200:
+                break
+            else:
+                print(response.json())
+                break
+        except Exception as e:
+            print(e)
+            pass
 
 def getRemoteAuthorPosts(author_id, requester_id, node):
     remote_author_posts = []
@@ -216,14 +239,20 @@ def getRemoteAuthorPosts(author_id, requester_id, node):
     url = '{}author/{}/posts'.format(node.host_url, author_id)
     auth = (node.server_username, node.server_password)
     headers = {'X-USER-ID': requester_id}
-    response = requests.get(url, auth=auth, headers=headers)
-    if response.status_code == 200:
-        response = response.json()
-        remote_posts = response['posts']
-        for item in remote_posts:
+    try:
+        response = requests.get(url, auth=auth, headers=headers )
+        if response.status_code == 200:
+            response = response.json()
+            remote_posts = response['posts']
+            for item in remote_posts:
                 post = getJsonDecodePost(item)
                 post.author = getJsonDecodeAuthor(item['author'])
                 remote_author_posts.append(post)
+        else:
+            print(response.json())
+    except Exception as e:
+        print(e)
+        pass
 
     return remote_author_posts
 

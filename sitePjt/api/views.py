@@ -54,7 +54,6 @@ def view_public_post(request):
         #method not allowed
         return HttpResponseNotAllowed()
 
-#TODO: AUTHOR INFO
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def handle_auth_posts(request):
@@ -124,7 +123,7 @@ def handle_auth_posts(request):
         except Exception as e:
             return HttpResponseServerError(e)
         '''
-#TODO: get_or_create
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def view_author_posts(request, author_id):
@@ -162,7 +161,7 @@ def view_author_posts(request, author_id):
     #Method not allowed       
     return HttpResponseNotAllowed()
 
-#TODO: get_or_create
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
 def view_single_post(request, post_id):
@@ -243,7 +242,7 @@ def view_single_post(request, post_id):
     #Method not allowed
     return HttpResponseNotAllowed()
 
-#TODO: get_or_create
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedAndNode])
 def handle_comments(request, post_id):

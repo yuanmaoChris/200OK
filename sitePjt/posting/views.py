@@ -30,9 +30,7 @@ class ViewPublicPosts(APIView):
     * Requires token authentication.
     * Only activated users are able to read-only this view.
     """
-    #authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [IsActivatedOrReadOnly]
-
     def get(self, request, format=None):
         """
         Return a list of all public posts.
@@ -41,7 +39,6 @@ class ViewPublicPosts(APIView):
             form = PostForm(request.POST or None)
             posts = getVisiblePosts(request.user)
             posts.sort(key=lambda x: x.published, reverse=True)
-            #Fixed: fix time order with remote posts
             context = {
                 'post_list': posts[:20],
                 'form': form,
@@ -50,7 +47,6 @@ class ViewPublicPosts(APIView):
         except Exception as e:
             print(e)
             return HttpResponseServerError(e)
-        #return a response instead
 
     def post(self, request, format=None):
         try:
@@ -73,7 +69,6 @@ class ViewPublicPosts(APIView):
         except Exception as e:
             print(e)
         return redirect('/posts/')
-        #return a response instead
 
 
 class ViewPostDetails(APIView):
@@ -83,9 +78,8 @@ class ViewPostDetails(APIView):
     * Requires token authentication.
     * Only authenticated authors are able to access this view.
     """
-    #authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
+    permission_classes = [IsAuthenticated]
     def get(self, request, post_id, format=None):
         """
         Return a detail of post by given Post Id.
@@ -93,10 +87,8 @@ class ViewPostDetails(APIView):
         post = Post.objects.filter(id=post_id)
         #Remote request
         if not post.exists():
-            #TODO Find exactly one node instead of abusing all nodes.
             nodes = ServerNode.objects.all()
             if nodes.exists():
-                # TODO USE GET_AUTH_POST!!!
                 post = getRemotePost(post_id, nodes, request.user.id)
             if post != None:
                 comments = getRemotePostComment(post, request.user.id)
@@ -114,9 +106,6 @@ class ViewPostDetails(APIView):
         }
         return render(request, "posting/post-details.html", context)
 
-#We are using POST method to delete.
-#Need to use Delete Method to do this.
-
 
 class DeletePost(APIView):
     """
@@ -126,7 +115,6 @@ class DeletePost(APIView):
     * Only authenticated and its owner author is able to access this view.
     """
 
-    #authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [IsActivated]
 
     def post(self, request, post_id, format=None):
@@ -158,9 +146,7 @@ class EditPost(APIView):
     '''
     use POST to resend a form to update an existing post
     '''
-    #authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [IsActivated]
-
     def post(self, request, post_id, format=None):
         """
         Edit a post by given Post Id.
@@ -203,9 +189,8 @@ class CommentHandler(APIView):
     * Only authenticated author is able to access this view.
     """
 
-    #authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [IsActivated]
 
+    permission_classes = [IsActivated]
     def post(self, request, post_id, comment_id=None, format=None):
         """
         Create a comment to a given Post Id.
@@ -304,9 +289,8 @@ class ViewUserPosts(APIView):
     '''
     show a specified author's posts.
     '''
-    #authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id, format=None):
         """
         Get a list of posts to a given Author Id.

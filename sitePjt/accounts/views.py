@@ -176,12 +176,14 @@ def getRemoteAuthor(author_id):
     #TODO Stop abusing all nodes, need author object instead of author_id
     for node in ServerNode.objects.all():
         url = '{}author/{}'.format(node.host_url, str(author_id))
-        response = requests.get(url, auth=(node.server_username, node.server_password))
-        #TODO: Issues Author Serializers is not working here
-        if response.status_code == 200:
-            remote_author = response.json()
-            author = getJsonDecodeAuthor(remote_author)
-            break
+        response = requests.get(url, auth=(node.server_username, node.server_password),timeout=5)
+        try:
+            if response.status_code == 200:
+                remote_author = response.json()
+                author = getJsonDecodeAuthor(remote_author)
+                break
+        except Exception as e:
+            print(e)
     return author
 
 def findAuthorIdFromUrl(url):
