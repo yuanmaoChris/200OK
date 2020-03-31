@@ -12,7 +12,7 @@ from django.conf import settings
 from .forms import PostForm
 from .models import Post, Comment
 from accounts.models import ServerNode
-from .helper_functions import getVisiblePosts,getRemotePublicPosts,getNodePostComment,getNodePost,getNodeAuthorPosts,postNodePostComment
+from .helper_functions import getVisiblePosts, getRemotePublicPosts, getRemotePostComment, getRemotePost, getRemoteAuthorPosts, postRemotePostComment
 from friendship.helper_functions import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
@@ -40,11 +40,7 @@ class ViewPublicPosts(APIView):
         try:
             form = PostForm(request.POST or None)
             posts = getVisiblePosts(request.user)
-            remote_posts = getRemotePublicPosts() 
-            
-            if len(remote_posts) > 0:
-                posts = list(posts) + remote_posts
-                posts.sort(key=lambda x: x.published, reverse=True)
+            posts.sort(key=lambda x: x.published, reverse=True)
             #Fixed: fix time order with remote posts
             context = {
                 'post_list': posts[:20],
@@ -68,7 +64,8 @@ class ViewPublicPosts(APIView):
                 form_data['author'] = request.user
                 form_data.pop('image')
                 newpost = Post.objects.create(**form_data)
-                newpost.origin = "{}/posts/{}/".format(settings.HOSTNAME, str(newpost.id))
+                newpost.origin = "{}/posts/{}/".format(
+                    settings.HOSTNAME, str(newpost.id))
                 print(newpost.origin)
                 form = PostForm()
             else:
@@ -96,12 +93,13 @@ class ViewPostDetails(APIView):
         post = Post.objects.filter(id=post_id)
         #Remote request
         if not post.exists():
-            #TODO Find exactly one node instead of abusing all nodes. 
+            #TODO Find exactly one node instead of abusing all nodes.
             nodes = ServerNode.objects.all()
             if nodes.exists():
-                post = getNodePost(post_id, nodes)  # TODO USE GET_AUTH_POST!!!
+                # TODO USE GET_AUTH_POST!!!
+                post = getRemotePost(post_id, nodes, request.user.id)
             if post != None:
-                comments = getNodePostComment(post)
+                comments = getRemotePostComment(post, request.user.id)
             else:
                 return HttpResponseNotFound("Post not found")
         #Local request
@@ -118,6 +116,8 @@ class ViewPostDetails(APIView):
 
 #We are using POST method to delete.
 #Need to use Delete Method to do this.
+
+
 class DeletePost(APIView):
     """
     Delete to a post by given Post ID in the system.
@@ -194,6 +194,7 @@ class EditPost(APIView):
         except Exception as e:
             return HttpResponseServerError(e)
 
+
 class CommentHandler(APIView):
     """
     Create or Delete a comment to a Post to a given Post ID in the system.
@@ -215,23 +216,22 @@ class CommentHandler(APIView):
             if not post.exists():
                 node = ServerNode.objects.all()
                 if node.exists():
-                    #TODO: get autho post check visibility first 
-                    post = getNodePost(post_id, node)
+                    post = getRemotePost(post_id, node, request.user.id)
                     if post:
-                        remote_comment = Comment(comment=request.POST['comment'],author=request.user,post=post)
-                        postNodePostComment(remote_comment)
+                        remote_comment = Comment(
+                            comment=request.POST['comment'], author=request.user, post=post)
+                        postRemotePostComment(remote_comment, request.user.id)
                         return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
                     else:
                         return HttpResponseNotFound("Post Not Found")
-                    #TODO: POST A comment 
-                    #postNodePostComment(post_id,comment_data=comment)
             #Target post on local server
             else:
                 post = Post.objects.get(id=post_id)
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
-            
-            serializer = CommentSerializer(data=request.POST, context={'author': request.user, 'post': post})
+
+            serializer = CommentSerializer(data=request.POST, context={
+                                           'author': request.user, 'post': post})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})

@@ -3,17 +3,18 @@ from accounts.models import ServerNode
 from django.db.models import Q
 import requests
 
+
 def checkFriendship(friend1_id, friend2_id):
     '''
         given 2 authors check weather they're friends
     '''
     try:
-        friend1 = Friend.objects.get(friend_id=friend1_id)
-        friend2 = Friend.objects.get(friend_id=friend2_id)
+        friend1 = Friend.objects.get(id=friend1_id)
+        friend2 = Friend.objects.get(id=friend2_id)
     except Exception as e:
         return False
 
-    if friend1.friend_id < friend2.friend_id:
+    if friend1.id < friend2.id:
         author_from, author_to = friend1, friend2
     else:
         author_from, author_to = friend2, friend1
@@ -22,6 +23,7 @@ def checkFriendship(friend1_id, friend2_id):
     else:
         return False
 
+
 def getAllFriends(author_id):
     '''
         given an author id find all this user's friends
@@ -29,7 +31,8 @@ def getAllFriends(author_id):
     friends = []
     try:
         author = Friend.objects.get(id=author_id)
-        friendships = Friendship.objects.filter(Q(author_a=author) | Q(author_b=author))
+        friendships = Friendship.objects.filter(
+            Q(author_a=author) | Q(author_b=author))
         for friendship in friendships:
             if friendship.author_a == author:
                 friends.append(friendship.author_b)
@@ -50,32 +53,40 @@ def checkVisibility(requester, post):
                 True: the requester is able to see the post
                 False: the requester is not able to see the post
     '''
-    #public post or self post
-    if post.visibility == 'PUBLIC' or post.author == requester:
+    #PUBLIC post -> always true
+    if post.visibility == 'PUBLIC':
         return True
+    #invalid requster -> False expcept for public posts
+    if not requester:
+        return False
     else:
-        req_friendsList = getAllFriends(requester.id)
-        author = Friend.objects.get(friend_id=post.author.id)
-        if post.visibility == 'FRIENDS':
-            if author in req_friendsList:
-                return True
-        elif post.visibility == 'FOAF':
-            #Case1: author and requester are friends => return True
-            if author in req_friendsList:
-                return True
-            #Case2: author and a friend of requester are friends => return True
-            else:
-                for friend in req_friendsList:
-                    if checkFriendship(friend.id, post.author.id):
-                        return True
 
-        elif post.visibility == 'SERVERONLY':
-            print("SERVERONLY unimplemented.But I give you visibility by this time.")
+        #self post -> always true
+        if post.author.id == requester.id:
             return True
+        #friends related posts
+        author = Friend.objects.filter(id=post.author.id)
+        author = author[0] if author.exists() else None
+        if author:
+            req_friendsList = getAllFriends(requester.id)
+            if post.visibility == 'FRIENDS':
+                if author in req_friendsList:
+                    return True
+            elif post.visibility == 'FOAF':
+                #Case1: author and requester are friends => return True
+                if author in req_friendsList:
+                    return True
+                #Case2: author and a friend of requester are friends => return True
+                else:
+                    for friend in req_friendsList:
+                        if checkFriendship(friend.id, author.id):
+                            return True
+        #server only post
+        if post.visibility == 'SERVERONLY':
             if post.author.host == requester.host:
                 return True
        #TODO: To check visibility within visibleTo
-        #if request.user.id in post.visibleTo and (not post in post_list):
+        #if requester.id in post.visibleTo:
             #post_list.append(post)
     return False
 
@@ -86,14 +97,14 @@ def SendFriendRequestRemote(author_form, friend_form):
         'author': author_form,
         'friend': friend_form,
     }
-    node = ServerNode.objects.filter(host_url=body['friend']['host']+'service/')
+    node = ServerNode.objects.filter(
+        host_url=body['friend']['host']+'service/')
     if not node.exists():
         return False
     node = node[0]
     url = "{}friendrequest".format(node.host_url)
-    print(url)
-    response = requests.post(url, json=body,auth=(node.server_username, node.server_password))
-    print(body)
+    response = requests.post(url, json=body, auth=(
+        node.server_username, node.server_password))
     # node = ServerNode.objects.all()
     # url = node[0].host_url
     # post_id = body['post'].split('/')[-2]

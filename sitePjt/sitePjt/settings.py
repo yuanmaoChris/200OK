@@ -145,8 +145,8 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'accounts.Author'
 
 #8000
-#HOSTNAME = "http://127.0.0.1:8000/"
+HOSTNAME = "http://127.0.0.1:8000/"
 #remote HOST name
-HOSTNAME = "https://floating-chamber-80877.herokuapp.com"
+# HOSTNAME = "https://floating-chamber-80877.herokuapp.com"
 # Activate Django-Heroku.
 django_heroku.settings(locals())

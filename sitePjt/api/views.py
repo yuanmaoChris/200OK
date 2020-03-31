@@ -49,7 +49,6 @@ def view_public_post(request):
             response = paginator.get_paginated_response('posts', 'posts', serializer.data)
             return response
         except Exception as e:
-            print(e)
             return HttpResponseServerError(e)
     else:
         #method not allowed
@@ -66,21 +65,21 @@ def handle_auth_posts(request):
     #Handle GET requests
     if request.method == 'GET':
         try:
-            #Parse post information from request
-            data = json.loads(request.body)
-            '''
-            if not 'requester' in data.key():
-                return HttpResponseForbidden("Who's requesting posts? Put author info in JSON body under 'requester'")
-            requster, _ = Author.objects.get_or_create(**post['requester'])
-            '''
-            #Get all posts that current authenticated user has visitbility of
-            posts = getVisiblePosts(request.user) 
+            #Parse requester information from node request
+            if not 'HTTP_X_USER_ID' in request.META.keys():
+                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
+            requester_id = request.META.get('HTTP_X_USER_ID')
+            requester = Friend.objects.filter(id=requester_id)
+            requester = requester[0] if requester.exists() else None
+            #Get all posts that requester has visitbility of
+            posts = getVisiblePosts(requester)
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
             except Exception as e:
                 return HttpResponseNotFound(e)
             serializer = PostSerializer(posts, many=True)
+            #Add on pagination
             response = paginator.get_paginated_response('posts', 'posts', serializer.data)
             return response
             return Response(serializer.data)
@@ -135,13 +134,19 @@ def view_author_posts(request, author_id):
     #Handle GET request
     if request.method == 'GET':
         try:
+
+            if not 'HTTP_X_USER_ID' in request.META.keys():
+                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
+            requester_id = request.META.get('HTTP_X_USER_ID')
+            requester = Friend.objects.filter(id=requester_id)
+            requester = requester[0] if requester.exists() else None
             #Get author instance whose posts to view
             author = Author.objects.filter(id=author_id)
-            if not author.exsits():
+            if not author.exists():
                 return HttpResponseNotFound("Author Profile Not Found.")
-            author = Author.objects.get(id=author_id)
+            author = author[0]
             #filter out all posts that requester does not have visibility of
-            posts = getVisiblePosts(request.user, author)
+            posts = getVisiblePosts(requester, author)
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
@@ -166,14 +171,18 @@ def view_single_post(request, post_id):
     '''
     if request.method == 'GET':
         try:
+            if not 'HTTP_X_USER_ID' in request.META.keys():
+                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
+            requester_id = request.META.get('HTTP_X_USER_ID')
+            requester = Friend.objects.filter(id=requester_id)
+            requester = requester[0] if requester.exists() else None
             #Get the post specified by request
             post = Post.objects.filter(id=post_id)
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found.")
-            post = Post.objects.get(id=post_id)
-
+            post = post[0]
             #Case 1: User has visibility
-            if checkVisibility(request.user, post):
+            if checkVisibility(requester, post):
                 serializer = PostSerializer(post)
                 response = {}
                 response['query'] = 'posts'
@@ -245,6 +254,11 @@ def handle_comments(request, post_id):
     #Handler GET requests
     if request.method == 'GET':
         try:
+            if not 'HTTP_X_USER_ID' in request.META.keys():
+                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
+            requester_id = request.META.get('HTTP_X_USER_ID')
+            requester = Friend.objects.filter(id=requester_id)
+            requester = requester[0] if requester.exists() else None
             #Get the post specified by request
             post = Post.objects.filter(id=post_id)
             if not post.exists():
@@ -252,7 +266,7 @@ def handle_comments(request, post_id):
             post = post[0]
             
             #Reject request if anonymous user or user does not have visibility
-            if not checkVisibility(request.user, post):
+            if not checkVisibility(requester, post):
                 return HttpResponseForbidden(b"You dont have visibility.")
             
             #Valid request -> get comments data and return in response
@@ -295,12 +309,16 @@ def handle_comments(request, post_id):
                 return Response(context, status=403)
             post = post[0]
 
+            #Check if comment author has visibility of post
+            requester_id = author_info['id']
+            requester = Friend.objects.filter(id=requester_id)
+            requester = requester[0] if requester.exists() else None
+            #Check visibility
+            if not checkVisibility(requester, post):
+                return Response(context, status=403)
+
             #Get comment author object on local server
             comment_author, _ = Author.objects.get_or_create(**author_info)
-
-            #Check visibility
-            if not checkVisibility(comment_author, post):
-                return Response(context, status=403)
             
             comment_info['author'] = comment_author
             comment_info['post'] = post
@@ -546,7 +564,6 @@ def make_friendRequest(request):
             return Response(context, status=200)
         #Server Error
         except Exception as e:
-            print(e)
             return HttpResponseServerError(e)
     #Method not allowed
     else:
@@ -564,7 +581,7 @@ def getVisiblePosts(requester, author=None):
     '''
     result = []
     #Anonymous user
-    if requester.is_anonymous:
+    if not requester:
         if author:
             return Post.objects.filter(author=author, visibility='PUBLIC', unlisted=False).order_by('-published')
         else:
@@ -578,7 +595,7 @@ def getVisiblePosts(requester, author=None):
     #Append post to result according to visibility and user's status
     for post in posts:
         #Self post or public post
-        if post.visibility == 'PUBLIC' or post.author == requester:
+        if post.visibility == 'PUBLIC' or post.author.id == requester.id:
             result.append(post)
         #Friends only post
         elif post.visibility == 'FRIENDS':
@@ -614,29 +631,39 @@ def checkVisibility(requester, post):
                 True: the requester is able to see the post
                 False: the requester is not able to see the post
     '''
-    #public post or self post
-    if  post.visibility == 'PUBLIC' or post.author == requester:
+    #PUBLIC post -> always true
+    if  post.visibility == 'PUBLIC':
         return True
+    #invalid requster -> False expcept for public posts
+    if not requester:
+        return False
     else:
-        req_friendsList = getAllFriends(requester.id)
-        if post.visibility == 'FRIENDS':
-            if post.author in req_friendsList:
-                return True
-        elif post.visibility == 'FOAF':
-            #Case1: author and requester are friends => return True
-            if post.author in req_friendsList:
-                return True
-            #Case2: author and a friend of requester are friends => return True
-            else:
-                for friend in req_friendsList:
-                    if checkFriendship(friend.id, post.id):
-                        return True
 
+        #self post -> always true
+        if post.author.id == requester.id:
+            return True
+        #friends related posts
+        author = Friend.objects.filter(id=post.author.id)
+        author = author[0] if author.exists() else None
+        if author:
+            req_friendsList = getAllFriends(requester.id)
+            if post.visibility == 'FRIENDS':
+                if author in req_friendsList:
+                    return True
+            elif post.visibility == 'FOAF':
+                #Case1: author and requester are friends => return True
+                if author in req_friendsList:
+                    return True
+                #Case2: author and a friend of requester are friends => return True
+                else:
+                    for friend in req_friendsList:
+                        if checkFriendship(friend.id, author.id):
+                            return True
+        #server only post
         elif post.visibility == 'SERVERONLY':
-            print("SERVERONLY unimplemented.But I give you visibility by this time.")
             if post.author.host == requester.host:
                 return True
        #TODO: To check visibility within visibleTo
-        #if request.user.id in post.visibleTo and (not post in post_list):
+        #if requester.id in post.visibleTo:
             #post_list.append(post)
     return False

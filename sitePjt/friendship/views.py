@@ -47,7 +47,8 @@ class SendFriendRequestView(APIView):
             else:
                 a, b = friend_to, friend_from
             #check if there is an oppsite request
-            fr = FriendRequest.objects.filter(author_from=friend_to, author_to=friend_from)
+            fr = FriendRequest.objects.filter(
+                author_from=friend_to, author_to=friend_from)
             if fr.exists():
                 fr[0].delete()
                 SendFriendRequestRemote(form_from, form_to)
@@ -56,17 +57,20 @@ class SendFriendRequestView(APIView):
 
                 #check weather they're already friends
                 friendship = Friendship.objects.filter(author_a=a, author_b=b)
-                fr = FriendRequest.objects.filter(author_from=friend_from, author_to=friend_to)
+                fr = FriendRequest.objects.filter(
+                    author_from=friend_from, author_to=friend_to)
                 if not friendship.exists() and not fr.exists():
                     if form_from['host'] == form_to['host']:
                         #Locally
-                        
-                        friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+
+                        friend_req = FriendRequest.objects.create(
+                            author_from=friend_from, author_to=friend_to)
                     else:
                         #Remote friend request
                         success = SendFriendRequestRemote(form_from, form_to)
                         if success:
-                            friend_req = FriendRequest.objects.create(author_from=friend_from, author_to=friend_to)
+                            friend_req = FriendRequest.objects.create(
+                                author_from=friend_from, author_to=friend_to)
 
             return HttpResponseRedirect(reverse('accounts:view profile', args=(form_to['id'],)), {})
         except Exception as e:
@@ -89,31 +93,49 @@ class HandleRequestView(APIView):
         '''
             deal with friend request (either Accept or Decline)
         '''
-        
+
         try:
             form = request.POST or None
             fr = FriendRequest.objects.filter(id=form['request_id'])
             if not fr.exists():
                 return HttpResponseNotFound("Friend request does not exists")
-            fr = FriendRequest.objects.get(id=form['request_id'])
+            fr = fr[0]
             ##Update
             author_from = fr.author_from
             author_to = fr.author_to
-            fr2 = FriendRequest.objects.filter(author_from=author_to, author_to=author_from)
+            fr2 = FriendRequest.objects.filter(
+                author_from=author_to, author_to=author_from)
             if fr2.exists:
                 fr2.delete()
             fr.delete()
 
             if form['method'] == 'Accept':
-                if author_from.id < author_to.id:
-                    a, b = author_from, author_to
-                else:
-                    a, b = author_to, author_from
-                friendship = Friendship.objects.filter(author_a=a, author_b=b)
-                #build friendship if they were not friends
-                if not friendship.exists():
-                    friendship = Friendship(author_a=a, author_b=b)
-                    friendship.save()
+                success = False
+                if author_from.host != author_to.host:
+                    author_form = {'id': author_to.id,
+                                   'host': author_to.host,
+                                   'displayName': author_to.displayName,
+                                   'url': author_to.url
+                                   }
+                    friend_form = {'id': author_from.id,
+                                   'host': author_from.host,
+                                   'displayName': author_from.displayName,
+                                   'url': author_from.url
+                                   }
+                    success = SendFriendRequestRemote(author_form, friend_form)
+
+                if success:
+                    if author_from.id < author_to.id:
+                        a, b = author_from, author_to
+                    else:
+                        a, b = author_to, author_from
+                    friendship = Friendship.objects.filter(
+                        author_a=a, author_b=b)
+                    #create friendship if they were not friends
+                    if not friendship.exists():
+                        friendship = Friendship(author_a=a, author_b=b)
+                        friendship.save()
+
                 return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
         except Exception as e:
             return HttpResponseServerError(e)
@@ -138,7 +160,8 @@ class FriendsRequestView(APIView):
             context = {
                 'friend_requests': None
             }
-            friend_requests = FriendRequest.objects.filter(author_to=request.user)
+            friend_requests = FriendRequest.objects.filter(
+                author_to=request.user)
             context['friend_requests'] = friend_requests
             return render(request, 'friendship/friend_request.html', context)
         except Exception as e:
@@ -205,8 +228,12 @@ class DeleteFriendView(APIView):
         '''
         try:
             form = request.POST or None
-            author = Friend.objects.filter(id=request.user.id)[0]
-            friend = Friend.objects.filter(id=form['friend_id'])[0]
+            author = Friend.objects.filter(id=request.user.id)
+            friend = Friend.objects.filter(id=form['friend_id'])
+            if author.exists() and friend.exists():
+                author, friend = author[0], friend[0]
+            else:
+                return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
             if author.id < friend.id:
                 a, b = author, friend
             else:
@@ -218,4 +245,4 @@ class DeleteFriendView(APIView):
             friendship.delete()
             return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
         except Exception as e:
-            return HttpResponseServerError(e) 
+            return HttpResponseServerError(e)
