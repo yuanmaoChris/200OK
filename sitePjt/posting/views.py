@@ -52,7 +52,7 @@ class ViewPublicPosts(APIView):
         
         try:
             form = PostForm(request.POST, request.FILES) 
-            print(request.FILES)
+            print(request.FILES,'This')
             if form.is_valid():
                 form_data = form.cleaned_data
                 contentType = form_data.get('contentType')

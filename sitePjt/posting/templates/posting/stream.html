@@ -94,20 +94,37 @@
         $(document).on('submit', '#post-form',function(e) {
             console.log("Form Sent");
             e.preventDefault(); 
+            var file = document.querySelector('input[type=file]');
+            var formData = new FormData();
+            formData.append('title',$('#id_title').val().trim());
+            formData.append('content',$('#id_content').val().trim());
+            formData.append('visibility',$('#id_visibility').val().trim());
+            formData.append('contentType',$('#id_contentType').val().trim());
+            formData.append('unlisted',$('#id_unlisted').val().trim());
+            formData.append('categories',$('#id_categories').val().trim());
+            formData.append('csrfmiddlewaretoken','{{ csrf_token }}');
+            console.log();
+            if (file.files[0]){
+                image = file.files[0];
+                formData.append('image',image);
+            }
         $.ajax({
                 url:'.',
                 type: 'POST',
                 dataType: 'json',
-                data:{
-                    title:$('#id_title').val().trim(),
-                    content: $('#id_content').val().trim(),
-                    visibility: $('#id_visibility').val(),
-                    contentType: $('#id_contentType').val(),
-                    unlisted: $('#id_unlisted').val(),
-                    categories: $('#id_categories').val(),
-                    image: $('#id_image').val(),
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
+                data:formData,
+                processData: false,
+                contentType: false,
+                // data:{
+                //     title:$('#id_title').val().trim(),
+                //     content: $('#id_content').val().trim(),
+                //     visibility: $('#id_visibility').val(),
+                //     contentType: $('#id_contentType').val(),
+                //     unlisted: $('#id_unlisted').val(),
+                //     categories: $('#id_categories').val(),
+                //     image: img,
+                //     csrfmiddlewaretoken: 
+                // },
                 success: function(data) {
                     let id = data['author']['id'];
                     let host =data['author']['host'];
