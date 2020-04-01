@@ -9,12 +9,30 @@ class PostForm(forms.ModelForm):
                 "class": "textarea form-control",
                 "rows": 30,
                 "cols": 50,
-                "style": "resize:none",
+                "style": "resize:none;width:500px;",
+                "placeholder":"What's Happenning?",
             }
         )
     )
     image = forms.ImageField(required=False)
-
+    title = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                "style":"width:500px;",
+                "placeholder":"Enter title",
+            }
+        )
+    )
+    categories = forms.CharField(
+        required=False,
+        widget =forms.TextInput(
+            attrs={
+                "class":"form-control",
+                 "style":"width:500px;",
+                "placeholder":"Enter categories"
+            }
+        )
+    )
     class Meta:
         model = Post
         fields = [

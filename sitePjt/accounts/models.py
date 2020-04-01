@@ -98,7 +98,7 @@ class Author(AbstractBaseUser):
         return self.displayName
 
     def get_url(self):
-        return self.host + "/author/" + self.id + "/"
+        return "{}author/{}".format(self.host, self.id)
 
     def has_perm(self, perm, obj=None):
         if perm in ['owner of post', 'owner of comment']:

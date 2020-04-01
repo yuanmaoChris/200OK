@@ -37,7 +37,7 @@ class UserCreationForm(forms.ModelForm):
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         user.id = uuid.uuid4().urn[9:]
-        user.url = settings.HOSTNAME + "/author/" + user.id + "/"
+        user.url = "{}author/{}".format(settings.HOSTNAME, user.id)
         user.active = True
         if commit:
             user.save()

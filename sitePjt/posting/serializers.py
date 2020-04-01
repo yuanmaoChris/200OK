@@ -34,23 +34,17 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
-    comments = serializers.SerializerMethodField('get_comment')
 
     class Meta:
         model = Post
         #get source field done plz..
         fields = ('title', 'source', 'origin', 'contentType', 'content',
                   'author', 'categories', 'published', 'id', 'visibility',
-                  'unlisted', 'comments'
+                  'unlisted'
                   )
 
     def get_author(self, obj):
     	return AuthorSerializer(obj.author).data
-
-    def get_comment(self, obj):
-        comments = Comment.objects.filter(post=obj)
-        count = len(comments)
-        return CommentListSerializer(comments, context={'count': count}, exclude=['query']).data
 
     def create(self, validated_data):
         validated_data['author'] = self.context.get('author')

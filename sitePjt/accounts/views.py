@@ -66,48 +66,6 @@ def logout_view(request):
     logout(request)
     return redirect('/accounts/login/')
 
-
-#@login_required
-# def profile_view(request, author_id):
-#     '''
-#     given an author id to find the specified user's information
-#     '''
-#     form = request.POST
-#     if request.method == "POST":
-#         print(form)
-#         Author.objects.filter(id=author_id).update(
-#             displayName=form['displayName'],
-#             bio=form['bio'],
-#             github=form['github'],
-#         )
-#         Friend.objects.filter(friend_id=author_id).update(
-#             friend_displayName=form['displayName']
-#         )
-
-#     author = Author.objects.filter(id=author_id)[0]
-#     posts_list = []
-#     '''
-#         current user is browsing others profile page, so only show allowed posts
-#     '''
-#     if request.user.id != author_id:
-#         posts_list = PostingView.getVisiblePosts(request.user, author)
-
-#     context = {
-#         'displayName': author.displayName,
-#         'avatar': author.avatar,
-#         'github': author.github,
-#         'url': author.url,
-#         'host': author.host,
-#         'bio': author.bio,
-#         'email': author.email,
-#         'id': author.id,
-#         'joined_date': author.date_joined,
-#         'post_list': posts_list,
-#     }
-
-#     return render(request, "accounts/profile.html", context)
-
-
 class ProfileView(APIView):
     """
     View to a detail of author profile and its posts list in the system.

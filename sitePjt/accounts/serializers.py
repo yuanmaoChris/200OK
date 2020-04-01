@@ -6,7 +6,6 @@ Author = get_user_model()
 
 class AuthorSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField('get_id')
-    url = serializers.SerializerMethodField('get_url')
 
     class Meta:
         model = Author
@@ -14,9 +13,7 @@ class AuthorSerializer(serializers.ModelSerializer):
                   )
 
     def get_id(self, obj):
-        return "{}/author/{}/".format(str(obj.host), str(obj.id))
-    def get_url(self, obj):
-        return "{}/author/{}/".format(str(obj.host), str(obj.id))
+        return "{}author/{}".format(str(obj.host), str(obj.id))
         
     # def create(self, validated_data):
     #     return Author.objects.create(**validated_data)

@@ -1,6 +1,7 @@
 from django.shortcuts import render, reverse, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -16,7 +17,7 @@ from .helper_functions import getVisiblePosts, getRemotePublicPosts, getRemotePo
 from friendship.helper_functions import checkVisibility
 from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 import base64
 from rest_framework.renderers import JSONRenderer
 
@@ -30,18 +31,17 @@ class ViewPublicPosts(APIView):
     * Requires token authentication.
     * Only activated users are able to read-only this view.
     """
+   
     permission_classes = [IsActivatedOrReadOnly]
     def get(self, request, format=None):
         """
         Return a list of all public posts.
         """
         try:
-            form = PostForm(request.POST or None)
             posts = getVisiblePosts(request.user)
             posts.sort(key=lambda x: x.published, reverse=True)
             context = {
                 'post_list': posts[:20],
-                'form': form,
             }
             return render(request, "posting/stream.html", context)
         except Exception as e:
@@ -49,8 +49,10 @@ class ViewPublicPosts(APIView):
             return HttpResponseServerError(e)
 
     def post(self, request, format=None):
+        
         try:
-            form = PostForm(request.POST, request.FILES)
+            form = PostForm(request.POST, request.FILES) 
+            print(request.FILES)
             if form.is_valid():
                 form_data = form.cleaned_data
                 contentType = form_data.get('contentType')
@@ -60,15 +62,17 @@ class ViewPublicPosts(APIView):
                 form_data['author'] = request.user
                 form_data.pop('image')
                 newpost = Post.objects.create(**form_data)
-                newpost.origin = "{}/posts/{}/".format(
+                newpost.origin = "{}posts/{}".format(
                     settings.HOSTNAME, str(newpost.id))
-                print(newpost.origin)
-                form = PostForm()
+                response = PostSerializer(newpost).data
+                print(response)
+                return JsonResponse(response, status=200)
             else:
                 return HttpResponseForbidden("invalid input")
         except Exception as e:
             print(e)
-        return redirect('/posts/')
+            return HttpResponseServerError(e)
+        #return redirect('/posts/')
 
 
 class ViewPostDetails(APIView):
@@ -152,14 +156,6 @@ class EditPost(APIView):
         Edit a post by given Post Id.
         """
         try:
-            '''
-            form = PostForm(request.POST, request.FILES)
-            if form.is_valid():
-                form_data = form.cleaned_data
-            contentType = form_data.get('contentType')
-            if contentType in ['image/png;base64', 'image/jpeg;base64', 'application/base64']:
-                form_data['content'] = base64.b64encode(request.FILES['image'].read()).decode("utf-8")
-            '''
             form = request.POST
             post = Post.objects.filter(id=post_id)
             if post.exists():

@@ -21,7 +21,10 @@
 
 {% block content %}
     {% if post_list %}
+
+
         <ul>
+            <div id="newposts"></div>
             {% for post in post_list %}
             <li>
                 {% include 'posting/post-inline-view.html' with post=post %}                 
@@ -35,11 +38,155 @@
 
 {% block newPost %}
     {% if request.user.is_authenticated %}
-        {% include 'posting/post-input-form.html' with post=post %}           
+    <h1 style="text-align:center">Welcome Back {{ request.user.displayName }} !</h1>
+    <div class="card" style="width: 600px;">
+        <form method="POST" class="post-form" enctype="multipart/form-data" id='post-form'>
+            <div class="form-group">
+                <input type="text" name="title" style="width:500px;" placeholder="Enter title" required="" id="id_title">
+            </div>
+            <div class="form-group">
+                <textarea name="content" cols="50" rows="30" class="textarea form-control" style="resize:none;width:500px;" placeholder="What's Happenning?" required="" id="id_content"></textarea>
+            </div>
+            <div class="container" style="margin-top: 10px;">
+                <div class="btn-group">
+                <button type="button" name="categories" data-toggle="collapse" href="#post-form-category-input" role="button" aria-expanded="false" aria-controls="post-form-category-input" class="btn btn-outline-primary btn-sm">Categroy</button>
+                </div>
+                <div class="btn-group">
+                    <select name="contentType" id="id_contentType" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="120px" tabindex="-98">
+                        <option value="image/png;base64">Image/png</option>    
+                        <option value="image/jpeg;base64">Image/jpeg</option>  
+                        <option value="text/plain" selected="">Plain text</option>
+                        <option value="text/markdown">Markdown</option>
+                        <option value="application/base64">Application</option>
+                      </select>
+                </div>
+                <div class="btn-group">
+                    <select name="visibility" id="id_visibility" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
+                        <option value="PUBLIC" selected="">Public</option>    
+                        <option value="PRIVATE">Prviate to self</option>
+                        <option value="FRIENDS">Private to friends</option>
+                        <option value="FOAF">Private to friends of friends</option>
+                        <option value="SERVERONLY">Private to local friends</option>
+                      
+                      </select>
+                </div>
+                <div class="btn-group">
+                    <select name="unlisted" id="id_unlisted" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
+                        <option value="True">Listed</option>
+                        <option value="False" selected="">Unlisted</option>
+                      </select>
+                </div>        
+            </div>
+            <div class="form-group">
+                <div class="collapse" id="post-form-category-input" style="margin-top: 10px;margin-left: 50px;">
+                    <input type="text" name="categories" class="form-control" style="width:500px;" placeholder="Enter categories" id="id_categories">
+                </div>
+            </div>
+            <div>
+                <input type="file" name="image" accept="image/*" id="id_image">
+            </div>
+            <div>
+                <input type="submit" value="Post" id='post-form-btn-submit' class="btn btn-primary float-right" style="width: 80px;margin-right: 10px;margin-bottom: 10px;">
+                <input id='cancel_btn' type="button" name="clear" class="btn btn-danger float-right" value="Cancel" style="margin-right: 5px;">
+            </div>
+        </form>
         <script>
-            document.getElementById("id_title").setAttribute("placeholder", "Enter title");
-            document.getElementById("id_content").setAttribute("placeholder", "What's Happenning?");
-            document.getElementById("id_category").setAttribute("placeholder", "What's category?");
+        $(document).on('submit', '#post-form',function(e) {
+            console.log("Form Sent");
+            e.preventDefault(); 
+        $.ajax({
+                url:'.',
+                type: 'POST',
+                dataType: 'json',
+                data:{
+                    title:$('#id_title').val().trim(),
+                    content: $('#id_content').val().trim(),
+                    visibility: $('#id_visibility').val(),
+                    contentType: $('#id_contentType').val(),
+                    unlisted: $('#id_unlisted').val(),
+                    categories: $('#id_categories').val(),
+                    image: $('#id_image').val(),
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(data) {
+                    let id = data['author']['id'];
+                    let host =data['author']['host'];
+                    let url = host +'accounts/author/profile/'+id.substring(id.lastIndexOf('/') + 1);
+                    let displayName = data['author']['displayName'];
+                    let title = data['title'];
+                    let origin = data['origin'];
+                    var html = `
+                    <div class="card" style="width:600px">
+                    <div class="card-body">
+                    <a class="displa-name" href="${url}">${displayName}</a>
+                    <br>
+                    <span id="timestamp">  Just now </span>
+                    <div class="card-title">
+                        <p style="font-size: larger;">${title}</p></p>
+                    </div>
+                    <a  class="" href="${origin}" style="font-size: small;" >Read More</a>
+                    </div>
+                    </div>
+                    `;
+                    $("#newposts").prepend(html);
+                    reset_form();
+ 
+                },
+                failure: function(data) { 
+                    alert('Got an error dude');
+                }
+                
+        });
+        
+        });
+        
+        $('#cancel_btn').click( function(){
+            reset_form();
+        }); 
+        function create_post() {
+            var host_name ="{{ request.user.host }}";
+            post_url = host_name+'posts/';
+
+        };
+        function reset_form(){
+            document.getElementById("post-form").reset();
+            $("#id_visibility").val('PUBLIC');
+            $("#id_visibility").selectpicker("refresh");
+            $("#id_contentType").val('text/plain');
+            $("#id_contentType").selectpicker("refresh");
+            $("#id_unlisted").val('False');
+            $("#id_unlisted").selectpicker("refresh");
+        };
+            $('#id_contentType').addClass('selectpicker')
+            $("#id_contentType").attr('data-style','btn-outline-primary btn-sm')
+            $("#id_contentType").attr('data-width','120px')
+            $('#id_visibility').addClass('selectpicker')
+            $("#id_visibility").attr('data-style','btn-outline-primary btn-sm')
+            $("#id_visibility").attr('data-width','fit')
+            $('#id_unlisted').addClass('selectpicker')
+            $("#id_unlisted").attr('data-style','btn-outline-primary btn-sm')
+            $("#id_unlisted").attr('data-width','fit')
+            $('#id_unlisted option:contains("False")').text('Unlisted');
+            $('#id_unlisted option:contains("True")').text('Listed');
         </script>
+    </div>
+        
     {% endif %}
 {% endblock %}
+<script>
+function createPost(){
+    $('<li></li>').append('<div class="card" style="width:600px" id="post-card"> </div>');
+    $('#post-card').append('<div class="card-body" id="post-card-body"> </div>');
+    $('#post-card-body').append(
+        "<a class=\"displa-name\" href=\"\">{{post.author.displayName}}</a>     <br>"
+    )
+    $('#post-card-body').append(
+        '<span id="timestamp"> ago</span>'
+    )
+    $('#post-card-body').append("<div class=\"card-title\" id=\"post-card-title\">  </div>")
+    $('#post-card-title').append("<p style=\"font-size: larger;\"></p>")
+    $('#post-card-body').append(
+        "  <a  class=\"\" href=\"\" style=\"font-size: small;\" >Read More</a>"
+    )
+}
+</script>

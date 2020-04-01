@@ -88,41 +88,6 @@ def handle_auth_posts(request):
     #Method not allowed
     else:
         return HttpResponseNotAllowed()
-    '''
-    #Handle POST requests
-    elif request.method == 'POST':
-        try:
-            #Initialize response context
-            context = {
-                "query": "addPost",
-                "success": None,
-                "message": None,
-            }
-            #Parse requester information from request
-            data = json.loads(request.body)
-            #Make a new post
-            #Parse post information from request
-            post_form = data.get('post_form')
-            
-            serializer = PostSerializer(data=post_form, context = {'author': requester})
-            #post information data is valid -> save post to database and return success response
-            if serializer.is_valid():
-                newpost = serializer.save()
-                newpost.origin = "{}/posts/{}/".format(settings.HOSTNAME, newpost.id)
-                context['success'] = True
-                context['message'] = "New Post Added"
-                return Response(context, status=200)
-            #post information data is invalid -> return failure response
-            else:
-                print(serializer.errors)
-                context['success'] = False
-                context['message'] = "Invalid form data"
-                return Response(context, status=403)
-
-        #Server error when handling request
-        except Exception as e:
-            return HttpResponseServerError(e)
-        '''
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode])
@@ -371,32 +336,6 @@ def ViewProfile(request, author_id):
         #Method not allowed
     else:
         return HttpResponseNotAllowed()
-    '''
-    #Handling POST request (Updating a author's profile)
-    elif request.method == 'POST':
-        #check user authenticaiton first
-        if request.user.is_anonymous or (author_id != request.user.id):
-            return HttpResponseForbidden(b"Invalid user")
-        try:
-            #Get author whose profile to view
-            author = Author.objects.filter(id=author_id)
-            #Author's profile found
-            if author.exists():
-                serializer = AuthorSerializer(author[0], data=request.POST, partial=True)
-                #Valid data -> update author's profile
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    return Response(serializer.data)
-                #Invalid data -> return failure message
-                else:
-                    return HttpResponseForbidden(b"invalid author form data")
-            #Author's profile not found
-            else:
-                return HttpResponseForbidden(b"Author not found")
-        #Server error when handling request
-        except Exception as e:
-            return HttpResponseServerError(e)
-    '''
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedAndNode])
