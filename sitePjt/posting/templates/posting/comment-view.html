@@ -1,15 +1,16 @@
-<div class="card" style="width: 600px;">
+<div class="card" style="width: 600px; height: auto;">
     <div class="card-body">
             <div class="card-content">
-                {{ comment.comment }}
-                <br>
-                <div class="card-subtile " style="text-align: right;">
-                    {{ comment.author.displayName }}
-                    <span id="timestamp">{{ comment.published }}</span>
+                <div class="card-subtile " style="text-align: left;">
+                    <h6 style="display: inline">{{ comment.author.displayName }}</h6><span id="timestamp">   {{ comment.published }}</span>
+                    <div style="margin-top:10px; margin-left:50px;margin-right:50px;">
+                        {{ comment.comment }}
+                    </div>
+                   
                     {% if comment.author == request.user %}
                         <form action="{% url 'posting:comment handler' post.id comment.id%}" method="GET">
                                 {% csrf_token %}
-                                <input  class='btn btn-primary float-right' type="submit" value="Delete">
+                                <input  class='btn btn-danger btn-sm float-right' type="submit" value="Delete" style="margin-top: 10px;">
                         </form>
                     {% endif %}
                 </div>

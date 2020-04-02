@@ -49,10 +49,8 @@ class ViewPublicPosts(APIView):
             return HttpResponseServerError(e)
 
     def post(self, request, format=None):
-        
         try:
-            form = PostForm(request.POST, request.FILES) 
-            print(request.FILES,'This')
+            form = PostForm(request.POST, request.FILES)
             if form.is_valid():
                 form_data = form.cleaned_data
                 contentType = form_data.get('contentType')

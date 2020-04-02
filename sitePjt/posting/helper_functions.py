@@ -110,7 +110,7 @@ def getRemotePublicPosts():
                 print(response.json())
                 break
         except Exception as e:
-            print(e)
+            #print(e)
             pass
 
 
@@ -136,7 +136,7 @@ def getRemoteVisiblePost(nodes, requester_id):
                 print(response.json())
                 break
         except Exception as e:
-            print(e)
+            #print(e)
             pass
 
         
@@ -162,7 +162,7 @@ def getRemotePost(post_id, nodes, requester_id):
                 print(response.json())
                 break
         except Exception as e:
-            print(e)
+            #print(e)
             pass
     return post
 
@@ -189,7 +189,7 @@ def getRemotePostComment(post, requester_id):
                 print(response.json())
                 break
         except Exception as e:
-            print(e)
+            #print(e)
             pass
 
     return remote_comments
@@ -229,7 +229,7 @@ def postRemotePostComment(comment_data, requester_id):
                 print(response.json())
                 break
         except Exception as e:
-            print(e)
+            #print(e)
             pass
 
 def getRemoteAuthorPosts(author_id, requester_id, node):
@@ -251,7 +251,7 @@ def getRemoteAuthorPosts(author_id, requester_id, node):
         else:
             print(response.json())
     except Exception as e:
-        print(e)
+        #print(e)
         pass
 
     return remote_author_posts

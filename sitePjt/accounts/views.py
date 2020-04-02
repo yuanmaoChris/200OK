@@ -141,7 +141,8 @@ def getRemoteAuthor(author_id):
                 author = getJsonDecodeAuthor(remote_author)
                 break
         except Exception as e:
-            print(e)
+            pass
+        
     return author
 
 def findAuthorIdFromUrl(url):

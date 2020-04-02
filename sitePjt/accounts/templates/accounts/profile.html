@@ -1,7 +1,7 @@
 {%include 'posting/base.html'%}
 {%include 'posting/navbar.html'%}
 
-<div class="container" style="margin-top: 20px;">
+<div class="container" style="margin-top: 20px;height:auto;width:950px;">
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card">
@@ -16,7 +16,6 @@
                                 {% endif %}
                                 <div class="middle">
                                     {%  if  not request.user.is_authenticated  %}
-                                    
                                     {% else %}
                                         {% if request.user.id != author.id  %}
                                             <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}
@@ -24,7 +23,6 @@
                                                 <input type="hidden" name="friend_from_friend_displayName" value="{{ request.user.displayName }}"></input>
                                                 <input type="hidden" name="friend_from_friend_url" value="{{ request.user.url }}"></input>
                                                 <input type="hidden" name="friend_from_friend_host" value="{{ request.user.host }}"></input>
-
                                                 <input type="hidden" name="friend_to_friend_id" value="{{ author.id }}"></input>
                                                 <input type="hidden" name="friend_to_friend_displayName" value="{{ author.displayName }}"></input>
                                                 <input type="hidden" name="friend_to_friend_url" value="{{ author.url }}"></input>
@@ -32,7 +30,6 @@
                                                 <div style="margin-top: 10px;">
                                                     <input type="submit" class="btn btn-primary" id="btnRequest" value="request" />
                                                 </div>
-                                               
                                             </form>
                                         {% else %}
                                         <div style="margin-top: 10px;">
@@ -45,7 +42,7 @@
                             </div>
                             <div class="userData ml-3">
                                 <h2 class="d-block" style="font-size: 1.5rem; font-weight: bold"><a href="javascript:void(0);">{{ author.displayName }}</a></h2>
-                                <h6 class="d-block"><a href="javascript:void(0)">#</a> Posts</h6>
+                                <h6 class="d-block"><a href="#post-list" id='posts_count'>#</a> Posts</h6>
                             </div>
                             <div class="ml-auto">
                                 <input type="button" class="btn btn-primary d-none" id="btnDiscard" value="Discard Changes" />
@@ -63,19 +60,28 @@
                             <form class="change-form", action="{% url 'accounts:view profile' request.user.id %}", method="POST"> {% csrf_token %}
                                 <div class="tab-content ml-1" id="myTabContent">
                                     <div class="tab-pane fade show active" id="basicInfo" role="tabpanel" aria-labelledby="basicInfo-tab">
-                                            <div class="row">
+ 
+                                        <div class="row" style="height: 30px;">
                                                 <div class="col-sm-3 col-md-2 col-5">
                                                     <label style="font-weight:bold;">Display Name</label>
                                                 </div>
                                                 <div class="col-md-8 col-6">
                                                     <input type="text" id="display-input" name="displayName" class="form-control classname" value="{{ author.displayName }}" readonly />                                      
                                                 </div>
-
-                                            </div>
-
+                                        </div>
                                             <hr />
+                                            <div class="row" style="height: 30px;">
+                                                <div class="col-sm-3 col-md-2 col-5">
+                                                    <label style="font-weight:bold;">Host</label>
+                                                </div>
+                                                <div class="col-md-8 col-6">
+                                                    <input type="text" id="host" name="host" class="form-control classname" value="{{ author.host }}" readonly />                                      
+                                                </div>
+                                            </div>
+                                            <hr />
+    
 
-                                            <div class="row">
+                                            <div class="row" style="height: 30px;">
                                                 <div class="col-sm-3 col-md-2 col-5">
                                                     <label style="font-weight:bold;">Date Joined</label>
                                                 </div>
@@ -85,7 +91,7 @@
                                             </div>
                                             <hr /> 
 
-                                            <div class="row">
+                                            <div class="row" style="height: 30px;">
                                                 <div class="col-sm-3 col-md-2 col-5">
                                                     <label style="font-weight:bold;">Bio</label>
                                                 </div>
@@ -95,7 +101,7 @@
                                             </div>
                                             <hr />
 
-                                            <div class="row">
+                                            <div class="row" style="height: 30px;">
                                                 <div class="col-sm-3 col-md-2 col-5">
                                                     <label style="font-weight:bold;">Github</label>
                                                 </div>
@@ -107,7 +113,6 @@
                                             <hr />
 
                                             <div class="row">
-
                                                 <button type="submit" class="btn btn-primary" id="submit-btn" style="display: none;">Submit</button>
                                             </div>
                                             <hr />
@@ -126,14 +131,29 @@
             </div>
         </div>
     </div>
+    <div class="row" id='post-list'>
+        <div class="col-md-8 offset-md-2">
+            {% if post_list %}
+            <h1>Post list:</h1>
+                {% for post in post_list %}
+                    {% include "posting/post-full-view.html" with post=post %}
+                
+                {% endfor %}
+            <script>
+                let counts = "{{ post_list|length }}";
+                $('#posts_count').text(counts)
+            </script>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+<div class='footer' style="height: 100px;">
+
 </div>
  
-{% if post_list %}
-<h1>Post list:</h1>
-    {% for post in post_list %}
-        {% include "posting/post-full-view.html" with post=post %}
-    {% endfor %}
-{% endif %}
+
 <script>
     document.getElementById('btnChange').onclick = function() {
         document.getElementById('display-input').removeAttribute('readonly');

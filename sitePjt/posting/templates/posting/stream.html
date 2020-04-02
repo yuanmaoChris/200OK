@@ -2,7 +2,7 @@
 
 {% block shortProfile %}  
     {% if request.user.is_authenticated %} 
-        <div class="short-profile">
+        <div class="short-profile" >
             {% include 'posting/profile-card.html' with request=request %}
         </div>
         <script>
@@ -21,8 +21,6 @@
 
 {% block content %}
     {% if post_list %}
-
-
         <ul>
             <div id="newposts"></div>
             {% for post in post_list %}
@@ -32,13 +30,18 @@
             {% endfor %}
         </ul>
     {% else %}
+    <div style="text-align: center;">
         <p>No visible posts... Go make some!</p>
+    </div>
+      
     {% endif %}
 {% endblock %}
 
 {% block newPost %}
     {% if request.user.is_authenticated %}
-    <h1 style="text-align:center">Welcome Back {{ request.user.displayName }} !</h1>
+    <div style="text-align:center;">
+    <h1>Welcome Back {{ request.user.displayName }} !</h1>
+    </div>
     <div class="card" style="width: 600px;">
         <form method="POST" class="post-form" enctype="multipart/form-data" id='post-form'>
             <div class="form-group">
@@ -67,8 +70,7 @@
                         <option value="FRIENDS">Private to friends</option>
                         <option value="FOAF">Private to friends of friends</option>
                         <option value="SERVERONLY">Private to local friends</option>
-                      
-                      </select>
+                    </select>
                 </div>
                 <div class="btn-group">
                     <select name="unlisted" id="id_unlisted" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
@@ -79,7 +81,7 @@
             </div>
             <div class="form-group">
                 <div class="collapse" id="post-form-category-input" style="margin-top: 10px;margin-left: 50px;">
-                    <input type="text" name="categories" class="form-control" style="width:500px;" placeholder="Enter categories" id="id_categories">
+                    <input type="text" name="categories" class="form-control" style="width:500px;" placeholder="Enter categories,spread by #" id="id_categories">
                 </div>
             </div>
             <div>
@@ -115,16 +117,6 @@
                 data:formData,
                 processData: false,
                 contentType: false,
-                // data:{
-                //     title:$('#id_title').val().trim(),
-                //     content: $('#id_content').val().trim(),
-                //     visibility: $('#id_visibility').val(),
-                //     contentType: $('#id_contentType').val(),
-                //     unlisted: $('#id_unlisted').val(),
-                //     categories: $('#id_categories').val(),
-                //     image: img,
-                //     csrfmiddlewaretoken: 
-                // },
                 success: function(data) {
                     let id = data['author']['id'];
                     let host =data['author']['host'];
@@ -169,41 +161,16 @@
             document.getElementById("post-form").reset();
             $("#id_visibility").val('PUBLIC');
             $("#id_visibility").selectpicker("refresh");
+
             $("#id_contentType").val('text/plain');
             $("#id_contentType").selectpicker("refresh");
+
             $("#id_unlisted").val('False');
             $("#id_unlisted").selectpicker("refresh");
         };
-            $('#id_contentType').addClass('selectpicker')
-            $("#id_contentType").attr('data-style','btn-outline-primary btn-sm')
-            $("#id_contentType").attr('data-width','120px')
-            $('#id_visibility').addClass('selectpicker')
-            $("#id_visibility").attr('data-style','btn-outline-primary btn-sm')
-            $("#id_visibility").attr('data-width','fit')
-            $('#id_unlisted').addClass('selectpicker')
-            $("#id_unlisted").attr('data-style','btn-outline-primary btn-sm')
-            $("#id_unlisted").attr('data-width','fit')
             $('#id_unlisted option:contains("False")').text('Unlisted');
             $('#id_unlisted option:contains("True")').text('Listed');
         </script>
     </div>
-        
     {% endif %}
 {% endblock %}
-<script>
-function createPost(){
-    $('<li></li>').append('<div class="card" style="width:600px" id="post-card"> </div>');
-    $('#post-card').append('<div class="card-body" id="post-card-body"> </div>');
-    $('#post-card-body').append(
-        "<a class=\"displa-name\" href=\"\">{{post.author.displayName}}</a>     <br>"
-    )
-    $('#post-card-body').append(
-        '<span id="timestamp"> ago</span>'
-    )
-    $('#post-card-body').append("<div class=\"card-title\" id=\"post-card-title\">  </div>")
-    $('#post-card-title').append("<p style=\"font-size: larger;\"></p>")
-    $('#post-card-body').append(
-        "  <a  class=\"\" href=\"\" style=\"font-size: small;\" >Read More</a>"
-    )
-}
-</script>

@@ -1,15 +1,25 @@
 {% if request.user.is_authenticated %} 
-   <div class="card" style="width: 600px;">
-        <h4> Comments</h4>
+   <div class="card" style="width: 600px;height: auto;">
         {% if post %}  
-        <form action="{% url 'posting:comment handler' post.id %}" method="POST">
-            {% csrf_token %}
-            <div>   
-                <input class="textarea form-control float-none" rows="4" cols="50" type="text" name="comment" style="width: 400px;margin: 0 auto;"></input>
-                <input class='btn btn-primary float-right'  type="submit" value="Comment"></input>
-            </div>
-        </form>
+        <button type="button" name="comment" data-toggle="collapse" href="#comment-form-input" role="button" aria-expanded="false" aria-controls="post-form-category-input" class="btn btn-outline-primary btn-sm">Write a Comment</button>
+        <div class="collapse" id="comment-form-input" style="margin-top: 10px;margin-left: 50px;margin-right: 50px;">
+            <form action="{% url 'posting:comment handler' post.id %}" method="POST">
+                {% csrf_token %}
+                <div>   
+                    <input class="textarea form-control" rows="4" cols="50" type="text" name="comment"></input>
+                    <div class="btn-group float-right" style="margin-bottom: 20px;margin-top: 10px;">
+                        <select name="contentType" id="id_contentType" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="120px" tabindex="-98">
+                            <option value="text/plain" selected="">Plain text</option>
+                            <option value="text/markdown">Markdown</option>
+                        </select>
+                        <input class='btn btn-primary btn-sm float-right'  type="submit" value="Send"></input>
+                    </div>
+
+                   
+                </div>
+            </form>
         {% endif %}
+        </div>
     <script>
         document.getElementById("global-home").setAttribute("href","{% url 'posting:view public posts' %}")
     </script>
