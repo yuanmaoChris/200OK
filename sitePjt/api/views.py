@@ -153,8 +153,6 @@ def view_single_post(request, post_id):
                 #response['count'] = 1
                 response['post'] = serializer.data
                 return Response(response)
-                #serializer = PostSerializer(post)
-                #return Response(serializer.data)
                 
             #Case 2: User does not have visibility
             else:

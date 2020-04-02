@@ -101,7 +101,7 @@ def SendFriendRequestRemote(author_form, friend_form):
         host_url=body['friend']['host']+'service/')
     if not node.exists():
         return False
-    node = node[0]
+    
     url = "{}friendrequest".format(node.host_url)
     response = requests.post(url, json=body, auth=(
         node.server_username, node.server_password))

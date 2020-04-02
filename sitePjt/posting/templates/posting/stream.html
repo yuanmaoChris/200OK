@@ -20,9 +20,9 @@
 {% endblock %}
 
 {% block content %}
-    {% if post_list %}
-        <ul>
-            <div id="newposts"></div>
+    <ul> 
+        <div id="newposts"></div>   
+    {% if post_list %} 
             {% for post in post_list %}
             <li>
                 {% include 'posting/post-inline-view.html' with post=post %}                 
@@ -30,9 +30,6 @@
             {% endfor %}
         </ul>
     {% else %}
-    <div style="text-align: center;">
-        <p>No visible posts... Go make some!</p>
-    </div>
       
     {% endif %}
 {% endblock %}
@@ -105,7 +102,6 @@
             formData.append('unlisted',$('#id_unlisted').val().trim());
             formData.append('categories',$('#id_categories').val().trim());
             formData.append('csrfmiddlewaretoken','{{ csrf_token }}');
-            console.log();
             if (file.files[0]){
                 image = file.files[0];
                 formData.append('image',image);
@@ -141,12 +137,14 @@
                     reset_form();
  
                 },
-                failure: function(data) { 
-                    alert('Got an error dude');
+                failure: function(data) {
+                    let error_message = 'Got an error dude' + data; 
+                    alert(error_message);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert(textStatus + jqXHR.responseText);
                 }
-                
         });
-        
         });
         
         $('#cancel_btn').click( function(){

@@ -30,8 +30,6 @@ def login_view(request):
         user = authenticate(email=email, password=password)
         if user:
             login(request, user)
-        else:
-            print("returned None")
         if next:
             return redirect(next)
         return redirect('/posts/')
@@ -142,7 +140,7 @@ def getRemoteAuthor(author_id):
                 break
         except Exception as e:
             pass
-        
+
     return author
 
 def findAuthorIdFromUrl(url):

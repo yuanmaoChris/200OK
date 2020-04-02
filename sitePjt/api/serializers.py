@@ -35,7 +35,7 @@ class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
     comments = serializers.SerializerMethodField('get_comment')
     origin = serializers.SerializerMethodField('get_origin')
-    categories = serializers.StringRelatedField(many=True)
+    categories = serializers.SerializerMethodField('get_categories')
     description = serializers.CharField(max_length=200,default='No description')
     visibleTo = serializers.StringRelatedField(many=True)
     count = serializers.SerializerMethodField('get_count')
@@ -50,10 +50,14 @@ class PostSerializer(serializers.ModelSerializer):
                   )
 
     def get_author(self, obj):
-     return AuthorSerializer(obj.author).data
+        return AuthorSerializer(obj.author).data
     
     def get_origin(self, obj):
-     return "{}/posts/{}".format(str(obj.author.host), str(obj.id))
+        return "{}/posts/{}".format(str(obj.author.host), str(obj.id))
+    
+    def get_categories(self, obj):
+        categories = obj.categories.split("#")
+        return categories[1:]
     
     def get_count(self, obj):
         comments = Comment.objects.filter(post=obj)

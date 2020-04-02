@@ -31,7 +31,6 @@ class ViewPublicPosts(APIView):
     * Requires token authentication.
     * Only activated users are able to read-only this view.
     """
-   
     permission_classes = [IsActivatedOrReadOnly]
     def get(self, request, format=None):
         """
@@ -63,14 +62,12 @@ class ViewPublicPosts(APIView):
                 newpost.origin = "{}posts/{}".format(
                     settings.HOSTNAME, str(newpost.id))
                 response = PostSerializer(newpost).data
-                print(response)
                 return JsonResponse(response, status=200)
             else:
-                return HttpResponseForbidden("invalid input")
+                return HttpResponseForbidden("Invalid Input")
         except Exception as e:
             print(e)
             return HttpResponseServerError(e)
-        #return redirect('/posts/')
 
 
 class ViewPostDetails(APIView):
@@ -291,7 +288,6 @@ class ViewUserPosts(APIView):
         """
         try:
             author = Author.objects.filter(id=author_id)
-            print(author)
             if not author.exists():
                 return HttpResponseNotFound("Author Not Found")
             author = Author.objects.get(id=author_id)

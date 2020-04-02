@@ -315,7 +315,7 @@ def getJsonDecodePost(remote_post):
     ) else 'None'
     post.content = remote_post['content'] if 'content' in remote_post.keys(
     ) else 'None'
-    post.categories = remote_post['categories'] if 'categories' in remote_post.keys(
+    post.categories = "#" + "#".join(remote_post['categories']) if 'categories' in remote_post.keys(
     ) else 'None'
     post.published = parse_datetime(
         remote_post['published']) if 'published' in remote_post.keys() else 'None'
