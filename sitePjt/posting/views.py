@@ -52,6 +52,7 @@ class ViewPublicPosts(APIView):
             form = PostForm(request.POST, request.FILES)
             if form.is_valid():
                 form_data = form.cleaned_data
+                print(form_data)
                 contentType = form_data.get('contentType')
                 if contentType in ['image/png;base64', 'image/jpeg;base64', 'application/base64']:
                     form_data['content'] = base64.b64encode(

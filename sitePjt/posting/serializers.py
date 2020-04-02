@@ -113,36 +113,3 @@ class CommentSerializer(serializers.ModelSerializer):
         instance.post = self.context.get('post', instance.post)
         instance.save()
         return instance
-
-'''
-class CommentListSerializer(serializers.Serializer):
-    query = serializers.SerializerMethodField('get_query')
-    count = serializers.SerializerMethodField('get_count')
-    comments = serializers.SerializerMethodField('get_comments')
-
-    def __init__(self, *args, **kwargs):
-        fields = kwargs.pop('fields', None)
-        exclude = kwargs.pop('exclude', None)
-        if fields is not None and exclude is not None:
-            serializers.ValidationError(
-                "fields and exclude are simultaneously not allowed")
-        super().__init__(*args, **kwargs)
-        if exclude:
-            for item in set(exclude):
-                self.fields.pop(item, None)
-        if fields:
-            for item in set(self.fields.keys()) - set(fields):
-                self.fields.pop(item, None)
-
-    class Meta:
-        fields = ('query', 'count', 'comments')
-
-    def get_query(self, obj):
-        return self.context.get('query')
-
-    def get_count(self, obj):
-        return self.context.get('count')
-
-    def get_comments(self, obj):
-        return CommentSerializer(obj, many=True).data
-'''

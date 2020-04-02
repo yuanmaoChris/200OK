@@ -31,3 +31,11 @@ class FriendshipSerializer(serializers.Serializer):
 
     def get_query(self, obj):
         return "friends"
+
+
+class FriendSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Friend
+        fields = ('id', 'displayName', 'host', 'url',
+                  )

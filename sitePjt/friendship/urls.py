@@ -5,6 +5,7 @@ app_name = 'friendship'
 
 urlpatterns = [
     path('author/<str:author_id>/friends/', views.GetFriendsListView.as_view(), name='get friends list'),
+    path('friends/', views.GetFriendsView.as_view(), name='get friends list'),
     path('friendrequest/', views.SendFriendRequestView.as_view(), name='friend request'),
     path('friendrequest/accept/', views.HandleRequestView.as_view(), name='handle request'),
     path('friendrequest/unfriend/', views.DeleteFriendView.as_view(), name='delete friend'),

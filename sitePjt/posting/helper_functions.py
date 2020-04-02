@@ -214,7 +214,6 @@ def postRemotePostComment(comment_data, requester_id):
         'post': comment_data.post.origin,
         'comment': comment
     }
-    #response = requests.get(url, auth=(user, pwd))
     nodes = ServerNode.objects.all()
     for node in nodes:
         auth = (node.server_username, node.server_password)
@@ -324,9 +323,5 @@ def getJsonDecodePost(remote_post):
     ) else 'None'
     post.unlisted = remote_post['unlisted'] if 'count' in remote_post.keys(
     ) else 'None'
-    #post.count=remote_post['count'] if 'count' in remote_post.keys() else 'None'
-    #post.size=remote_post['size'] if 'size' in remote_post.keys() else 'None'
-    #post.next=remote_post['next'] if 'next' in remote_post.keys() else 'None'
-    #post.description=remote_post['description'] if 'description' in remote_post.keys() else 'None'
     return post
     #TODO:visibleTo

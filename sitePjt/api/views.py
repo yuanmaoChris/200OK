@@ -16,7 +16,7 @@ from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
 from friendship.helper_functions import checkFriendship, getAllFriends
 from .serializers import PostSerializer, AuthorSerializer, CommentSerializer, FriendshipSerializer
-from .permissions import IsAuthenticatedAndNode
+from .permissions import IsAuthenticatedAndNode, IsShare
 from .pagination import CustomPagination
 
 Author = get_user_model()
@@ -32,7 +32,7 @@ def findAuthorIdFromUrl(url):
         return url[idx+1:]
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def view_public_post(request):
     '''
         GET: To get all public posts 
@@ -40,7 +40,7 @@ def view_public_post(request):
     if request.method == 'GET':
         try:
             paginator = CustomPagination()
-            posts = Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published')
+            posts = getVisiblePosts(None, author=None, IsShareImg=request.user.has_perm('share_image'))
             try:
                 posts = paginator.paginate_queryset(posts, request)
             except Exception as e:
@@ -49,13 +49,14 @@ def view_public_post(request):
             response = paginator.get_paginated_response('posts', 'posts', serializer.data)
             return response
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
     else:
         #method not allowed
         return HttpResponseNotAllowed()
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def handle_auth_posts(request):
     '''
         GET:To get posts with authenticated requester
@@ -71,7 +72,7 @@ def handle_auth_posts(request):
             requester = Friend.objects.filter(id=requester_id)
             requester = requester[0] if requester.exists() else None
             #Get all posts that requester has visitbility of
-            posts = getVisiblePosts(requester)
+            posts = getVisiblePosts(requester, IsShareImg=request.user.has_perm("share_image"))
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
@@ -90,7 +91,7 @@ def handle_auth_posts(request):
         return HttpResponseNotAllowed()
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def view_author_posts(request, author_id):
     '''
        G To get all visiable posts by given author
@@ -110,7 +111,7 @@ def view_author_posts(request, author_id):
                 return HttpResponseNotFound("Author Profile Not Found.")
             author = author[0]
             #filter out all posts that requester does not have visibility of
-            posts = getVisiblePosts(requester, author)
+            posts = getVisiblePosts(requester, author, request.user.has_perm("share_image"))
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
@@ -128,7 +129,7 @@ def view_author_posts(request, author_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def view_single_post(request, post_id):
     '''
         GET: To get a single visiable post by given post id 
@@ -207,7 +208,7 @@ def view_single_post(request, post_id):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def handle_comments(request, post_id):
     '''
         GET: To get comments from visible posts
@@ -310,7 +311,7 @@ def handle_comments(request, post_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNode])
+@permission_classes([IsAuthenticatedAndNode, IsShare])
 def ViewProfile(request, author_id):
     '''
         GET: To get a author profile by given author id 
@@ -506,7 +507,7 @@ def make_friendRequest(request):
         return HttpResponseNotAllowed()
 
 #helper funciton
-def getVisiblePosts(requester, author=None):
+def getVisiblePosts(requester, author=None, IsShareImg=False):
     '''
         To a list of visible posts.
             parameter: 
@@ -515,18 +516,19 @@ def getVisiblePosts(requester, author=None):
             return:
                 result: a list of visble of posts.
     '''
+    bannedType = "_" if IsShareImg else "image"
     result = []
     #Anonymous user
     if not requester:
         if author:
-            return Post.objects.filter(author=author, visibility='PUBLIC', unlisted=False).order_by('-published')
+            return Post.objects.filter(Q(author=author, visibility='PUBLIC', unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
         else:
-            return Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published')
+            return Post.objects.filter(Q(visibility='PUBLIC', unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
     #Authenticated user
     if author:
-        posts = Post.objects.filter(author=author, unlisted=False).order_by('-published')
+        posts = Post.objects.filter(Q(author=author, unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
     else:
-        posts = Post.objects.filter(unlisted=False).order_by('-published')
+        posts = Post.objects.filter(Q(unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
 
     #Append post to result according to visibility and user's status
     for post in posts:

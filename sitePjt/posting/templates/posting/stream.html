@@ -62,24 +62,53 @@
                 </div>
                 <div class="btn-group">
                     <select name="visibility" id="id_visibility" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
-                        <option value="PUBLIC" selected="">Public</option>    
-                        <option value="PRIVATE">Prviate to self</option>
-                        <option value="FRIENDS">Private to friends</option>
-                        <option value="FOAF">Private to friends of friends</option>
-                        <option value="SERVERONLY">Private to local friends</option>
+                        <option value="PUBLIC" selected="">PUBLIC</option>    
+                        <option value="PRIVATE">PRIVATE</option>
+                        <option value="FRIENDS">FRIENDS</option>
+                        <option value="FOAF">FOAFs</option>
+                        <option value="SERVERONLY">SERVERONLY</option>
                     </select>
                 </div>
                 <div class="btn-group">
                     <select name="unlisted" id="id_unlisted" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
                         <option value="True">Listed</option>
                         <option value="False" selected="">Unlisted</option>
-                      </select>
-                </div>        
+                    </select>
+                </div>
+                <script>
+                    let host = "{{ request.user.host }}"
+                    let url = host+'friends/'
+                    $( document ).ready(function() {
+                        $.ajax({
+                            url: url,
+                            type:'GET',
+                            dataType: "json",
+                            success: function(data) {
+                                let friends = data['friends'];
+                                for (let friend of friends){
+                                    let f_id = friend['id'];
+                                    let f_name = friend['displayName'];
+                                    let o =`
+                                        <option value="${f_id}">${f_name}</option>
+                                    `;
+                                    $("#id_VisibleTo").append(o);
+                                }
+                                $("#id_VisibleTo").selectpicker("refresh");
+                            }
+                        });
+                        
+                    });
+                </script>
             </div>
             <div class="form-group">
                 <div class="collapse" id="post-form-category-input" style="margin-top: 10px;margin-left: 50px;">
                     <input type="text" name="categories" class="form-control" style="width:500px;" placeholder="Enter categories,spread by #" id="id_categories">
                 </div>
+            </div>
+            <div class="btn-group">
+                <select name="visibleTo" id="id_VisibleTo" multiple class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
+                <div></div>
+                </select>
             </div>
             <div>
                 <input type="file" name="image" accept="image/*" id="id_image">
@@ -101,6 +130,7 @@
             formData.append('contentType',$('#id_contentType').val().trim());
             formData.append('unlisted',$('#id_unlisted').val().trim());
             formData.append('categories',$('#id_categories').val().trim());
+            formData.append('visibleTo',$('#id_VisibleTo').val());
             formData.append('csrfmiddlewaretoken','{{ csrf_token }}');
             if (file.files[0]){
                 image = file.files[0];

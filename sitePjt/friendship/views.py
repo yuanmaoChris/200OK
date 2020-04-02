@@ -5,8 +5,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 from rest_framework.views import APIView
+from .serializers import FriendSerializer
+from .helper_functions import getAllFriends
 from django.db.models import Q
 Author = get_user_model()
 
@@ -210,6 +212,28 @@ class GetFriendsListView(APIView):
         except Exception as e:
             return HttpResponseServerError(e)
 
+
+class GetFriendsView(APIView):
+    """
+    Edit to a post by given Post ID in the system.
+
+    * Requires token authentication.
+    * Only authenticated and its owner author is able to access this view.
+    """
+    '''
+    use POST to resend a form to update an existing post
+    '''
+    permission_classes = [IsActivatedOrReadOnly]
+    def get(self, request, format=None):
+        """
+        Edit a post by given Post Id.
+        """
+        try:
+            friends = getAllFriends(request.user.id)
+            serializer = FriendSerializer(friends, many=True)
+            return JsonResponse({'friends' :serializer.data})
+        except Exception as e:
+            return HttpResponseServerError(e)
 
 class DeleteFriendView(APIView):
 

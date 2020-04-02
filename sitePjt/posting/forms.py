@@ -27,6 +27,7 @@ class PostForm(forms.ModelForm):
             'visibility',
             'unlisted',
             'image',
+            'visibleTo',
         ]
 
 
