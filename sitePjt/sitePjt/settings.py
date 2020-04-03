@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'corsheaders',
 ]
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 REST_FRAMEWORK = {'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',

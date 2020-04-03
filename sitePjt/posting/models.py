@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import Author
 import uuid
 from django.conf import settings
+from markdown2 import markdown
 POST_VISIBILITY = (
     ('PUBLIC', 'Public'),
     ('PRIVATE', 'Prviate to self'),
@@ -47,7 +48,10 @@ class Post(models.Model):
 
     def __str__(self):
         return super().__str__() + "    ------      " +self.title
-
+    
+    def content_markdown(self):
+        return markdown(self.content,extras=['fenced-code-blocks'])
+    
 '''
     namely a Comment model, belong to author and post
 '''    
@@ -59,3 +63,6 @@ class Comment(models.Model):
     comment = models.CharField(max_length=200)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
 
+    def comment_markdown(self):
+        return markdown(self.comment,extras=['fenced-code-blocks'])
+    

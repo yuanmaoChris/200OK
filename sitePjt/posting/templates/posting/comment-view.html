@@ -4,7 +4,11 @@
                 <div class="card-subtile " style="text-align: left;">
                     <h6 style="display: inline">{{ comment.author.displayName }}</h6><span id="timestamp">   {{ comment.published }}</span>
                     <div style="margin-top:10px; margin-left:50px;margin-right:50px;">
-                        {{ comment.comment }}
+                        {% if comment.contentType == 'text/markdown' %}
+                                {{ comment.comment_markdown | safe }}
+                        {% else %}
+                                {{ comment.comment }}
+                        {% endif %}
                     </div>
                    
                     {% if comment.author == request.user %}
