@@ -83,7 +83,6 @@ class ViewPostDetails(APIView):
         """
         Return a detail of post by given Post Id.
         """
-        print(request.user)
         post = Post.objects.filter(id=post_id)
         #Remote request
         if not post.exists():

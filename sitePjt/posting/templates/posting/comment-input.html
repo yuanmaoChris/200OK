@@ -6,7 +6,8 @@
             <form action="{% url 'posting:comment handler' post.id %}" method="POST">
                 {% csrf_token %}
                 <div>   
-                    <input class="textarea form-control" rows="4" cols="50" type="text" name="comment"></input>
+                    <textarea id="input-comment-text" class="textarea form-control" rows="4" cols="50" type="text" name="comment" style="resize: none;" maxlength="144"></textarea>
+                    <span id="counter" style="position: relative; bottom: 23px; left: 465px;">144</span>
                     <div class="btn-group float-right" style="margin-bottom: 20px;margin-top: 10px;">
                         <select name="contentType" id="id_contentType" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="120px" tabindex="-98">
                             <option value="text/plain" selected="">Plain text</option>
@@ -14,10 +15,46 @@
                         </select>
                         <input class='btn btn-primary btn-sm float-right'  type="submit" value="Send"></input>
                     </div>
-
-                   
                 </div>
             </form>
+            <script>
+                //https://blog.jonnew.com/posts/poo-dot-length-equals-two
+                function counter(str){
+                    const joiner = "\u{200D}";
+                    const split = str.split(joiner);
+                    let count = 0;
+
+                    for(const s of split){
+                        //removing the variation selectors
+                        const num = Array.from(s.split(/[\ufe00-\ufe0f]/).join("")).length;
+                        count += num;
+                    }
+
+                    //assuming the joiners are used appropriately
+                    return count / split.length;
+                }
+                function limit(){
+                    document.getElementById('input-comment-text').onkeyup = function(event){
+                    count = 144 -counter(document.getElementById('input-comment-text').value);
+                    document.getElementById('counter').innerText = count;
+                    if (count == 0){
+                        event.preventDefault();
+                        event.stopPropagation();
+                        }
+                    }
+                    
+                }
+                var count;
+                var str = document.getElementById('input-comment-text').value;
+                console.log(str)
+                if (str){
+                    count = 144 -counter(str);
+                    document.getElementById('counter').innerText = count;
+                    limit();
+                }else{
+                    limit();
+                }
+            </script>
         {% endif %}
         </div>
     <script>

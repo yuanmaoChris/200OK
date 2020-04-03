@@ -5,7 +5,8 @@
                     <h6 style="display: inline">{{ comment.author.displayName }}</h6><span id="timestamp">   {{ comment.published }}</span>
                     <div style="margin-top:10px; margin-left:50px;margin-right:50px;">
                         {% if comment.contentType == 'text/markdown' %}
-                                {{ comment.comment_markdown | safe }}
+                            {{ comment.comment_markdown | safe }}
+                                
                         {% else %}
                                 {{ comment.comment }}
                         {% endif %}
