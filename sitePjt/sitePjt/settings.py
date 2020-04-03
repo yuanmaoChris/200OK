@@ -27,7 +27,17 @@ SECRET_KEY = '-+%h(v5j(6(xppf8v4(z3l_@&ue0fj^t_z^7=k#v6p=$mx#s!-'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Application definition
 

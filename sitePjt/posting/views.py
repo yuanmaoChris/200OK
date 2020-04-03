@@ -50,6 +50,7 @@ class ViewPublicPosts(APIView):
     def post(self, request, format=None):
         try:
             form = PostForm(request.POST, request.FILES)
+            print(form)
             if form.is_valid():
                 form_data = form.cleaned_data
                 print(form_data)
@@ -84,6 +85,7 @@ class ViewPostDetails(APIView):
         """
         Return a detail of post by given Post Id.
         """
+        print(request.user)
         post = Post.objects.filter(id=post_id)
         #Remote request
         if not post.exists():
@@ -96,8 +98,9 @@ class ViewPostDetails(APIView):
                 return HttpResponseNotFound("Post not found")
         #Local request
         else:
-            post = Post.objects.get(id=post_id)
+            post = post[0]
             if not checkVisibility(request.user, post):
+
                 return HttpResponseForbidden("You don't have visibility.")
             comments = Comment.objects.filter(post=post)
         context = {

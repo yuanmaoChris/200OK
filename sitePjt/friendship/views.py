@@ -233,6 +233,7 @@ class GetFriendsView(APIView):
             serializer = FriendSerializer(friends, many=True)
             return JsonResponse({'friends' :serializer.data})
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
 
 class DeleteFriendView(APIView):

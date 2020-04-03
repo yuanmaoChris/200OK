@@ -15,10 +15,10 @@ class AuthorSerializer(serializers.ModelSerializer):
                   )
 
     def get_id(self, obj):
-        return "{}/author/{}/".format(str(obj.host), str(obj.id))
+        return "{}author/{}".format(str(obj.host), str(obj.id))
 
     def get_url(self, obj):
-        return "{}/author/{}/".format(str(obj.host), str(obj.id))
+        return "{}author/{}".format(str(obj.host), str(obj.id))
 
     # def create(self, validated_data):
     #     return Author.objects.create(**validated_data)
@@ -37,7 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     origin = serializers.SerializerMethodField('get_origin')
     categories = serializers.SerializerMethodField('get_categories')
     description = serializers.CharField(max_length=200,default='No description')
-    visibleTo = serializers.StringRelatedField(many=True)
+    visibleTo = serializers.SerializerMethodField('get_visibleTo')
     count = serializers.SerializerMethodField('get_count')
     size = serializers.SerializerMethodField('get_size')
     next = serializers.SerializerMethodField('get_next')
@@ -53,11 +53,17 @@ class PostSerializer(serializers.ModelSerializer):
         return AuthorSerializer(obj.author).data
     
     def get_origin(self, obj):
-        return "{}/posts/{}".format(str(obj.author.host), str(obj.id))
+        return "{}posts/{}".format(str(obj.author.host), str(obj.id))
     
     def get_categories(self, obj):
-        categories = obj.categories.split("#")
-        return categories[1:]
+        if not obj.categories:
+            return []
+        return obj.categories.split("#")[1:]
+
+    def get_visibleTo(self, obj):
+        if not obj.visibleTo:
+            return []
+        return obj.visibleTo.split(",")
     
     def get_count(self, obj):
         comments = Comment.objects.filter(post=obj)
@@ -67,7 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
         return 5
 
     def get_next(self, obj):
-        return "{}/posts/{}/comments".format(str(obj.author.host), str(obj.id))
+        return "{}posts/{}/comments".format(str(obj.author.host), str(obj.id))
 
     def get_comment(self, obj):
         comments = Comment.objects.filter(post=obj).order_by("-published")[:5]

@@ -86,10 +86,10 @@
                             success: function(data) {
                                 let friends = data['friends'];
                                 for (let friend of friends){
-                                    let f_id = friend['id'];
+                                    let f_url = friend['url'];
                                     let f_name = friend['displayName'];
                                     let o =`
-                                        <option value="${f_id}">${f_name}</option>
+                                        <option value="${f_url}">${f_name}</option>
                                     `;
                                     $("#id_VisibleTo").append(o);
                                 }
@@ -149,7 +149,7 @@
                     let url = host +'accounts/author/profile/'+id.substring(id.lastIndexOf('/') + 1);
                     let displayName = data['author']['displayName'];
                     let title = data['title'];
-                    let origin = data['origin'];
+                    let origin = host + 'posts/' + data['id'];
                     var html = `
                     <div class="card" style="width:600px">
                     <div class="card-body">

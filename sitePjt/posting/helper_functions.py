@@ -32,7 +32,7 @@ from django.db.models import Q
 
 
 def getVisiblePosts(requester, author=None):
-    result = []
+    result = set()
     #the current user hasn't login yet, show some random public posts
     if requester.is_anonymous or requester.host != settings.HOSTNAME:
         if author:
@@ -40,8 +40,8 @@ def getVisiblePosts(requester, author=None):
         else:
             return list(Post.objects.filter(visibility='PUBLIC', unlisted=False).order_by('-published'))
 
-    #only check one author's posts or all posts
-    remote_visibile_posts = []
+    #only check onef author's posts or all posts
+    remote_visibile_posts = set()
     if author:
         #Get all remote visibile post of author
         node = ServerNode.objects.filter(host_url=author.host+'service/')
@@ -60,31 +60,35 @@ def getVisiblePosts(requester, author=None):
     #Get all local visibile post
     for post in local_posts:
         if post.author == requester:  # my post
-            result.append(post)
+            result.add(post)
         elif post.visibility == 'PUBLIC':  # everyone can see's post
-            result.append(post)
+            result.add(post)
         elif post.visibility == 'FRIENDS':  # if friends then append this post
             if checkFriendship(post.author.id, requester.id):
-                result.append(post)
+                result.add(post)
         elif post.visibility == 'FOAF':  # friends of friends also can see
             #Check it requester is friend of author or not.
             if checkFriendship(post.author.id, requester.id):
-                result.append(post)
+                result.add(post)
             else:
             #Check it requester is FOAF of author or not.
                 for friend in getAllFriends(post.author.id):
                     if checkFriendship(friend.friend_id, requester.id):
-                        result.append(post)
+                        result.add(post)
         elif post.visibility == 'SERVERONLY':  # requires to be local friends
             if post.author.host == requester.host:
-                result.append(post)
+                result.add(post)
+        else:
+            for author in post.visibleTo:
+                if requester.id in author:
+                    result.add(post)
     if author == requester:
         unlisted_posts = Post.objects.filter(author=author, unlisted=True)
         for post in unlisted_posts:
-            result.append(post)
+            result.add(post)
 
-    result += remote_visibile_posts
-    return result
+    result.update(remote_visibile_posts)
+    return list(result)
 
 
 def getRemotePublicPosts():

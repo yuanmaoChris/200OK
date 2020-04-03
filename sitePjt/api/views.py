@@ -40,7 +40,12 @@ def view_public_post(request):
     if request.method == 'GET':
         try:
             paginator = CustomPagination()
-            posts = getVisiblePosts(None, author=None, IsShareImg=request.user.has_perm('share_image'))
+            requester = None
+            if 'HTTP_X_USER_ID' in request.META.keys():
+                requester_id = request.META.get('HTTP_X_USER_ID')
+                requester = Friend.objects.filter(id=requester_id)
+                requester = requester[0] if requester.exists() else None
+            posts = getVisiblePosts(requester, author=None, IsShareImg=request.user.has_perm('share_image'))
             try:
                 posts = paginator.paginate_queryset(posts, request)
             except Exception as e:
@@ -517,7 +522,7 @@ def getVisiblePosts(requester, author=None, IsShareImg=False):
                 result: a list of visble of posts.
     '''
     bannedType = "_" if IsShareImg else "image"
-    result = []
+    result = set()
     #Anonymous user
     if not requester:
         if author:
@@ -534,30 +539,31 @@ def getVisiblePosts(requester, author=None, IsShareImg=False):
     for post in posts:
         #Self post or public post
         if post.visibility == 'PUBLIC' or post.author.id == requester.id:
-            result.append(post)
+            result.add(post)
         #Friends only post
         elif post.visibility == 'FRIENDS':
             if checkFriendship(post.author.id, requester.id):
-                result.append(post)
+                result.add(post)
         #Friend of a friend post
         elif post.visibility == 'FOAF':
             #user and author are in friendship
             if checkFriendship(post.author.id, requester.id):
-                result.append(post)
+                result.add(post)
             else:
                 for friend in getAllFriends(post.author.id):
                     #user is in friendship with one of friends of the author
                     if checkFriendship(friend.id, requester.id):
-                        result.append(post)
+                        result.add(post)
         #Server only post
         elif post.visibility == 'SERVERONLY':
             if post.author.host == requester.host:
-                result.append(post)
-        #TODO: Post is visible to user
-        #if request.user.id in post.visibleTo and (not post in post_list / private post):
-            #post_list.append(post)
+                result.add(post)
+        else:
+            print(requester.id, post.visibleTo)
+            if requester.id in post.visibleTo:
+                result.add(post)
 
-    return result
+    return list(result)
 
 def checkVisibility(requester, post):
     '''
