@@ -75,7 +75,7 @@ class UserLoginForm(forms.Form):
         if email and password:
             user=authenticate(email=email,password=password)
             if not user:
-                raise forms.ValidationError('email does not exist')
+                raise forms.ValidationError('Email does not exist')
             if not user.check_password(password):
                 raise forms.ValidationError('Incorrect password')
         return super(UserLoginForm,self).clean(*args, **kwargs)

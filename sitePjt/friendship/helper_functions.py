@@ -8,6 +8,8 @@ def checkFriendship(friend1_id, friend2_id):
     '''
         given 2 authors check weather they're friends
     '''
+    friend1_id = friend1_id.split('/')[-1]
+    friend2_id = friend2_id.split('/')[-1]
     try:
         friend1 = Friend.objects.get(id=friend1_id)
         friend2 = Friend.objects.get(id=friend2_id)

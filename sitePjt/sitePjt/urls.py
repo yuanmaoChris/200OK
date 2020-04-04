@@ -14,7 +14,7 @@ urlpatterns = [
     path('', include('posting.urls')),
     path('', include('friendship.urls')),
     path('service/', include('api.urls')),
-    path(r'swagger-docs/', schema_view),
+    path('swagger-docs/', schema_view),
 ]
 
 if settings.DEBUG:

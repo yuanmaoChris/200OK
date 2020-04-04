@@ -11,10 +11,10 @@
                 <div class='post-content-continer' style="text-align: center;">
                     <h5>{{post.title}}</h5>
                     {% if post.contentType == 'image/png;base64' %}
-                    <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:100%;max-height:100%;padding-bottom: 10px;"/>
-    
+                    <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;"/>
+                        
                     {% elif post.contentType == 'image/jpeg;base64' %}
-                    <img src="data:image/jpeg;base64, {{ post.content }}" alt="Post Image" style="max-width:100%;max-height:100%;padding-bottom: 10px;"/>
+                    <img src="data:image/jpeg;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;"/>
     
                     {% elif post.contentType == 'application/base64' %}
                     <p>I dont know how to display application yet</p>
@@ -48,26 +48,50 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                     </div>
-                        <form action="{% url 'posting:edit post' post.id %}" method="POST" class="post-form"> {% csrf_token %}
+                        <form action="{% url 'posting:edit post' post.id %}" method="POST" enctype="multipart/form-data" class="post-form"> {% csrf_token %}
                             <div class="modal-body">
+
+                                <h6 style="margin-bottom: 0.1em; color: gray; text-align: left; font-size: 0.8em;">Title</h6>
                                 <div class="form-group">
                                     <input type="text" name="title" class="form-control" id="post-edit-title" value=" {{ post.title }}">
                                 </div>
+                                <h6 style="margin-bottom: 0.1em; color: gray; text-align: left; font-size: 0.8em;">Categories</h6>
                                 <div class="form-group">
                                     <input type="text" name="categories" class="form-control" id="post-edit-cate" value="{{ post.categories }}">
                                 </div>
                                 <div class="form-group">
                                     <label for="exampleFormControlTextarea1">Content</label>
-                                    <textarea  name="content" class="form-control" id="exampleFormControlTextarea1" rows="3"  style="resize:none">{{ post.content }}</textarea>
+                                    {% if post.contentType == 'image/png;base64' %}
+                                    <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;" />
+                                    <div>
+                                        <input type="file" name="image" accept="image/*" id="id_image">
+                                    </div>
+                                    {% elif post.contentType == 'image/jpeg;base64' %}
+                                    <img src="data:image/jpeg;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;" />
+                                    <div>
+                                        <input type="file" name="image" accept="image/*" id="id_image">
+                                    </div>
+                                    {% elif post.contentType == 'application/base64' %}
+                                    <p>I dont know how to display application yet</p>
+                                    
+                                    {% elif post.contentType == 'text/markdown' %}
+                                    {{ post.content_markdown | safe }}
+                                    
+                                    {% else %}
+                                    <textarea name="content" class="form-control" id="exampleFormControlTextarea1" rows="3"
+                                        style="resize:none">{{ post.content }}</textarea>
+                                    {% endif %}
                                 </div>
+                                <div class="btn-group">
                                 <div class="form-group">
                                     <select name="unlisted" id="post-edit-unlisted-type"class="selectpicker" data-style="btn-outline-primary btn-sm" tabindex="-98">   
                                         <option value="True">Unlisted</option>
                                         <option selected value="False">Listed</option>                                    
                                     </select>
                                 </div>
+                                </div>
+                                <div class="btn-group">
                                 <div class="form-group">
-                                    <label for="post-edit-visibility">Visibility</label>
                                     <select name="visibility" id="post-edit-visibility" class="selectpicker" data-style="btn-outline-primary btn-sm" tabindex="-98">
                                             <option value="PUBLIC" selected="">PUBLIC</option>    
                                             <option value="PRIVATE">PRIVATE</option>
@@ -75,6 +99,7 @@
                                             <option value="FOAF">FOAF</option>
                                             <option value="SERVERONLY">SERVERONLY</option>
                                     </select>
+                                </div>
                                 </div>
                             </div>
                             <div class="modal-footer">

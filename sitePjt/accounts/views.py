@@ -22,21 +22,19 @@ from .serializers import AuthorSerializer
 '''
 
 def login_view(request):
-    next = request.GET.get('next')
     form = UserLoginForm(request.POST or None)
+    context = {
+        'form': form,
+    }
     if form.is_valid():
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
         user = authenticate(email=email, password=password)
         if user:
             login(request, user)
-        if next:
-            return redirect(next)
-        return redirect('/posts/')
-
-    context = {
-        'form': form,
-    }
+            return redirect('/posts/')
+        else:
+            context['error_msg'] = "Invalid Username/Password."
     return render(request, "accounts/login.html", context)
 
 def register_view(request):

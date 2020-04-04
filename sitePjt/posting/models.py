@@ -33,7 +33,7 @@ UNLISTED = {
 class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, max_length=50, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=100)
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE)
     #TODO: Update origin url
     origin = models.CharField(default="",max_length=200, editable=False)
@@ -60,7 +60,7 @@ class Comment(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     contentType = models.CharField(max_length=20, default = 'text/plain', choices=CONTENT_TYPE_COMMENT)
-    comment = models.CharField(max_length=200)
+    comment = models.CharField(max_length=288)
     published = models.DateTimeField('date posted', auto_now_add=True, blank=True)
 
     def comment_markdown(self):

@@ -1,14 +1,11 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from rest_framework.parsers import JSONParser
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.conf import settings
+import urllib
 import json
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
 from posting.models import Post, Comment
@@ -192,7 +189,7 @@ def view_single_post(request, post_id):
             req_friends = data['friends']
             auth_friends = []
             for friend in getAllFriends(post.author.id):
-                auth_friends.append(friend.friend_url)
+                auth_friends.append(friend.url)
 
             common_friends = list(set(req_friends) & set(auth_friends))
 
@@ -352,7 +349,7 @@ def get_friendlist(request, author_id):
     if request.method == 'GET':
         try:
             #Get the friend instance of the specified author
-            friend = Friend.objects.filter(friend_id=author_id)
+            friend = Friend.objects.filter(id=author_id)
             result = []
 
             #Append friend of specified author if any
@@ -360,10 +357,10 @@ def get_friendlist(request, author_id):
                 friendships = Friendship.objects.filter(Q(author_a=friend[0]) | Q(author_b=friend[0]))
                 #For each friendship, append the friend instance that is not the specified author
                 for friendship in friendships:
-                    if friendship.author_a.friend_id == author_id:
-                        result.append(friendship.author_b.friend_url)
+                    if friendship.author_a.id == author_id:
+                        result.append(friendship.author_b.url)
                     else:
-                        result.append(friendship.author_a.friend_url)
+                        result.append(friendship.author_a.url)
                         
             #return result  
             serializer = FriendshipSerializer(result, exclude=['author'])
@@ -379,27 +376,27 @@ def get_friendlist(request, author_id):
             #Parse author list from reqeust
             body = json.loads(request.body)
             authors = body['authors']
+            author = body['author']
+            response = {'query': 'friends', 'author': author}
             friendIDList = []
             #Get the friend instance of the author
-            author = Friend.objects.filter(friend_id=author_id)
+            friend_author = Friend.objects.filter(url=author)
 
             #No Friend object of author found, return an empty list of authors
-            if not author.exists():
-                serializer = FriendshipSerializer(
-                    friendIDList, context={'author': author_id})
-                return Response(serializer.data)
+            if not friend_author.exists():
+                response['authors'] = friendIDList
+                return Response(response)
 
-            author = Friend.objects.get(friend_id=author_id)
+            friend_author = friend_author[0]
+            print(friend_author.url)
             #Add id of friends to result list if there is any
             for friend_id in authors:
-                if checkFriendship(author.friend_id, friend_id):
-                    friend = Friend.objects.get(friend_id=friend_id)
-                    friendIDList.append(friend.friend_url)
-
+                if checkFriendship(friend_author.id, friend_id):
+                    friendIDList.append(friend_id)
+            print(friendIDList)
             #return result
-            serializer = FriendshipSerializer(
-                friendIDList, context={'author': author.url})
-            return Response(serializer.data)
+            response['authors'] = friendIDList
+            return Response(response)
         #Server error
         except Exception as e:
             return HttpResponseServerError(e)
@@ -423,8 +420,9 @@ def check_friendship(request, author1_id, author2_id):
                 'friends': None,
                 'authors': []
             }
-            #TODO: return url instead and do parse id from url
-            context['authors'].append(author1_id)
+            author1_url = "{}author/{}".format(settings.HOSTNAME, author1_id)
+            author2_id = "http://" + author2_id
+            context['authors'].append(author1_url)
             context['authors'].append(author2_id)
 
             #Case 1: authors are in friendship

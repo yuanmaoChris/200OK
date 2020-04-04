@@ -42,10 +42,31 @@
     <div class="card" style="width: 600px;">
         <form method="POST" class="post-form" enctype="multipart/form-data" id='post-form'>
             <div class="form-group">
-                <input type="text" name="title" style="width:500px;" placeholder="Enter title" required="" id="id_title">
+                <input type="text" name="title" style="width:500px;" placeholder="Enter title" required="" maxlength="50" id="id_title">
             </div>
             <div class="form-group">
-                <textarea name="content" cols="50" rows="30" class="textarea form-control" style="resize:none;width:500px;" placeholder="What's Happenning?" required="" id="id_content"></textarea>
+                <textarea name="content" cols="50" rows="30" class="textarea form-control" style="resize:none;width:500px;" placeholder="What's Happenning?" maxlength="200" required="" id="id_content"></textarea>
+                <span id="counter" style="position: relative; bottom: 23px; left: 235px; font-size: small; color:#989898;">200</span>
+                <script>
+   
+                    function limit() {
+                            document.getElementById('id_content').onkeyup = function (event) {
+                                count = 200 - document.getElementById('id_content').value.length;
+                                document.getElementById('counter').innerText = count;
+                            }
+
+                        }
+                    var count;
+                    var str = document.getElementById('id_content').value;
+                    console.log(str)
+                    if (str) {
+                        count = 200 - (str.length);
+                        document.getElementById('counter').innerText = count;
+                        limit();
+                    } else {
+                        limit();
+                    }
+                </script>
             </div>
             <div class="container" style="margin-top: 10px;">
                 <div class="btn-group">

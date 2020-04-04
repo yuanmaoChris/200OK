@@ -152,13 +152,14 @@ class EditPost(APIView):
         Edit a post by given Post Id.
         """
         try:
-            form = request.POST
+            form = request.POST.copy()
+            if request.FILES['image']:
+                form['content'] = base64.b64encode(request.FILES['image'].read()).decode("utf-8")
             post = Post.objects.filter(id=post_id)
             if post.exists():
                 post = Post.objects.get(id=post_id)
                 if request.user.has_perm('owner of post', post):
-                    serializer = PostSerializer(post, data=form, context={
-                                                'author': request.user}, partial=True)
+                    serializer = PostSerializer(post, data=form, context={'author': request.user}, partial=True)
                     if serializer.is_valid():
                         serializer.save()
                         return HttpResponseRedirect(reverse('posting:view user posts', args=(request.user.id,)), {})
@@ -293,6 +294,7 @@ class ViewUserPosts(APIView):
                 return HttpResponseNotFound("Author Not Found")
             author = Author.objects.get(id=author_id)
             posts = getVisiblePosts(request.user, author)
+            posts.sort(key=lambda x: x.published, reverse=True)
             context = {
                 "posts": posts,
                 "allowEdit": True,
