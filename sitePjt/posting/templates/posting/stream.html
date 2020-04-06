@@ -20,11 +20,11 @@
 {% endblock %}
 
 {% block content %}
-    <ul> 
+    <ul style=" padding: 0; list-style-type: none;"> 
         <div id="newposts"></div>   
     {% if post_list %} 
             {% for post in post_list %}
-            <li>
+            <li id="list">
                 {% include 'posting/post-inline-view.html' with post=post %}                 
             </li>
             {% endfor %}
@@ -42,13 +42,22 @@
     <div class="card" style="width: 600px;">
         <form method="POST" class="post-form" enctype="multipart/form-data" id='post-form'>
             <div class="form-group">
-                <input type="text" name="title" style="width:500px;" placeholder="Enter title" required="" maxlength="50" id="id_title">
+                <input type="text" name="title" placeholder="Enter title" required="" maxlength="50" id="id_title">
             </div>
             <div class="form-group">
-                <textarea name="content" cols="50" rows="30" class="textarea form-control" style="resize:none;width:500px;" placeholder="What's Happenning?" maxlength="200" required="" id="id_content"></textarea>
+                <textarea name="content" cols="50" rows="30" class="textarea form-control" placeholder="What's Happenning?" maxlength="200" required="" id="id_content"></textarea>
                 <span id="counter" style="position: relative; bottom: 23px; left: 235px; font-size: small; color:#989898;">200</span>
+                <div id="image-upload" style="position: relative; bottom: 23px; left: 235px;">
+                    <label for="id_image">
+                        <svg class="bi bi-card-image" width="1.5em" height="1.5em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M14.5 3h-13a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h13a.5.5 0 00.5-.5v-9a.5.5 0 00-.5-.5zm-13-1A1.5 1.5 0 000 3.5v9A1.5 1.5 0 001.5 14h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0014.5 2h-13z" clip-rule="evenodd"/>
+                            <path d="M10.648 7.646a.5.5 0 01.577-.093L15.002 9.5V13h-14v-1l2.646-2.354a.5.5 0 01.63-.062l2.66 1.773 3.71-3.71z"/>
+                            <path fill-rule="evenodd" d="M4.502 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd"/>
+                        </svg>
+                    </label>
+                    <input type="file" name="image" accept="image/*" id="id_image" onchange="readURL(this);" style="display: none;">
+                </div>
                 <script>
-   
                     function limit() {
                             document.getElementById('id_content').onkeyup = function (event) {
                                 count = 200 - document.getElementById('id_content').value.length;
@@ -68,7 +77,7 @@
                     }
                 </script>
             </div>
-            <div class="container" style="margin-top: 10px;">
+            <div class="form-group" style="margin-top:-60px">
                 <div class="btn-group">
                 <button type="button" name="categories" data-toggle="collapse" href="#post-form-category-input" role="button" aria-expanded="false" aria-controls="post-form-category-input" class="btn btn-outline-primary btn-sm">Categroy</button>
                 </div>
@@ -92,8 +101,8 @@
                 </div>
                 <div class="btn-group">
                     <select name="unlisted" id="id_unlisted" class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
+                        <option value="False" selected>Listed</option>
                         <option value="True">Unlisted</option>
-                        <option value="False" selected="">Listed</option>
                     </select>
                 </div>
                 <script>
@@ -128,13 +137,29 @@
             </div>
             <div class="btn-group">
                 <select name="visibleTo" id="id_VisibleTo" multiple class="selectpicker" data-style="btn-outline-primary btn-sm" data-width="fit" tabindex="-98">
-                <div></div>
+                    <option selected disabled hidden value="none">Visible To</option>
                 </select>
             </div>
             <div>
-                <input type="file" name="image" accept="image/*" id="id_image">
+                <img id="blah" src="#" class="mx-auto" style="display: none;"/>
+                <script>
+                       function readURL(input) {
+                        if (input.files && input.files[0]) {
+                            var reader = new FileReader();
+
+                            reader.onload = function (e) {
+                                $('#blah')
+                                    .attr('src', e.target.result)
+                                    .width(150)
+                                    .attr('style',"display: block;")
+                                    .height(200);
+                            };
+                            reader.readAsDataURL(input.files[0]);
+                        }
+                    }
+                </script>
             </div>
-            <div>
+            <div style="margin-top:10px;">
                 <input type="submit" value="Post" id='post-form-btn-submit' class="btn btn-primary float-right" style="width: 80px;margin-right: 10px;margin-bottom: 10px;">
                 <input id='cancel_btn' type="button" name="clear" class="btn btn-danger float-right" value="Cancel" style="margin-right: 5px;">
             </div>
@@ -174,7 +199,7 @@
                     var html = `
                     <div class="card" style="width:600px">
                     <div class="card-body">
-                    <a class="displa-name" href="${url}">${displayName}</a>
+                    <a class="text-dark font-weight-bold" style="text-decoration: none; font-size: large;" href="${url}">${displayName}</a>
                     <br>
                     <span id="timestamp">  Just now </span>
                     <div class="card-title">
@@ -198,16 +223,15 @@
         });
         });
         
-        $('#cancel_btn').click( function(){
+        $('#cancel_btn').click(function(){
+            var image_input = $('#id_image');
+            image_input.replaceWith( image_input = image_input.clone( true ) );
+            $('#blah').attr('style',"display: none;")
             reset_form();
         }); 
-        function create_post() {
-            var host_name ="{{ request.user.host }}";
-            post_url = host_name+'posts/';
 
-        };
         function reset_form(){
-            document.getElementById("post-form").reset();
+                       document.getElementById("post-form").reset();
             $("#id_visibility").val('PUBLIC');
             $("#id_visibility").selectpicker("refresh");
 
@@ -216,9 +240,11 @@
 
             $("#id_unlisted").val('False');
             $("#id_unlisted").selectpicker("refresh");
+
+            $("#id_VisibleTo").val('none');
+            $("#id_VisibleTo").selectpicker("refresh");
+
         };
-            $('#id_unlisted option:contains("False")').text('Unlisted');
-            $('#id_unlisted option:contains("True")').text('Listed');
         </script>
     </div>
     {% endif %}

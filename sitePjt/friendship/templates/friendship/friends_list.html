@@ -41,9 +41,9 @@
                                     </div>
                                     <div class="modal-body">
                                     {% if friend_requests %}
-                                    <ul>
+                                    <ul style=" padding: 0; list-style-type: none;">
                                         {% for req in friend_requests %}
-                                            <li>
+                                            <li id="list">
                                                 <div class = "card">                                         
                                                     <div class="card-body">
                                                         <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">{{ req.published|timesince }} ago</span></h4></div>
@@ -79,9 +79,9 @@
                         <div class="row">
                                 <h1>Friend List:</h1>
                                 {% if friends %}
-                                <ul>
+                                <ul style="padding: 0; list-style-type: none;">
                                 {% for friend in friends %}
-                                <li>
+                                <li id='list'>
                                     {% include 'friendship/friend_card.html' with friend=friend %}
                                     <!--
                                         <a href="{% url 'accounts:view profile' friend.id %}"> {{ friend.displayName }} </a>

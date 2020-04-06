@@ -50,7 +50,6 @@
                     </div>
                         <form action="{% url 'posting:edit post' post.id %}" method="POST" enctype="multipart/form-data" class="post-form"> {% csrf_token %}
                             <div class="modal-body">
-
                                 <h6 style="margin-bottom: 0.1em; color: gray; text-align: left; font-size: 0.8em;">Title</h6>
                                 <div class="form-group">
                                     <input type="text" name="title" class="form-control" id="post-edit-title" value=" {{ post.title }}">
@@ -60,7 +59,7 @@
                                     <input type="text" name="categories" class="form-control" id="post-edit-cate" value="{{ post.categories }}">
                                 </div>
                                 <div class="form-group">
-                                    <label for="exampleFormControlTextarea1">Content</label>
+                                    <h6 style="margin-bottom: 0.1em; color: gray; text-align: left; font-size: 0.8em;">Content</h6>
                                     {% if post.contentType == 'image/png;base64' %}
                                     <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;" />
                                     <div>

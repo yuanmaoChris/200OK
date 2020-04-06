@@ -11,7 +11,7 @@
 {% block content %}
         {% include 'posting/comment-input.html' with post=post request=request %}
         {% if comment_list %}
-            <ul>
+            <ul style="padding: 0;list-style-type: none;">
                 {% for comment in comment_list %}
                     {% include 'posting/comment-view.html' with comment=comment %}
                 {% endfor %}

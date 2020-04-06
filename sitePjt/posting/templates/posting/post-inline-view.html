@@ -1,6 +1,6 @@
 <div class="card" style="width:600px">
     <div class="card-body">
-      <a class="displa-name" href="{% url 'accounts:view profile' post.author.id %}">{{post.author.displayName}}</a>
+      <a class="text-dark font-weight-bold" style="text-decoration: none; font-size: large;" href="{% url 'accounts:view profile' post.author.id %}">{{post.author.displayName}}</a>
       <br>
       <span id="timestamp">{{ post.published|timesince }} ago</span>
       <div class="card-title">
