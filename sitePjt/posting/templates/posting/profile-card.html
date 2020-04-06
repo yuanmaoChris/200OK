@@ -2,6 +2,9 @@
     <!-- <img class="card-img-top" src="" alt="Card image cap"> -->
     <div class="card-body">
     <h3 class="card-title">{{request.user.displayName }}</h3>
+    {% if not request.user.activated %}
+    <span class="text-warning" > Waiting For Activation</span>
+    {% endif %}
     <p class="card-text">
         <ul class="list-group list-group-flush" >
             <li  class="list-group-item" style="padding: 3;"><span style="font-weight: bold;">Email:</span><br>{{ request.user.email }}</li>

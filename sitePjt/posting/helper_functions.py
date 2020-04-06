@@ -73,7 +73,7 @@ def getVisiblePosts(requester, author=None):
             else:
                 #Check it requester is FOAF of author or not.
                 for friend in getAllFriends(post.author.id):
-                    if checkFriendship(friend.friend_id, requester.id):
+                    if checkFriendship(friend.id, requester.id):
                         result.add(post)
         elif post.visibility == 'SERVERONLY':  # requires to be local friends
             if post.author.host == requester.host:
