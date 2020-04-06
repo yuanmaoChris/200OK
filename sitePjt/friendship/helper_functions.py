@@ -1,6 +1,7 @@
 from .models import Friend, Friendship
 from accounts.models import ServerNode
 from django.db.models import Q
+import urllib
 import requests
 
 
@@ -104,19 +105,50 @@ def SendFriendRequestRemote(author_form, friend_form):
     if not node.exists():
         return False
     
-    url = "{}friendrequest".format(node.host_url)
+    url = "{}friendrequest".format(node[0].host_url)
     try:
         response = requests.post(url, json=body, auth=(
             node.server_username, node.server_password))
-    # node = ServerNode.objects.all()
-    # url = node[0].host_url
-    # post_id = body['post'].split('/')[-2]
-    # url = url + 'posts/{}/comments/'.format(str(post_id))
-    # response = requests.post(url, json=body, auth=(
-    #     node[0].server_username, node[0].server_password))
         if response.status_code == 200:
             return True
         else:
             return False
     except Exception as e:
         pass
+
+
+def checkRemoteFriendslist(node, author_id, friends):
+    body = {
+        'query': 'friends',
+        'author': author_id,
+        'authors': friends
+    }
+
+    url = "{}author/{}/friends".format(node.host_url, author_id.split('/')[-1])
+    try:
+        response = requests.post(url, json=body, auth=(
+            node.server_username, node.server_password))
+        if response.status_code == 200:
+            return response.json()['authors']
+        else:
+            return []
+    except Exception as e:
+        pass
+
+def checkRemoteFriendship(node, url_node, url_req):
+    author_id1 = url_node.split('/')[-1]
+    author_id2 = urllib.parse.quote(url_req, safe='~()*!.\'')
+
+    url = "{}author/{}/friends/{}".format(node.host_url, author_id1, author_id2)
+    try:
+        response = requests.get(url, auth=(node.server_username, node.server_password))
+        if response.status_code == 200:
+            return response.json()['friends']
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+
+

@@ -13,8 +13,8 @@ from django.conf import settings
 from .forms import PostForm
 from .models import Post, Comment
 from accounts.models import ServerNode
-from .helper_functions import getVisiblePosts, getRemotePublicPosts, getRemotePostComment, getRemotePost, getRemoteAuthorPosts, postRemotePostComment
-from friendship.helper_functions import checkVisibility
+from .helper_functions import getVisiblePosts, getRemotePublicPosts, getRemotePostComment, getRemotePost, getRemoteAuthorPosts, postRemotePostComment, getRemoteFOAFPost
+from friendship.helper_functions import checkVisibility, getAllFriends
 from .serializers import PostSerializer, CommentSerializer
 from accounts.permissions import IsActivated, IsActivatedOrReadOnly, IsPostCommentOwner
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
@@ -79,6 +79,7 @@ class ViewPostDetails(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
     def get(self, request, post_id, format=None):
         """
         Return a detail of post by given Post Id.
@@ -88,10 +89,24 @@ class ViewPostDetails(APIView):
         if not post.exists():
             nodes = ServerNode.objects.all()
             if nodes.exists():
-                post = getRemotePost(post_id, nodes, request.user.id)
-            if post != None:
-                comments = getRemotePostComment(post, request.user.id)
-            else:
+                post, comments = getRemotePost(post_id, nodes, request.user.id)
+            # if post != None:
+            #     comments = getRemotePostComment(post, request.user.id)
+            if not post:
+                #TODO handle try three server foaf
+                friends_obj = getAllFriends(request.user.id)
+                friends = []
+                for obj in friends_obj:
+                    friends.append(obj.url)
+                nodes = ServerNode.objects.all()
+                if nodes.exists():
+                    for node in nodes:
+                        post, comments = getRemoteFOAFPost(
+                            node, post_id, request.user, friends)
+                        if post:
+                            print(post.author)
+                            break
+            if not post:
                 return HttpResponseNotFound("Post not found")
         #Local request
         else:
@@ -194,7 +209,7 @@ class CommentHandler(APIView):
             if not post.exists():
                 node = ServerNode.objects.all()
                 if node.exists():
-                    post = getRemotePost(post_id, node, request.user.id)
+                    post, _ = getRemotePost(post_id, node, request.user.id)
                     if post:
                         remote_comment = Comment(
                             comment=request.POST['comment'], author=request.user, post=post)

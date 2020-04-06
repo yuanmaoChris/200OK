@@ -8,14 +8,14 @@ from django.conf import settings
 import urllib
 import json
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseForbidden
+from accounts.models import ServerNode
 from posting.models import Post, Comment
 from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
-from friendship.helper_functions import checkFriendship, getAllFriends
+from friendship.helper_functions import checkFriendship, getAllFriends, checkRemoteFriendslist, checkRemoteFriendship
 from .serializers import PostSerializer, AuthorSerializer, CommentSerializer, FriendshipSerializer
 from .permissions import IsAuthenticatedAndNode, IsShare
 from .pagination import CustomPagination
-
 Author = get_user_model()
 
 def findAuthorIdFromUrl(url):
@@ -130,7 +130,7 @@ def view_author_posts(request, author_id):
     return HttpResponseNotAllowed()
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedAndNode, IsShare])
 def view_single_post(request, post_id):
     '''
@@ -169,9 +169,8 @@ def view_single_post(request, post_id):
         try:
             #Parse data from request
             data = json.loads(request.body)
-
-            #Validate data
-            if not ('postid' in data.keys() and 'url' in  data.keys() and 'author' in data.keys() and 'friends' in data.keys()):
+            #Validate request body
+            if not ('postid' in data.keys() and 'url' in data.keys() and 'author' in data.keys() and 'friends' in data.keys()):
                 return Response("Invalid request data", status=403)
             
             #Get the post specified by request
@@ -179,22 +178,39 @@ def view_single_post(request, post_id):
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found.")
             post = post[0]
+
             if not post.visibility == "FOAF":
-                return HttpResponseForbidden("Use POST method only for FOAF post request.")
-
-            #Get the requester specified by request
-            requester, _ = Author.objects.get_or_create(**data['author'])
-
-            #Get intersection of post author's friends and requester's friends
-            req_friends = data['friends']
-            auth_friends = []
-            for friend in getAllFriends(post.author.id):
-                auth_friends.append(friend.url)
-
-            common_friends = list(set(req_friends) & set(auth_friends))
+                return HttpResponseForbidden("Please POST to this API view only for FOAF post request.")
+            
+            #Frist Check -> get friends of requestor A from A's server
+            friends = data['friends']
+            node = ServerNode.objects.filter(host_url__startswith = data['author']['host'])
+            if not node.exists():
+                return HttpResponseForbidden("Requestor does not have visiblity of post.")
+            node = node[0]
+            friendsRequestor = checkRemoteFriendslist(node, data['author']['url'], friends)
+            # friendsRequestor = friends
+            #Second check -> get friends of post author B from B's server
+            friendsAuthor = []
+            friends = getAllFriends(post.author.id)
+            for friend in friends:
+                friendsAuthor.append(friend.url)
+            #Third check -> get friendslist A intersects friendslist B as common friends
+            #check until one of these common friends' servers confirm that A is a friend.
+            friendsInCommom = list(set(friendsAuthor) & set(friendsRequestor))
+            hasVisibility = False
+            for friend_url in friendsInCommom:
+                host = friend_url.split('author')[0]
+                node = ServerNode.objects.filter(host_url__startswith = host)
+                if node.exists():
+                    node = node[0]
+                    #once it is verified via the 3 hosts -> approve request.
+                    if checkRemoteFriendship(node, friend_url, data['author']['url']):
+                        hasVisibility = True
+                        break
 
             #Case 1: User has visibility
-            if common_friends or requester.url in auth_friends:
+            if hasVisibility:
                 serializer = PostSerializer(post)
                 response = {}
                 response['query'] = 'posts'
@@ -202,8 +218,9 @@ def view_single_post(request, post_id):
                 return Response(response)
             #Case 2: User does not have visibility
             else:
-                return HttpResponseForbidden(b"You dont have visibility to this post.")
+                return HttpResponseForbidden("You dont have visibility to this post.")
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
     #Method not allowed
     return HttpResponseNotAllowed()
@@ -388,12 +405,10 @@ def get_friendlist(request, author_id):
                 return Response(response)
 
             friend_author = friend_author[0]
-            print(friend_author.url)
             #Add id of friends to result list if there is any
             for friend_id in authors:
                 if checkFriendship(friend_author.id, friend_id):
                     friendIDList.append(friend_id)
-            print(friendIDList)
             #return result
             response['authors'] = friendIDList
             return Response(response)

@@ -20,7 +20,7 @@
                     <p>I dont know how to display application yet</p>
                     
                     {% elif post.contentType == 'text/markdown' %}
-                    {{ post.content_markdown | safe }}
+                    <div>{{ post.content_markdown | safe }}</div>
   
                     {% else %}
                     <p>{{ post.content }}</p >
@@ -75,7 +75,7 @@
                                     <p>I dont know how to display application yet</p>
                                     
                                     {% elif post.contentType == 'text/markdown' %}
-                                    {{ post.content_markdown | safe }}
+                                    <div>{{ post.content_markdown | safe }}</div>
                                     
                                     {% else %}
                                     <textarea name="content" class="form-control" id="exampleFormControlTextarea1" rows="3"
