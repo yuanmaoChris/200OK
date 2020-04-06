@@ -297,7 +297,22 @@ def handle_comments(request, post_id):
             requester = requester[0] if requester.exists() else None
             #Check visibility
             if not checkVisibility(requester, post):
-                return Response(context, status=403)
+                has_visibility = False
+                #check visibility of case involving three servers
+                if post.visibility == "FOAF": 
+                    #Get all friends of post author
+                    friends = getAllFriends(post.author.id)
+                    for friend in friends:
+                        node = ServerNode.objects.filter(host_url__startswith=friend.host)
+                        #Check friendship if existing in friends of post author and requester.
+                        if node.exists():
+                            node = node[0]
+                            if checkRemoteFriendship(node, friend.url, author_info['url']):
+                                has_visibility = True
+                                break
+                if not has_visibility:
+                    return Response(context, status=403)
+
 
             #Get comment author object on local server
             comment_author, _ = Author.objects.get_or_create(**author_info)
@@ -595,7 +610,8 @@ def checkVisibility(requester, post):
     if not requester:
         return False
     else:
-
+        if requester.id in post.visibleTo:
+            return True
         #self post -> always true
         if post.author.id == requester.id:
             return True
@@ -620,7 +636,4 @@ def checkVisibility(requester, post):
         elif post.visibility == 'SERVERONLY':
             if post.author.host == requester.host:
                 return True
-       #TODO: To check visibility within visibleTo
-        #if requester.id in post.visibleTo:
-            #post_list.append(post)
     return False

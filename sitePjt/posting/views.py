@@ -62,6 +62,9 @@ class ViewPublicPosts(APIView):
                 newpost = Post.objects.create(**form_data)
                 newpost.origin = "{}posts/{}".format(
                     settings.HOSTNAME, str(newpost.id))
+                #TODO
+                #uncomment this, change origin editable to true
+                #newpost.save()
                 response = PostSerializer(newpost).data
                 return JsonResponse(response, status=200)
             else:
@@ -169,8 +172,13 @@ class EditPost(APIView):
         """
         try:
             form = request.POST.copy()
-            if request.FILES['image']:
-                form['content'] = base64.b64encode(request.FILES['image'].read()).decode("utf-8")
+            try:
+                if request.FILES['image']:
+                    form['content'] = base64.b64encode(request.FILES['image'].read()).decode("utf-8")
+            except Exception as e:
+                print("Error when checking if an image is uploaded")
+                print(e)
+
             post = Post.objects.filter(id=post_id)
             if post.exists():
                 post = Post.objects.get(id=post_id)
@@ -205,22 +213,35 @@ class CommentHandler(APIView):
         Create a comment to a given Post Id.
         """
         try:
+            post_host = request.POST.get('post_origin', None)
+            if post_host:
+                post_host = post_host.split('posts/')[0]
             #Target post on remote server
-            post = Post.objects.filter(id=post_id)
-            if not post.exists():
-                node = ServerNode.objects.all()
-                if node.exists():
-                    post, _ = getRemotePost(post_id, node, request.user.id)
+            if post_host and not post_host == settings.HOSTNAME:
+                nodes = ServerNode.objects.filter(host_url__startswith=post_host)
+                if nodes.exists():
+                    post, _ = getRemotePost(post_id, nodes, request.user.id)
+                    if not post:
+                        friends = []
+                        friend_objs = getAllFriends(request.user.id)
+                        for obj in friend_objs:
+                            friends.append(obj.url)
+                        node = nodes[0]
+                        post, _ = getRemoteFOAFPost(node, post_id, request.user, friends)
                     if post:
                         remote_comment = Comment(
                             comment=request.POST['comment'], author=request.user, post=post)
-                        postRemotePostComment(remote_comment, request.user.id)
-                        return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
-                    else:
-                        return HttpResponseNotFound("Post Not Found")
+                        if postRemotePostComment(remote_comment, request.user.id):
+                            return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
+                        else:
+                            return HttpResponseForbidden("Remote comment failed.")
+                return HttpResponseNotFound("Post Not Found")
             #Target post on local server
             else:
-                post = Post.objects.get(id=post_id)
+                post = Post.objects.filter(id=post_id)
+                if not post.exists():
+                    return HttpResponseNotFound("Post not found.")
+            post = post[0]
             if not checkVisibility(request.user, post):
                 return HttpResponseForbidden("You don't have visibility.")
 

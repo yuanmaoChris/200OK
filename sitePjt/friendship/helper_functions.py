@@ -63,7 +63,8 @@ def checkVisibility(requester, post):
     if not requester:
         return False
     else:
-
+        if requester.id in post.visibleTo:
+            return True
         #self post -> always true
         if post.author.id == requester.id:
             return True
@@ -88,11 +89,7 @@ def checkVisibility(requester, post):
         if post.visibility == 'SERVERONLY':
             if post.author.host == requester.host:
                 return True
-       #TODO: To check visibility within visibleTo
-        #if requester.id in post.visibleTo:
-            #post_list.append(post)
     return False
-
 
 def SendFriendRequestRemote(author_form, friend_form):
     body = {
@@ -101,11 +98,11 @@ def SendFriendRequestRemote(author_form, friend_form):
         'friend': friend_form,
     }
     node = ServerNode.objects.filter(
-        host_url=body['friend']['host']+'service/')
+        host_url__startswith=body['friend']['host'])
     if not node.exists():
         return False
-    
-    url = "{}friendrequest".format(node[0].host_url)
+    node = node[0]
+    url = "{}friendrequest".format(node.host_url)
     try:
         response = requests.post(url, json=body, auth=(
             node.server_username, node.server_password))
@@ -114,6 +111,7 @@ def SendFriendRequestRemote(author_form, friend_form):
         else:
             return False
     except Exception as e:
+        print(e)
         pass
 
 
@@ -138,7 +136,6 @@ def checkRemoteFriendslist(node, author_id, friends):
 def checkRemoteFriendship(node, url_node, url_req):
     author_id1 = url_node.split('/')[-1]
     author_id2 = urllib.parse.quote(url_req, safe='~()*!.\'')
-
     url = "{}author/{}/friends/{}".format(node.host_url, author_id1, author_id2)
     try:
         response = requests.get(url, auth=(node.server_username, node.server_password))

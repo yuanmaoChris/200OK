@@ -5,7 +5,8 @@
         <div class="collapse" id="comment-form-input" style="margin-top: 10px;margin-left: 50px;margin-right: 50px;">
             <form action="{% url 'posting:comment handler' post.id %}" method="POST">
                 {% csrf_token %}
-                <div>   
+                <div>
+                    <input type="hidden" name="post_origin" value="{{ post.origin }}"></input>
                     <textarea id="input-comment-text" class="textarea form-control" rows="4" cols="50" type="text" name="comment" style="resize: none;" maxlength="144"></textarea>
                     <span id="counter" style="position: relative; bottom: 23px; left: 465px; font-size: small; color:#989898;">144</span>
                     <div class="btn-group float-right" style="margin-bottom: 20px;margin-top: 10px;">
