@@ -89,6 +89,7 @@ class ProfileView(APIView):
             #Viewing other's profile. Get all visible posts of that author.
             if request.user.id != author_id:
                 posts_list = PostingView.getVisiblePosts(request.user, author)
+                print("get posts done")
             context = {
                 'author': author,
                 'post_list': posts_list,

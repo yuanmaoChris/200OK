@@ -138,8 +138,7 @@ class HandleRequestView(APIView):
                     if not friendship.exists():
                         friendship = Friendship(author_a=a, author_b=b)
                         friendship.save()
-
-                return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
+            return HttpResponseRedirect(reverse('friendship:get friends list', args=(request.user.id,)), {})
         except Exception as e:
             return HttpResponseServerError(e)
 

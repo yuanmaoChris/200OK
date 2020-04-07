@@ -1,4 +1,4 @@
-from friendship.helper_functions import checkFriendship, getAllFriends
+from friendship.helper_functions import checkFriendship, getAllFriends, checkVisibility
 from django.db.models.functions import Cast
 import datetime
 from django.db.models import DateTimeField
@@ -42,52 +42,35 @@ def getVisiblePosts(requester, author=None):
 
     #only check onef author's posts or all posts
     remote_visibile_posts = set()
+    print("get post 1")
     if author:
         #Get all remote visibile post of author
-        node = ServerNode.objects.filter(host_url=author.host+'service/')
+        node = ServerNode.objects.filter(host_url__startswith=author.host)
         node = node[0] if node.exists() else None
+        print("get post 2")
         if node:
             remote_visibile_posts = getRemoteAuthorPosts(
-                author.id, requester.id, node)
+                author.id, requester.url, node)
+        print("get post 3")
         local_posts = Post.objects.filter(
             author=author, unlisted=False).order_by('-published')
     else:
         #Get all remote visibile post
         nodes = ServerNode.objects.all()
-        remote_visibile_posts = getRemoteVisiblePost(nodes, requester.id)
+        remote_visibile_posts = getRemoteVisiblePost(nodes, requester.url)
         local_posts = Post.objects.filter(
             unlisted=False).order_by('-published')
+    print("get post 4")
     #Get all local visibile post
     for post in local_posts:
-        if post.author == requester:  # my post
+        print("get post 5")
+        if checkVisibility(requester.url, post):
+            print("get post 6")
             result.add(post)
-        elif post.visibility == 'PUBLIC':  # everyone can see's post
-            result.add(post)
-        elif post.visibility == 'FRIENDS':  # if friends then append this post
-            if checkFriendship(post.author.id, requester.id):
-                result.add(post)
-        elif post.visibility == 'FOAF':  # friends of friends also can see
-            #Check it requester is friend of author or not.
-            if checkFriendship(post.author.id, requester.id):
-                result.add(post)
-            else:
-                #Check it requester is FOAF of author or not.
-                for friend in getAllFriends(post.author.id):
-                    if checkFriendship(friend.id, requester.id):
-                        result.add(post)
-            
-        elif post.visibility == 'SERVERONLY':  # requires to be local friends
-            if post.author.host == requester.host:
-                result.add(post)
-        else:
-            for author in post.visibleTo:
-                if requester.id in author:
-                    result.add(post)
     if author == requester:
         unlisted_posts = Post.objects.filter(author=author, unlisted=True)
         for post in unlisted_posts:
             result.add(post)
-
     result.update(remote_visibile_posts)
     return list(result)
 
@@ -120,12 +103,12 @@ def getRemotePublicPosts():
     return remote_posts
 
 
-def getRemoteVisiblePost(nodes, requester_id):
+def getRemoteVisiblePost(nodes, requester_url):
     posts = []
     for node in nodes:
         url = '{}author/posts'.format(node.host_url)
         auth = (node.server_username, node.server_password)
-        headers = {'X-USER-ID': requester_id}
+        headers = {'X-USER-ID': requester_url}
         try:
             response = requests.get(url, auth=auth, headers=headers, timeout=5)
             if response.status_code == 200:
@@ -143,12 +126,12 @@ def getRemoteVisiblePost(nodes, requester_id):
     return posts
 
 
-def getRemotePost(post_id, nodes, requester_id):
+def getRemotePost(post_id, nodes, requester_url):
     post, comments = None, []
     for node in nodes:
         url = '{}posts/{}'.format(node.host_url, str(post_id))
         auth = (node.server_username, node.server_password)
-        headers = {'X-USER-ID': requester_id}
+        headers = {'X-USER-ID': requester_url}
         response = None
         try:
             response = requests.get(url, auth=auth, headers=headers, timeout=5)
@@ -204,7 +187,7 @@ def getRemoteFOAFPost(node, post_id, requester, friends):
         pass
     return post, comments
 
-def postRemotePostComment(comment_data, requester_id):
+def postRemotePostComment(comment_data, requester_url):
     author = {
         'id': comment_data.author.url,
         'host': comment_data.author.host,
@@ -228,7 +211,7 @@ def postRemotePostComment(comment_data, requester_id):
     if node.exists():
         node = node[0]
         auth = (node.server_username, node.server_password)
-        headers = {'X-USER-ID': requester_id}
+        headers = {'X-USER-ID': requester_url}
         post_id = body['post'].split('/posts/')[-1]
         url = '{}posts/{}/comments'.format(node.host_url, str(post_id))
         try:
@@ -243,7 +226,7 @@ def postRemotePostComment(comment_data, requester_id):
             print(e)
             pass
 
-def getRemotePostComment(post, requester_id):
+def getRemotePostComment(post, requester_url):
     remote_comments = []
     '''
     #TODO add field host of node
@@ -256,7 +239,7 @@ def getRemotePostComment(post, requester_id):
         node = node[0]
         url = '{}posts/{}/comments'.format(node.host_url, post.id)
         auth = (node.server_username, node.server_password)
-        headers = {'X-USER-ID': requester_id}
+        headers = {'X-USER-ID': requester_url}
         try:
             response = requests.get(url, auth=auth, headers=headers, timeout=5)
             if response.status_code == 200:
@@ -270,13 +253,13 @@ def getRemotePostComment(post, requester_id):
 
     return remote_comments
 
-def getRemoteAuthorPosts(author_id, requester_id, node):
+def getRemoteAuthorPosts(author_id, requester_url, node):
     remote_author_posts = []
     if not node:
         return remote_author_posts
     url = '{}author/{}/posts'.format(node.host_url, author_id)
     auth = (node.server_username, node.server_password)
-    headers = {'X-USER-ID': requester_id}
+    headers = {'X-USER-ID': requester_url}
     try:
         response = requests.get(url, auth=auth, headers=headers)
         if response.status_code == 200:
@@ -359,7 +342,7 @@ def getJsonDecodePost(remote_post):
     post.content = remote_post['content'] if 'content' in remote_post.keys(
     ) else 'None'
     post.categories = "#" + "#".join(remote_post['categories']) if 'categories' in remote_post.keys(
-    ) else 'None'
+    ) and remote_post['categories'] else ""
     post.published = parse_datetime(
         remote_post['published']) if 'published' in remote_post.keys() else 'None'
     post.id = remote_post['id'] if 'id' in remote_post.keys() else 'None'
@@ -368,4 +351,3 @@ def getJsonDecodePost(remote_post):
     post.unlisted = remote_post['unlisted'] if 'count' in remote_post.keys(
     ) else 'None'
     return post
-    #TODO:visibleTo

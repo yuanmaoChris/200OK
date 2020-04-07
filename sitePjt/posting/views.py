@@ -93,9 +93,9 @@ class ViewPostDetails(APIView):
         if not post.exists():
             nodes = ServerNode.objects.all()
             if nodes.exists():
-                post, comments = getRemotePost(post_id, nodes, request.user.id)
+                post, comments = getRemotePost(post_id, nodes, request.user.url)
             # if post != None:
-            #     comments = getRemotePostComment(post, request.user.id)
+            #     comments = getRemotePostComment(post, request.user.url)
             if not post:
                 #TODO handle try three server foaf
                 friends_obj = getAllFriends(request.user.id)
@@ -115,7 +115,7 @@ class ViewPostDetails(APIView):
         #Local request
         else:
             post = post[0]
-            if not checkVisibility(request.user, post):
+            if not checkVisibility(request.user.url, post):
 
                 return HttpResponseForbidden("You don't have visibility.")
             comments = Comment.objects.filter(post=post)
@@ -220,7 +220,7 @@ class CommentHandler(APIView):
             if post_host and not post_host == settings.HOSTNAME:
                 nodes = ServerNode.objects.filter(host_url__startswith=post_host)
                 if nodes.exists():
-                    post, _ = getRemotePost(post_id, nodes, request.user.id)
+                    post, _ = getRemotePost(post_id, nodes, request.user.url)
                     if not post:
                         friends = []
                         friend_objs = getAllFriends(request.user.id)
@@ -231,7 +231,7 @@ class CommentHandler(APIView):
                     if post:
                         remote_comment = Comment(
                             comment=request.POST['comment'], author=request.user, post=post)
-                        if postRemotePostComment(remote_comment, request.user.id):
+                        if postRemotePostComment(remote_comment, request.user.url):
                             return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
                         else:
                             return HttpResponseForbidden("Remote comment failed.")
@@ -242,7 +242,7 @@ class CommentHandler(APIView):
                 if not post.exists():
                     return HttpResponseNotFound("Post not found.")
             post = post[0]
-            if not checkVisibility(request.user, post):
+            if not checkVisibility(request.user.url, post):
                 return HttpResponseForbidden("You don't have visibility.")
 
             serializer = CommentSerializer(data=request.POST, context={
@@ -264,7 +264,7 @@ class CommentHandler(APIView):
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found")
             post = Post.objects.get(id=post_id)
-            if not checkVisibility(request.user, post):
+            if not checkVisibility(request.user.url, post):
                 return HttpResponseForbidden("You don't have visibility.")
 
             comment = Comment.objects.filter(id=comment_id)
@@ -291,7 +291,7 @@ class CommentHandler(APIView):
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found")
             post = Post.objects.get(id=post_id)
-            if not checkVisibility(request.user, post):
+            if not checkVisibility(request.user.url, post):
                 return HttpResponseForbidden("You don't have visibility.")
 
             comment = Comment.objects.filter(id=comment_id)

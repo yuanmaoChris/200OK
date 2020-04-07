@@ -12,21 +12,12 @@ from accounts.models import ServerNode
 from posting.models import Post, Comment
 from friendship.models import Friendship, FriendRequest,Friend
 from posting.forms import CommentForm
-from friendship.helper_functions import checkFriendship, getAllFriends, checkRemoteFriendslist, checkRemoteFriendship,checkFOAFship
+from .helper_functions import getVisiblePosts
+from friendship.helper_functions import checkRemoteFriendslist, getAllFriends, checkRemoteFriendship, checkFriendship,checkVisibility,checkFOAFriendship
 from .serializers import PostSerializer, AuthorSerializer, CommentSerializer, FriendshipSerializer
 from .permissions import IsAuthenticatedAndNode, IsShare
 from .pagination import CustomPagination
 Author = get_user_model()
-
-def findAuthorIdFromUrl(url):
-    if '/' not in url:
-        return url
-    elif url[-1] == '/':
-        idx = url[:-1].rindex('/')
-        return url[idx+1:-1]
-    else:
-        idx = url.rindex('/')
-        return url[idx+1:]
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedAndNode, IsShare])
@@ -39,15 +30,23 @@ def view_public_post(request):
             paginator = CustomPagination()
             requester = None
             if 'HTTP_X_USER_ID' in request.META.keys():
-                requester_id = request.META.get('HTTP_X_USER_ID')
-                requester = Friend.objects.filter(id=requester_id)
+                requester_url = request.META.get('HTTP_X_USER_ID')
+                requester = Friend.objects.filter(id=requester_url)
                 requester = requester[0] if requester.exists() else None
-            posts = getVisiblePosts(requester, author=None, IsShareImg=request.user.has_perm('share_image'))
+            #Get all public posts
+            allPublicPosts = Post.objects.filter(visibility="PUBLIC", unlisted=False)
+            IsShareImg=request.user.has_perm('share_image')
+
+            filtered_posts = []
+            for post in allPublicPosts:
+                #check if node has permission to view image posts
+                if (IsShareImg or not 'image' in post.contentType):
+                    filtered_posts.append(post)
             try:
-                posts = paginator.paginate_queryset(posts, request)
+                filtered_posts = paginator.paginate_queryset(filtered_posts, request)
             except Exception as e:
                 return HttpResponseNotFound(e)
-            serializer = PostSerializer(posts, many=True)
+            serializer = PostSerializer(filtered_posts, many=True)
             response = paginator.get_paginated_response('posts', 'posts', serializer.data)
             return response
         except Exception as e:
@@ -62,19 +61,16 @@ def view_public_post(request):
 def handle_auth_posts(request):
     '''
         GET:To get posts with authenticated requester
-        POST: To add a post with authenticated requester
     '''
     #Handle GET requests
     if request.method == 'GET':
         try:
             #Parse requester information from node request
             if not 'HTTP_X_USER_ID' in request.META.keys():
-                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
-            requester_id = request.META.get('HTTP_X_USER_ID')
-            requester = Friend.objects.filter(id=requester_id)
-            requester = requester[0] if requester.exists() else None
+                return HttpResponseForbidden("Who's requesting posts? Put author's url in request headers under 'x-user-id'")
+            requester_url = request.META.get('HTTP_X_USER_ID')
             #Get all posts that requester has visitbility of
-            posts = getVisiblePosts(requester, IsShareImg=request.user.has_perm("share_image"))
+            posts = getVisiblePosts(requester_url, IsShareImg=request.user.has_perm("share_image"))
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
@@ -101,19 +97,16 @@ def view_author_posts(request, author_id):
     #Handle GET request
     if request.method == 'GET':
         try:
-
             if not 'HTTP_X_USER_ID' in request.META.keys():
                 return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
-            requester_id = request.META.get('HTTP_X_USER_ID')
-            requester = Friend.objects.filter(id=requester_id)
-            requester = requester[0] if requester.exists() else None
+            requester_url = request.META.get('HTTP_X_USER_ID')
             #Get author instance whose posts to view
             author = Author.objects.filter(id=author_id)
             if not author.exists():
                 return HttpResponseNotFound("Author Profile Not Found.")
             author = author[0]
             #filter out all posts that requester does not have visibility of
-            posts = getVisiblePosts(requester, author, request.user.has_perm("share_image"))
+            posts = getVisiblePosts(requester_url, author.url, request.user.has_perm("share_image"))
             paginator = CustomPagination()
             try:
                 posts = paginator.paginate_queryset(posts, request)
@@ -125,6 +118,7 @@ def view_author_posts(request, author_id):
             
         #Server error when handling request
         except Exception as e:
+            print(e)
             return HttpResponseServerError(e)
     #Method not allowed       
     return HttpResponseNotAllowed()
@@ -140,16 +134,15 @@ def view_single_post(request, post_id):
         try:
             if not 'HTTP_X_USER_ID' in request.META.keys():
                 return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
-            requester_id = request.META.get('HTTP_X_USER_ID')
-            requester = Friend.objects.filter(id=requester_id)
-            requester = requester[0] if requester.exists() else None
+            requester_url = request.META.get('HTTP_X_USER_ID')
+
             #Get the post specified by request
             post = Post.objects.filter(id=post_id)
             if not post.exists():
                 return HttpResponseNotFound("Post Not Found.")
             post = post[0]
             #Case 1: User has visibility
-            if checkVisibility(requester, post):
+            if checkVisibility(requester_url, post):
                 serializer = PostSerializer(post)
                 response = {}
                 response['query'] = 'posts'
@@ -237,10 +230,9 @@ def handle_comments(request, post_id):
     if request.method == 'GET':
         try:
             if not 'HTTP_X_USER_ID' in request.META.keys():
-                return HttpResponseForbidden("Who's requesting posts? Put author info in request headers under 'x-user-id'")
-            requester_id = request.META.get('HTTP_X_USER_ID')
-            requester = Friend.objects.filter(id=requester_id)
-            requester = requester[0] if requester.exists() else None
+                return HttpResponseForbidden("Who's requesting posts? Put author's url in request headers under 'x-user-id'")
+            requester_url = request.META.get('HTTP_X_USER_ID')
+            
             #Get the post specified by request
             post = Post.objects.filter(id=post_id)
             if not post.exists():
@@ -248,7 +240,7 @@ def handle_comments(request, post_id):
             post = post[0]
             
             #Reject request if anonymous user or user does not have visibility
-            if not checkVisibility(requester, post):
+            if not checkVisibility(requester_url, post):
                 return HttpResponseForbidden(b"You dont have visibility.")
             
             #Valid request -> get comments data and return in response
@@ -282,36 +274,20 @@ def handle_comments(request, post_id):
             post_info = data['post']
             comment_info = data['comment']
             author_info = comment_info['author']
-            author_info['id'] = findAuthorIdFromUrl(author_info['id'])
+            author_info['id'] = author_info['id'].split('author/')[-1]
             author_info['email'] = "{}@remote_user.com".format(author_info['id'])
             #Get target post object on local server
-            post_id = findAuthorIdFromUrl(post_info)
+            post_id = post_info.split('posts/')[-1]
             post = Post.objects.filter(id=post_id)
             if not post.exists():
                 return Response(context, status=403)
             post = post[0]
 
             #Check if comment author has visibility of post
-            requester_id = author_info['id']
-            requester = Friend.objects.filter(id=requester_id)
-            requester = requester[0] if requester.exists() else None
+            requester_url = author_info['url']
             #Check visibility
-            if not checkVisibility(requester, post):
-                has_visibility = False
-                #check visibility of case involving three servers
-                if post.visibility == "FOAF": 
-                    #Get all friends of post author
-                    friends = getAllFriends(post.author.id)
-                    for friend in friends:
-                        node = ServerNode.objects.filter(host_url__startswith=friend.host)
-                        #Check friendship if existing in friends of post author and requester.
-                        if node.exists():
-                            node = node[0]
-                            if checkRemoteFriendship(node, friend.url, author_info['url']):
-                                has_visibility = True
-                                break
-                if not has_visibility:
-                    return Response(context, status=403)
+            if not checkVisibility(requester_url, post):
+                return Response(context, status=403)
 
 
             #Get comment author object on local server
@@ -362,7 +338,7 @@ def ViewProfile(request, author_id):
                 return Response(serializer.data)
             #Case 2: author's profile is not found
             else:
-                return HttpResponseNotFound(b"User Not found")
+                return HttpResponseNotFound("User Not found")
         #Server error when handling request
         except Exception as e:
              return HttpResponseServerError(e)
@@ -459,7 +435,7 @@ def check_friendship(request, author1_id, author2_id):
             if checkFriendship(author1_id, author2_id):
                 context['friends'] = True
                 return Response(context, status=200)
-            #Case 2: authors are in friendship
+            #Case 2: authors are not in friendship
             else:
                 context['friends'] = False
                 return Response(context, status=200)
@@ -538,109 +514,3 @@ def make_friendRequest(request):
     #Method not allowed
     else:
         return HttpResponseNotAllowed()
-
-#helper funciton
-def getVisiblePosts(requester, author=None, IsShareImg=False):
-    '''
-        To a list of visible posts.
-            parameter: 
-                requster: a author requsts a list of posts.
-                author: a author set posts unlisted or not
-            return:
-                result: a list of visble of posts.
-    '''
-    bannedType = "_" if IsShareImg else "image"
-    result = set()
-    #Anonymous user
-    if not requester:
-        if author:
-            return Post.objects.filter(Q(author=author, visibility='PUBLIC', unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
-        else:
-            return Post.objects.filter(Q(visibility='PUBLIC', unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
-    #Authenticated user
-    if author:
-        posts = Post.objects.filter(Q(author=author, unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
-    else:
-        posts = Post.objects.filter(Q(unlisted=False) & ~Q(contentType__contains=bannedType)).order_by('-published')
-
-    #Append post to result according to visibility and user's status
-    for post in posts:
-        #Self post or public post
-        if post.visibility == 'PUBLIC' or post.author.id == requester.id:
-            result.add(post)
-        #Friends only post
-        elif post.visibility == 'FRIENDS':
-            if checkFriendship(post.author.id, requester.id):
-                result.add(post)
-        #Friend of a friend post
-        elif post.visibility == 'FOAF':
-            #user and author are in friendship
-            if checkFriendship(post.author.id, requester.id):
-                result.add(post)
-            else:
-                for friend in getAllFriends(post.author.id):
-                    #user is in friendship with one of friends of the author
-                    if checkFriendship(friend.id, requester.id):
-                        result.add(post)
-                   #Adding:
-                    if checkFOAFship(post.author, requester):
-                        result.add(post)
-        #Server only post
-        elif post.visibility == 'SERVERONLY':
-            if post.author.host == requester.host:
-                result.add(post)
-        else:
-            print(requester.id, post.visibleTo)
-            if requester.id in post.visibleTo:
-                result.add(post)
-
-    return list(result)
-
-def checkVisibility(requester, post):
-    '''
-        To check visibility of requester toward a post.
-            parameter: 
-                requester: a author want to see a post. (Friend Object on local server)
-                post: a post which the requester wants to see. (Local Post)
-            return:
-                True: the requester is able to see the post
-                False: the requester is not able to see the post
-    '''
-    #PUBLIC post -> always true
-    if  post.visibility == 'PUBLIC':
-        return True
-    #invalid requster -> False expcept for public posts
-    if not requester:
-        return False
-    if requester.id in post.visibleTo:
-        return True
-
-    if post.author.id == requester.id:
-        return True
-
-    #Server only post
-    if post.visibility == 'SERVERONLY':
-        return post.author.host == requester.host 
-
-    #From here...... add remote case
-    #post author must have at least one friendship
-    #friends related posts
-    author = Friend.objects.filter(id=post.author.id)
-    author = author[0] if author.exists() else None
-    if author: #friend object
-        #this line limits three server case, get post author's friends list and starts from there
-        req_friendsList = getAllFriends(requester.id)
-        if post.visibility == 'FRIENDS':
-            if author in req_friendsList:
-                return True
-        elif post.visibility == 'FOAF':
-            #Case1: author and requester are friends => return True
-            if author in req_friendsList:
-                return True
-            #Case2: author and a friend of requester are friends => return True
-            #must send a request(to 1.local server, 2.reqeust server, 3.other server)
-            else:
-                for friend in req_friendsList:
-                    if checkFriendship(friend.id, author.id):
-                        return True
-    return False

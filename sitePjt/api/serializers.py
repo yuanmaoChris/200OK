@@ -11,7 +11,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Author
-        fields = ('id', 'displayName', 'github', 'host', 'url',
+        fields = ('id', 'displayName', 'github', 'host', 'url', 'bio'
                   )
 
     def get_id(self, obj):
@@ -35,6 +35,7 @@ class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField('get_author')
     comments = serializers.SerializerMethodField('get_comment')
     origin = serializers.SerializerMethodField('get_origin')
+    source = serializers.SerializerMethodField('get_origin')
     categories = serializers.SerializerMethodField('get_categories')
     description = serializers.CharField(max_length=200,default='No description')
     visibleTo = serializers.SerializerMethodField('get_visibleTo')
