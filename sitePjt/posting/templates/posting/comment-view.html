@@ -12,7 +12,7 @@
                         {% endif %}
                     </div>
                    
-                    {% if comment.author == request.user %}
+                    {% if comment.author == request.user and not post.origin.strip %}
                         <form action="{% url 'posting:comment handler' post.id comment.id%}" method="GET">
                                 {% csrf_token %}
                                 <input  class='btn btn-danger btn-sm float-right' type="submit" value="Delete" style="margin-top: 10px;">

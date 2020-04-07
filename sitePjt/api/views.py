@@ -582,10 +582,9 @@ def getVisiblePosts(requester, author=None, IsShareImg=False):
                     #user is in friendship with one of friends of the author
                     if checkFriendship(friend.id, requester.id):
                         result.add(post)
-                #Adding:
-                if checkFOAFship(post.author, requester):
-                    result.add(post)
-
+                   #Adding:
+                    if checkFOAFship(post.author, requester):
+                        result.add(post)
         #Server only post
         elif post.visibility == 'SERVERONLY':
             if post.author.host == requester.host:

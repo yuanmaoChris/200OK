@@ -13,7 +13,7 @@
         {% if comment_list %}
             <ul style="padding: 0;list-style-type: none;">
                 {% for comment in comment_list %}
-                    {% include 'posting/comment-view.html' with comment=comment %}
+                    {% include 'posting/comment-view.html' with comment=comment post=post %}
                 {% endfor %}
             </ul>
         {% endif %}

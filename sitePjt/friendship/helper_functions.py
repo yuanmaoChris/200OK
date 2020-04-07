@@ -26,18 +26,14 @@ def checkFriendship(friend1_id, friend2_id):
     else:
         return False
 
-def checkFOAFship(author, requester):
+def checkFOAFship(friend, requester):
     has_visibility = False
-    #Get all friends of post author
-    friends = getAllFriends(author.id)
-    for friend in friends:
-        node = ServerNode.objects.filter(host_url__startswith=friend.host)
-        #Check friendship if existing in friends of post author and requester.
-        if node.exists():
-            node = node[0]
-            if checkRemoteFriendship(node, friend.url, requester['url']):
-                has_visibility = True
-                break
+    node = ServerNode.objects.filter(host_url__startswith=friend.host)
+    #Check friendship if existing in friends of post author and requester.
+    if node.exists():
+        node = node[0]
+        if checkRemoteFriendship(node, friend.url, requester.url):
+            has_visibility = True
     return has_visibility
 
 def getAllFriends(author_id):

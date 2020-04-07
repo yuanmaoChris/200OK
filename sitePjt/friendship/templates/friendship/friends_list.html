@@ -24,7 +24,7 @@
                         {% endif %}  
                         {% if author %}
                             <script>
-                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> Followers </a>" );                                  
                                 var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
                             </script>
                             <!-- a commend to activate  -->
@@ -34,7 +34,7 @@
                                 <div class="modal-dialog" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">Requests</h5>
+                                    <h5 class="modal-title" id="exampleModalLabel">Follows</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
@@ -50,8 +50,8 @@
                                                         <!--Debug: {{ req.author_to.displayName }}-->
                                                         <form action="{% url 'friendship:handle request' %}" method="POST"> {% csrf_token %}
                                                             <input type="hidden" name="request_id" value="{{ req.id }}"></input>
-                                                            <input style="width: 78px" class="btn btn-primary" name="method" type="submit" value="Accept"></input>
-                                                            <input style="width: 78px" class="btn btn-danger" name="method" type="submit" value="Deny"></input>
+                                                            <input style="width: 78px" class="btn btn-primary" name="method" type="submit" value="Follow Back"></input>
+                                                            <input style="width: 78px" style="display: none;" class="btn btn-danger" name="method" type="submit" value="Deny"></input>
                                                         </form>
                                                     </div>
                                                 </div>
@@ -61,7 +61,7 @@
                                     {% else %}
                                     <div class="card">
                                         <div class="card-tile">
-                                            No Friend Requests
+                                            Nobody is following you
                                         </div>
                                     </div>
                                     {% endif %}
