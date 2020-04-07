@@ -296,6 +296,7 @@ def handle_comments(request, post_id):
             comment_info['author'] = comment_author
             comment_info['post'] = post
 
+
             new_comment = Comment.objects.filter(**comment_info)
             if new_comment.exists():
                 return Response(context, status=403)

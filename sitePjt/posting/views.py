@@ -230,7 +230,7 @@ class CommentHandler(APIView):
                         post, _ = getRemoteFOAFPost(node, post_id, request.user, friends)
                     if post:
                         remote_comment = Comment(
-                            comment=request.POST['comment'], author=request.user, post=post)
+                            comment=request.POST['comment'], author=request.user, post=post,contentType=request.POST['contentType'])
                         if postRemotePostComment(remote_comment, request.user.url):
                             return HttpResponseRedirect(reverse('posting:view post details', args=(post_id,)), {})
                         else:
