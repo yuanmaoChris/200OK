@@ -15,9 +15,11 @@ from friendship.models import FriendRequest, Friendship
 import unittest
 from selenium import webdriver
 from django.contrib.auth import get_user_model
+from django.test.client import RequestFactory as DjangoRequestFactory
+from rest_framework.settings import api_settings
 
 
-
+#Test models
 '''
 Test for Authors
 '''
@@ -48,11 +50,11 @@ class TestUsers(TestCase):
         data = { 'email': 'test@g.com','displayName': 'yipu1', 'password': '123'}
         response = self.c.post(url, data,format='json')
         self.assertEqual(response.status_code,status.HTTP_200_OK)
-        self.author=Author.objects.create_user('test1@mail.com','yipu1', 'test1')
-        url = "/accounts/login/"
-        data = { "email":'test1@mail.com',"displayName":'yipu1',"password":'test1'}
-        response = self.c.post(url, data,format='json')
-        self.assertEqual(response.status_code, 302)
+    # #    # self.author=Author.objects.create_user('test1@mail.com','yipu1', 'test1')
+    # #     url = "/accounts/login/"
+    # #     data = { "email":'test1@mail.com',"displayName":'yipu1',"password":'test1'}
+    # #     response = self.c.post(url, data)
+    #     self.assertEqual(response.status_code, 302)
         data = { 'email': 'test@g.com','displayName': 'yipu1', 'password': '123'}
         self.c.login(displayName='yipu', password='123')
 
@@ -203,8 +205,6 @@ class TestPosts(TestCase):
         self.assertEqual(respons_del.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Post.objects.count(),2)
 
-
-
 '''
     Friend request test cases
 ''' 
@@ -241,20 +241,100 @@ class TestFriend(TestCase):
         self.assertEqual(friend_a.author.displayName, "author")
         friend_b = FriendRequest.objects.get(author=self.author_a.id)
         self.assertEqual(friend_b.friend.displayName, "friend")
-    
-    def test_send_friend_request(self):
-        a = Author.objects.create_user(email="1@g.com",displayName="author",password="123")
-        b = Author.objects.create_user(email="2@g.com",displayName="friend",password="124")
-        request = FriendRequest.objects.create(author_from=a, author_to= b)
-        friendship = True
-        try:
-            Friendship.objects.get(author_a=a, author_b=b)
-        except Friendship.DoesNotExist:
-            friendship=False
-        self.assertFalse(friendship)
-        #pending state, no such author_a and author_b in friendship
-    
 
-    
+# standard .get(), .post(), .put(), .patch(), .delete(), .head() and .options() methods are all available.
+# import as `DjangoRequestFactory` and `DjangoClient` in order
+#https://www.django-rest-framework.org/api-guide/testing/#apirequestfactory  for API Testing
+class APITESTS(APITestCase):
+    def force_authenticate(self,request, user=None, token=None):
+        request._force_auth_user = user
+        request._force_auth_token = token
 
-   
+    def post(self, path, data=None, format=None, content_type=None, **extra):
+        data, content_type = self._encode_data(data, format, content_type)
+        return self.generic('POST', path, data, content_type, **extra)
+
+    def put(self, path, data=None, format=None, content_type=None, **extra):
+        data, content_type = self._encode_data(data, format, content_type)
+        return self.generic('PUT', path, data, content_type, **extra)
+
+    def patch(self, path, data=None, format=None, content_type=None, **extra):
+        data, content_type = self._encode_data(data, format, content_type)
+        return self.generic('PATCH', path, data, content_type, **extra)
+
+    def delete(self, path, data=None, format=None, content_type=None, **extra):
+        data, content_type = self._encode_data(data, format, content_type)
+        return self.generic('DELETE', path, data, content_type, **extra)
+    
+    def request(self, **kwargs):
+        request = super().request(**kwargs)
+        request._dont_enforce_csrf_checks = not self.enforce_csrf_checks
+        return request
+
+    def __init__(self, enforce_csrf_checks=False, **defaults):
+        self.enforce_csrf_checks = enforce_csrf_checks
+        self.renderer_classes = {}
+        for cls in self.renderer_classes_list:
+            self.renderer_classes[cls.format] = cls
+        super().__init__(**defaults)
+    def get_response(self, request):
+        # request object.
+        force_authenticate(request, self._force_user, self._force_token)
+        return super().get_response(request)
+
+    def _encode_data(self, data, format=None, content_type=None):
+        """
+        Encode the data returning a two tuple of (bytes, content_type)
+        """
+
+        if data is None:
+            return ('', content_type)
+
+        assert format is None or content_type is None, (
+            'You may not set both `format` and `content_type`.'
+        )
+class ApiPostTests(APITestCase):
+    
+    def setUp(self):
+        self.authorUser = Author.objects.create_user(displayName='PostAuthor', email='test@1.com',password='1234')
+        self.authorUser.set_password('1234')
+        self.authorUser.save()
+        self.author = Author.objects.get(user = self.authorUser)
+        self.client = APIClient()
+        self.client.login(displayName='PostAuthor', password='1234')
+        self.client.force_authenticate(user=self.authorUser)
+    #return 404 if get nothing
+    def Posts(self):
+        ID = str(uuid.uuid4())
+        Url = '/api/posts/' + ID + '/'
+        response = self.client.get(Url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    # Get the public posts
+        Url = '/api/posts/'
+        response = self.client.get(Url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Post.objects.count(),response.data.get('count'))
+        self.assertEqual(response.data.get('count'),0)
+    #
+        now = str(datetime.now())
+        data = {"title":"test",
+                "contentType":'text/plain',
+                "content":"sample",
+                "categories":["None"], 
+                "published":now,
+                "author":self.author.id,
+                "visibility":'PUBLIC'
+        }
+        postResponse = self.client.post(Url,data,format='json')
+        # Check Posts
+        self.assertEqual(postResponse.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Post.objects.count(), 2)
+        self.assertEqual(Post.objects.all()[1].title, 'test')
+
+class ApiUserTests(APITestCase):
+    def test_user(self):
+        self.assertEqual(Author.objects.count(), 0)
+        url = "/accounts/register"
+        data = {'disPlayname': 'test1', 'password': 'yipu666', 'email': 'test1@t.com'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code,301)
