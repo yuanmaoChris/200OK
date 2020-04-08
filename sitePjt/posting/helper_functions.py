@@ -42,16 +42,13 @@ def getVisiblePosts(requester, author=None):
 
     #only check onef author's posts or all posts
     remote_visibile_posts = set()
-    print("get post 1")
     if author:
         #Get all remote visibile post of author
         node = ServerNode.objects.filter(host_url__startswith=author.host)
         node = node[0] if node.exists() else None
-        print("get post 2")
         if node:
             remote_visibile_posts = getRemoteAuthorPosts(
                 author.id, requester.url, node)
-        print("get post 3")
         local_posts = Post.objects.filter(
             author=author, unlisted=False).order_by('-published')
     else:
@@ -60,12 +57,9 @@ def getVisiblePosts(requester, author=None):
         remote_visibile_posts = getRemoteVisiblePost(nodes, requester.url)
         local_posts = Post.objects.filter(
             unlisted=False).order_by('-published')
-    print("get post 4")
     #Get all local visibile post
     for post in local_posts:
-        print("get post 5")
         if checkVisibility(requester.url, post):
-            print("get post 6")
             result.add(post)
     if author == requester:
         unlisted_posts = Post.objects.filter(author=author, unlisted=True)
