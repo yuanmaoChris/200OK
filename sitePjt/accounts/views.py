@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -77,19 +79,19 @@ class ProfileView(APIView):
             current user is browsing others profile page, so only show allowed posts
         '''
         try:
-            author = Author.objects.filter(id=author_id)
+            author = Author.objects.filter(Q(id=author_id) & Q(host=settings.HOSTNAME))
             #view remote user profile
             if not author.exists():
                 author = getRemoteAuthor(author_id)
                 if not author:
                     return HttpResponseNotFound("Author Profile Not Found.")
             else:    
-                author = Author.objects.get(id=author_id)
+                author = author[0]
             posts_list = []
             #Viewing other's profile. Get all visible posts of that author.
             if request.user.id != author_id:
                 posts_list = PostingView.getVisiblePosts(request.user, author)
-                print("get posts done")
+                posts_list.sort(key=lambda x: x.published, reverse=True)
             context = {
                 'author': author,
                 'post_list': posts_list,
@@ -100,7 +102,9 @@ class ProfileView(APIView):
 
     def post(self, request, author_id, format=None):
         try:
-            author = Author.objects.filter(id=author_id)
+            if not request.user.id == author_id:
+                return HttpResponseForbidden("You can't modify other's profile.")
+            author = Author.objects.filter(Q(id=author_id) & Q(host=settings.HOSTNAME))
             if not author.exists():
                 return HttpResponseNotFound("Author Profile Not Found.")
             form = request.POST
@@ -117,6 +121,7 @@ class ProfileView(APIView):
             #Viewing other's profile. Get all visible posts of that author.
             if request.user.id != author_id:
                 posts_list = PostingView.getVisiblePosts(request.user, author)
+                posts_list.sort(key=lambda x: x.published, reverse=True)
             context = {
                 'author': author,
                 'post_list': posts_list,

@@ -9,13 +9,10 @@
                     <div class="card-title mb-4">
                         <div class="d-flex justify-content-start">
                             <div class="image-container">
-                                {% if avatar %}
-                                    <img src="{{ avatar.url }}" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
-                                {% else %}
-                                    <img src="http://placehold.it/150x150" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
-                                {% endif %}
+                                <img src="https://avatars.dicebear.com/v2/jdenticon/{{ author.displayName }}.svg" id="imgProfile" style="width: 150px; height: 150px" class="img-thumbnail" />
                                 <div class="middle">
                                     {%  if  not request.user.is_authenticated  %}
+                                    
                                     {% else %}
                                         {% if request.user.id != author.id  %}
                                             <form action="{% url 'friendship:friend request' %}" method="POST"> {% csrf_token %}

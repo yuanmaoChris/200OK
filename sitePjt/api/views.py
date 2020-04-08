@@ -332,7 +332,7 @@ def ViewProfile(request, author_id):
     if request.method == 'GET':
         try:
             #Get author whose profile to view
-            author = Author.objects.filter(id=author_id)
+            author = Author.objects.filter(Q(id=author_id) & Q(host=settings.HOSTNAME))
             #Case 1: author's profile is found
             if author.exists():
                 serializer = AuthorSerializer(author[0])
@@ -464,7 +464,6 @@ def make_friendRequest(request):
                 'success': None,
                 'authors': []
             }
-            #TODO: use url field instead of id and parse id from url
             #Parser author info and friend info from request
             data = json.loads(request.body)
             author = data['author']

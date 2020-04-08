@@ -1,7 +1,8 @@
 <div class="card" style="width: 600px;height: auto">
     <div class="card-body">
         <div class='card-title'>
-            <h5 class="post-tile"><b>{{ post.author.displayName }} </b> <span id="timestamp"> {{ post.published|timesince }} ago</span></h5> 
+            <img src="https://avatars.dicebear.com/v2/jdenticon/{{post.author.displayName}}.svg" id="imgProfile" style="width: 50px; height: 50px ;border-radius:50%;"/>
+            <h5 class="post-tile" style="display: inline;"><b>{{ post.author.displayName }} </b> <span id="timestamp"> {{ post.published|timesince }} ago</span></h5> 
         </div>
         <div class="card-subtile">
             <span>{{post.categories}}</span>
@@ -10,6 +11,7 @@
             <div class="content-container" style="width:auto;height:auto;">
                 <div class='post-content-continer' style="text-align: center;">
                     <h5>{{post.title}}</h5>
+
                     {% if post.contentType == 'image/png;base64' %}
                     <img src="data:image/png;base64, {{ post.content }}" alt="Post Image" style="max-width:300px;max-height:300px;padding-bottom: 10px;"/>
                         
@@ -18,12 +20,11 @@
     
                     {% elif post.contentType == 'application/base64' %}
                     <p>I dont know how to display application yet</p>
-                    
+
                     {% elif post.contentType == 'text/markdown' %}
-                    <div>{{ post.content_markdown | safe }}</div>
-  
+                    <div id="markdown">{{ post.content_markdown | safe }}</div>
                     {% else %}
-                    <p>{{ post.content }}</p >
+                        <p>{{ post.content }}</p >
                     {% endif %}
                 </div>
             </div>
@@ -74,7 +75,7 @@
                                     <p>I dont know how to display application yet</p>
                                     
                                     {% elif post.contentType == 'text/markdown' %}
-                                    <div>{{ post.content_markdown | safe }}</div>
+                                    <div id="markdown">{{ post.content_markdown | safe }}</div>
                                     
                                     {% else %}
                                     <textarea name="content" class="form-control" id="exampleFormControlTextarea1" rows="3"

@@ -2,11 +2,11 @@
     <div class="card-body">
             <div class="card-content">
                 <div class="card-subtile " style="text-align: left;">
+                    <img src="https://avatars.dicebear.com/v2/jdenticon/{{comment.author.displayName}}.svg" id="imgProfile" style="width: 40px; height: 40px ;border-radius:50%;"/>
                     <h6 style="display: inline">{{ comment.author.displayName }}</h6><span id="timestamp">   {{ comment.published }}</span>
                     <div style="margin-top:10px; margin-left:50px;margin-right:50px;">
                         {% if comment.contentType == 'text/markdown' %}
-                            <div>{{ comment.comment_markdown | safe }}</div>
-                                
+                            <div id="markdown">{{ comment.comment_markdown | safe }}</div>  
                         {% else %}
                             <div>  {{ comment.comment }} </div>   
                         {% endif %}

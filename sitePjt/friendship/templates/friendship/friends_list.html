@@ -24,7 +24,7 @@
                         {% endif %}  
                         {% if author %}
                             <script>
-                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests </a>" );                                  
+                                $( "#user-menu" ).append( " <a data-toggle=\"modal\" data-target=\"#exampleModal\" id=\"view-request\" class=\"btn btn-outline-primary btn-block\" href=\"{% url 'friendship:view friend request' author.id %} \"> My Friend Requests {% if  friend_requests|length  > 0 %} <span class=\"badge badge-success\">{{ friend_requests|length }}</span>{% endif %}</a>" );                                  
                                 var popUpList = $('<div><input type="radio">A<br>+<input type="radio">B<br><input type="radio">C</div>');
                             </script>
                             <!-- a commend to activate  -->
@@ -46,7 +46,8 @@
                                             <li id="list">
                                                 <div class = "card">                                         
                                                     <div class="card-body">
-                                                        <div class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">{{ req.published|timesince }} ago</span></h4></div>
+                                                        <img src="https://avatars.dicebear.com/v2/jdenticon/{{req.author_from.displayName }}.svg" id="imgProfile" style="width: 40px; height: 40px ;border-radius:50%;"/>
+                                                        <div  style="display: inline" class="card-subtitle"><h4>{{req.author_from.displayName }} <span id="timestamp">{{ req.published|timesince }} ago</span></h4></div>
                                                         <!--Debug: {{ req.author_to.displayName }}-->
                                                         <form action="{% url 'friendship:handle request' %}" method="POST"> {% csrf_token %}
                                                             <input type="hidden" name="request_id" value="{{ req.id }}"></input>
@@ -90,7 +91,7 @@
                                 {% endfor %}
                                 </ul>
                                 {% else %}
-                                    No friends
+                                <h1 style="margin-left: 10px;">No friends</h1>
                                 {% endif %}
                         </div>
                     </div>

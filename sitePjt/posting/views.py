@@ -62,9 +62,6 @@ class ViewPublicPosts(APIView):
                 newpost = Post.objects.create(**form_data)
                 newpost.origin = "{}posts/{}".format(
                     settings.HOSTNAME, str(newpost.id))
-                #TODO
-                #uncomment this, change origin editable to true
-                #newpost.save()
                 response = PostSerializer(newpost).data
                 return JsonResponse(response, status=200)
             else:
@@ -94,10 +91,7 @@ class ViewPostDetails(APIView):
             nodes = ServerNode.objects.all()
             if nodes.exists():
                 post, comments = getRemotePost(post_id, nodes, request.user.url)
-            # if post != None:
-            #     comments = getRemotePostComment(post, request.user.url)
             if not post:
-                #TODO handle try three server foaf
                 friends_obj = getAllFriends(request.user.id)
                 friends = []
                 for obj in friends_obj:

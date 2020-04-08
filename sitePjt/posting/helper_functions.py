@@ -222,11 +222,6 @@ def postRemotePostComment(comment_data, requester_url):
 
 def getRemotePostComment(post, requester_url):
     remote_comments = []
-    '''
-    #TODO add field host of node
-    post_host = post.author.host + ""
-    node = ServerNode.objects.filter(host=)
-    '''
     node = ServerNode.objects.filter(host_url__startswith=post.origin.split('/posts/')[0])
 
     if node.exists():
