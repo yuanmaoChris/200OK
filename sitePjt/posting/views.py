@@ -40,7 +40,7 @@ class ViewPublicPosts(APIView):
             posts = getVisiblePosts(request.user)
             posts.sort(key=lambda x: x.published, reverse=True)
             context = {
-                'post_list': posts[:20],
+                'post_list': posts[:100],
             }
             return render(request, "posting/stream.html", context)
         except Exception as e:

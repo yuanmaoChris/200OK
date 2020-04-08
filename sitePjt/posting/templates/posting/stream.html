@@ -225,14 +225,15 @@
         });
         
         $('#cancel_btn').click(function(){
-            var image_input = $('#id_image');
-            image_input.replaceWith( image_input = image_input.clone( true ) );
-            $('#blah').attr('style',"display: none;")
             reset_form();
         }); 
 
         function reset_form(){
-                       document.getElementById("post-form").reset();
+            document.getElementById("post-form").reset();
+            var image_input = $('#id_image');
+            image_input.replaceWith( image_input = image_input.clone( true ) );
+            $('#blah').attr('style',"display: none;");
+
             $("#id_visibility").val('PUBLIC');
             $("#id_visibility").selectpicker("refresh");
 
