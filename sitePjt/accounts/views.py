@@ -136,12 +136,14 @@ def getRemoteAuthor(author_id):
     #TODO Stop abusing all nodes, need author object instead of author_id
     for node in ServerNode.objects.all():
         url = '{}author/{}'.format(node.host_url, str(author_id))
-        response = requests.get(url, auth=(node.server_username, node.server_password),timeout=5)
         try:
+            response = requests.get(url, auth=(node.server_username, node.server_password))
             if response.status_code == 200:
                 remote_author = response.json()
                 author = getJsonDecodeAuthor(remote_author)
                 break
+            else:
+                continue
         except Exception as e:
             pass
 

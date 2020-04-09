@@ -79,7 +79,7 @@ def getRemotePublicPosts():
         url = "{}posts".format(node.host_url)
         auth = (node.server_username, node.server_password)
         try:
-            response = requests.get(url, auth=auth, timeout=5)
+            response = requests.get(url, auth=auth)
             if response.status_code == 200:
                 response = response.json()
                 remote_public_posts = response['posts']
@@ -104,7 +104,7 @@ def getRemoteVisiblePost(nodes, requester_url):
         auth = (node.server_username, node.server_password)
         headers = {'X-USER-ID': requester_url}
         try:
-            response = requests.get(url, auth=auth, headers=headers, timeout=5)
+            response = requests.get(url, auth=auth, headers=headers)
             if response.status_code == 200:
                 response = response.json()
                 remote_posts = response['posts']
@@ -128,7 +128,7 @@ def getRemotePost(post_id, nodes, requester_url):
         headers = {'X-USER-ID': requester_url}
         response = None
         try:
-            response = requests.get(url, auth=auth, headers=headers, timeout=5)
+            response = requests.get(url, auth=auth, headers=headers)
             if response.status_code == 200:
                 response = response.json()
                 remote_post = response['post']
@@ -164,7 +164,7 @@ def getRemoteFOAFPost(node, post_id, requester, friends):
     try:
         url = '{}posts/{}'.format(node.host_url, str(post_id))
         auth = (node.server_username, node.server_password)
-        response = requests.post(url, json=body, auth=auth, timeout=5)
+        response = requests.post(url, json=body, auth=auth)
         if response.status_code == 200:
             response = response.json()
             remote_post = response['post']
@@ -210,7 +210,7 @@ def postRemotePostComment(comment_data, requester_url):
         url = '{}posts/{}/comments'.format(node.host_url, str(post_id))
         try:
             response = requests.post(
-                url, json=body, auth=auth, headers=headers, timeout=5)
+                url, json=body, auth=auth, headers=headers)
             if response.status_code == 200:
                 return response.json()['success']
             else:
@@ -230,7 +230,7 @@ def getRemotePostComment(post, requester_url):
         auth = (node.server_username, node.server_password)
         headers = {'X-USER-ID': requester_url}
         try:
-            response = requests.get(url, auth=auth, headers=headers, timeout=5)
+            response = requests.get(url, auth=auth, headers=headers)
             if response.status_code == 200:
                 response = response.json()
                 for item in response['comments']:
