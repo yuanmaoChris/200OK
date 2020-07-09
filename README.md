@@ -8,23 +8,14 @@ See project.org (plain-text/org-mode) for a description of the project.
 
 Make a distributed social network!
 
-Team: CMPUT404W20T07 [H03]
-===================================
 
-* Leo Hong    -    [lhong2](https://github.com/returnturn)
-* Yuanmao Zhu    -    [yuanmao](https://github.com/yuanmaoChris)
-* Yuhang Ma -    [yuhang5](https://github.com/yuhang5)
-* Yipu Chen    -    [yipu1](https://github.com/YipuChen)
-* Tianxin Ma      -    [tianxin3](https://github.com/tianxin3)
 
-Exsiting Accounts
+Example Accounts
 =================
 
-SuperUser:
+Email: demo@user.com
 
-Email:yipu1@admin.com
-
-Password:yipu666
+Password:password
 
 
 Description:
@@ -122,7 +113,11 @@ Contributors:
     Abram Hindle
     Braedy Kuzma
     
-To Do
-========================
+Team: CMPUT404W20T07 [H03]
+===================================
 
-Add log for login successful or not
+* Yuanmao Zhu    -    [yuanmao](https://github.com/yuanmaoChris)
+* Leo Hong    -    [lhong2](https://github.com/returnturn)
+* Yuhang Ma -    [yuhang5](https://github.com/yuhang5)
+* Yipu Chen    -    [yipu1](https://github.com/YipuChen)
+* Tianxin Ma      -    [tianxin3](https://github.com/tianxin3)
