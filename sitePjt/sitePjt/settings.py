@@ -158,6 +158,6 @@ AUTH_USER_MODEL = 'accounts.Author'
 #8000
 #HOSTNAME = "http://127.0.0.1:8000/"
 #remote HOST name
-HOSTNAME = "https://cmput404projecttestserver3.herokuapp.com/"
+HOSTNAME = "https://yuanmao-demo.herokuapp.com/"
 # Activate Django-Heroku.
 django_heroku.settings(locals())

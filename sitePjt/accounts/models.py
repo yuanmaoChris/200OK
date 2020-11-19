@@ -7,7 +7,7 @@ from django.conf import settings
 
 class AuthorManager(BaseUserManager):
     
-    def create_user(self, email, displayName, is_activated=False, is_active=True, is_admin=False, password=None):
+    def create_user(self, email, displayName, is_activated=True, is_active=True, is_admin=False, password=None):
         """
         Creates and saves a User with the given email, displayname and password.
         """
@@ -41,7 +41,7 @@ class AuthorManager(BaseUserManager):
             displayName=displayName,
         )
         user.admin = False
-        user.activated = False
+        user.activated = True
         user.node=True
         user.share=False
         user.share_image=False
@@ -83,7 +83,7 @@ class Author(AbstractBaseUser):
     last_login=models.DateField(verbose_name="last login", auto_now=True)
 
     active=models.BooleanField(default=True)
-    activated=models.BooleanField(default=False)
+    activated=models.BooleanField(default=True)
     node=models.BooleanField(default=False)
     admin=models.BooleanField(default=False)
     share=models.BooleanField(default=False)
@@ -133,6 +133,7 @@ class Author(AbstractBaseUser):
     @property
     def is_staff(self):
         return self.admin
+
 class ServerNode(models.Model):
     server_username = models.CharField(max_length=100)
     server_password = models.CharField(max_length=100)
