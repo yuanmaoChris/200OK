@@ -13,9 +13,9 @@ Make a distributed social network!
 Example Accounts
 =================
 
-Email: demo@user.com
+Email: root@admin.com
 
-Password:password
+Password:root
 
 
 Description:
