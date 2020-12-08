@@ -4,7 +4,7 @@ Project name:
 
 CMPUT404-project-socialdistribution
 
-See project.org for a description of the project.
+See `project.org` for a description of the project.
 
 Make a distributed social network!
 
